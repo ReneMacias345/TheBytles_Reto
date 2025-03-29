@@ -1,4 +1,3 @@
-// src/pages/Login.jsx
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../layouts/Layout';
@@ -13,7 +12,7 @@ export const Login = () => {
   const navigate = useNavigate();
 
   const onLogin = (e) => {
-    navigate('/home');
+    navigate('/Perfil');
   };
 
   const onSignUp = () => {
