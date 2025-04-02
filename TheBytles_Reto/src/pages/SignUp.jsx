@@ -3,8 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { Layout } from '../layouts/Layout'; 
 import { Button } from '../components/Button';
 import warningLogo from '../assets/warning.png';
+import supabase from '../config/supabaseClient';
 
 export const SignUp = () => {
+  //console.log(supabase)
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -17,9 +19,85 @@ export const SignUp = () => {
   const [cvFile, setCVFile] = useState(null);
   const profilePicInputRef = useRef(null);
   const navigate = useNavigate();
-  const handleSignUp = (e) => {
-    navigate('/perfil');
+
+  const [formError, setFormError] = useState(null);
+
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+  
+    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword) {
+      setFormError("Please fill in all the required fields");
+      return;
+    }
+  
+    if (password !== repeatPassword) {
+      setFormError("Passwords do not match");
+      return;
+    }
+
+    if (!email.includes("@" && ".")) {
+      setFormError("Please enter a valid email.");
+      return;
+    }
+    
+    if (password.length < 6) {
+      setFormError("Password must be at least 6 characters.");
+      return;
+    }
+
+    if (careerLevel > 13 || careerLevel < 1) {
+      setFormError("Career level must be in the 1-13 range.");
+      return;
+    }
+  
+  
+    // Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signUp({
+      email,
+      password,
+    });
+  
+    if (authError) {
+      if (authError.status === 409 || authError.message.toLowerCase().includes("user already registered")) {
+        setFormError("This email is already registered. Try logging in.");
+      } else {
+        setFormError("Signup failed: " + authError.message);
+      }
+      return;
+    }
+  
+    // User table inserts
+    const userId = authData.user?.id;
+  
+    const { data: userData, error: userError } = await supabase
+      .from("User")
+      .insert([
+        {
+          firstName,
+          lastName,
+          email,
+          role,
+          careerLevel,
+          atc,
+        },
+      ]);
+  
+    if (userError) {
+      setFormError("Something went wrong");
+      return;
+    }
+  
+    // Optional: You can handle profilePic and CV file upload here
+  
+    setFormError(null);
+    alert("Account created succesfully!");
+    navigate("/perfil");
   };
+  
+  //const handleSignUp = (e) => {
+  //  navigate('/perfil');
+  //};
 
   const handleSignIn = () => {
     navigate('/');
@@ -113,7 +191,7 @@ export const SignUp = () => {
               />
             </div>
 
-            <form onSubmit={handleSignUp} className="space-y-3">
+            <form onSubmit={handleSubmit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
@@ -191,7 +269,7 @@ export const SignUp = () => {
                 </div>
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    ATC
+                    ATC <span className="text-red-500">*</span>
                   </label>
                   <select
                     className="w-full px-3 py-2 text-base text-gray-700
@@ -199,6 +277,7 @@ export const SignUp = () => {
                                focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={atc}
                     onChange={(e) => setAtc(e.target.value)}
+                    required
                   >
                     <option value="">Select ATC</option>
                     <option value="CDMX">CDMX</option>
@@ -277,6 +356,7 @@ export const SignUp = () => {
             </p>
           </div>
         </div>
+        { formError && (<p>{formError}</p>)}
       </div>
     </Layout>
   );
