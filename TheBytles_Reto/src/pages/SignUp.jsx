@@ -26,7 +26,7 @@ export const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword) {
+    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !role) {
       setFormError("Please fill in all the required fields");
       return;
     }
@@ -46,11 +46,11 @@ export const SignUp = () => {
       return;
     }
 
+
     if (careerLevel > 13 || careerLevel < 1) {
       setFormError("Career level must be in the 1-13 range.");
       return;
     }
-  
   
     // Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
@@ -58,17 +58,7 @@ export const SignUp = () => {
       password,
     });
   
-    if (authError) {
-      if (authError.status === 409 || authError.message.toLowerCase().includes("user already registered")) {
-        setFormError("This email is already registered. Try logging in.");
-      } else {
-        setFormError("Signup failed: " + authError.message);
-      }
-      return;
-    }
-  
     // User table inserts
-    const userId = authData.user?.id;
   
     const { data: userData, error: userError } = await supabase
       .from("User")
@@ -80,13 +70,17 @@ export const SignUp = () => {
           role,
           careerLevel,
           atc,
+
         },
       ]);
   
-    if (userError) {
-      setFormError("Something went wrong");
-      return;
-    }
+      if (userError) {
+        if (userError.code === "23505") {
+          setFormError("This email is already registered in our database. Please try logging in.");
+        }
+
+        return;
+      }
   
     // Optional: You can handle profilePic and CV file upload here
   
