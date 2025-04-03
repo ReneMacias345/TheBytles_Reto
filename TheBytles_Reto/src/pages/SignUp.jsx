@@ -238,7 +238,7 @@ export const SignUp = () => {
               </div>
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Role
+                  Role <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-3 py-2 text-base text-gray-700
@@ -246,6 +246,7 @@ export const SignUp = () => {
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
                   value={role}
                   onChange={(e) => setRole(e.target.value)}
+                  required
                 >
                   <option value="">Select Role</option>
                   <option value="Backend Developer">Backend Developer</option>
@@ -256,7 +257,7 @@ export const SignUp = () => {
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
-                    Career Level
+                    Career Level <span className="text-red-500">*</span>
                   </label>
                   <input
                     type="text"
@@ -265,6 +266,7 @@ export const SignUp = () => {
                                focus:outline-none focus:ring-2 focus:ring-purple-500"
                     value={careerLevel}
                     onChange={(e) => setCareerLevel(e.target.value)}
+                    required
                   />
                 </div>
                 <div>
@@ -343,6 +345,7 @@ export const SignUp = () => {
               <Button type="submit" className="w-full mt-3 py-2">
                 Sign Up
               </Button>
+              { formError && (<p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>)}
             </form>
 
             <p className="mt-3 text-sm text-center text-gray-600">
@@ -356,7 +359,7 @@ export const SignUp = () => {
             </p>
           </div>
         </div>
-        { formError && (<p>{formError}</p>)}
+        
       </div>
     </Layout>
   );
