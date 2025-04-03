@@ -9,7 +9,7 @@ import supabase from '../config/supabaseClient';
 
 export const Login = () => {
  // console.log(supabase)
-
+ 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -78,13 +78,14 @@ export const Login = () => {
           <Button type="submit" className="w-full mt-4">
             Log In
           </Button>
+          {formError && (<p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>)}
         </form>
 
         <p className="mt-5 text-sm text-center text-gray-600">
           Don&apos;t have an account?{' '}
           <SignUpButton onClick={onSignUp}>Sign up</SignUpButton>
         </p>
-        { formError && (<p>{formError}</p>)}
+
       </AuthCard>
     </Layout>
   );
