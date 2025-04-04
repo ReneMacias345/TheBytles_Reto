@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useState , useEffect} from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import supabase from '../config/supabaseClient';
 
 export const NavbarEmp = () => {
   const navigate = useNavigate();
+  const [userData, setUserData] = useState(null);
+  
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        console.error("User not logged in.");
+        return;
+      }
+      // User info
+      const { data: userInfoData, error: userError } = await supabase
+        .from("User")
+        .select("firstName, lastName, role")
+        .eq("userId", userId)
+        .single();
+
+      if (userError) {
+        console.error("Error fetching user info:", userError);
+      } else {
+        setUserData(userInfoData);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.clear();
     window.location.href = '/login';
+
   };
 
   return (
@@ -109,8 +137,8 @@ export const NavbarEmp = () => {
             </svg>
           </div>
           <div className="ml-3">
-            <p className="text-sm font-semibold text-gray-800">Pedro Pascal</p>
-            <p className="text-xs text-gray-500">Senior Product Manager</p>
+            <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
+            <p className="text-xs text-gray-500">{userData?.role}</p>
           </div>
         </div>
         <button

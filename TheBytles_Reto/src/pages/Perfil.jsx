@@ -212,7 +212,8 @@ export const Perfil = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
-                  minLength={"20"}
+                  minLength={"10"}
+                  maxLength={"50"}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -235,7 +236,8 @@ export const Perfil = () => {
                 <textarea
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   rows="3"
-                  minLength={"100"}
+                  minLength={"50"}
+                  maxLength={"250"}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
