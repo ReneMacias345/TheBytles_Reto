@@ -7,9 +7,9 @@ export const NavbarEmp = () => {
   const navigate = useNavigate();
 
   const handleLogout = async () => {
-      await supabase.auth.signOut()
-      localStorage.clear();
-      navigate("/");
+    await supabase.auth.signOut();
+    localStorage.clear();
+    window.location.href = '/login';
   };
 
   return (
