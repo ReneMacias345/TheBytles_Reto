@@ -139,7 +139,7 @@ export const Perfil = () => {
               )}
             </div>
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-800">{userData?.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{userData?.firstName} {userData?.lastName}</h2>
               <p className="text-sm text-gray-500">
                 {userData?.role} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
