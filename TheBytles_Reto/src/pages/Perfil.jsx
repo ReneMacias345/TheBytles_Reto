@@ -3,40 +3,57 @@ import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import { GoalCard } from '../components/GoalCard';
 import supabase from '../config/supabaseClient';
+import { useEffect } from 'react';
 
 export const Perfil = () => {
-  console.log(supabase)
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [title, setTitle] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [description, setDescription] = useState('');
+  const today = new Date().toISOString().split("T")[0]
 
-//Estos los hice solo para ver el formato del perfil luego los cambiamos 
-  const userData = {
-    name: 'Pedro Pascal',
-    role: 'Senior Product Manager',
-    location: 'Monterrey ATC',
-    careerLevel: 4,
-    profilePic: '', 
-    bio: `Results-driven Senior Product Manager with 6+ years of experience in digital commerce,
-     mobile strategy, and AI-driven personalization. Expertise in agile product development, 
-     user research, and go-to-market execution across Accenture, 
-     Disney+, and Netflix. Certified in Digital Product Leadership,
-     AI Personalization, and Agile Roadmap Mastery. Passionate about scaling digital experiences, 
-     optimizing user engagement, and driving innovation.`,
-  };
 
-  // Igual estas 
-  const initialGoal = {
-    title: 'Become a Certified Cloud Solutions Architect',
-    targetDate: '2026-06-24',
-    description: `I aim to obtain a Cloud Solutions Architect certification within the next 12 months.
-                  This will enhance my expertise in cloud computing, architecture design, and security
-                  best practices. I will complete online courses, gain hands-on experience with cloud
-                  platforms such as AWS and Azure, and pass the certification exam.`,
-  };
+  const [goals, setGoals] = useState([]);
+  const [userData, setUserData] = useState(null);
 
-  const [goals, setGoals] = useState([initialGoal]);
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        console.error("User not logged in.");
+        return;
+      }
+
+      // Goals
+      const { data: goalsData, error: goalsError } = await supabase
+        .from("Goal")
+        .select("*")
+        .eq("goalUserId", userId);
+
+      if (goalsError) {
+        console.error("Error fetching goals:", goalsError);
+      } else {
+        setGoals(goalsData);
+      }
+
+      // User info
+      const { data: userInfoData, error: userError } = await supabase
+        .from("User")
+        .select("firstName, lastName, role, atc, careerLevel")
+        .eq("userId", userId)
+        .single();
+
+      if (userError) {
+        console.error("Error fetching user info:", userError);
+      } else {
+        setUserData(userInfoData);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleCompleteGoal = (goalTitle) => {
     alert(`Goal Completed: ${goalTitle}`);
@@ -53,12 +70,38 @@ export const Perfil = () => {
     setDescription('');
   };
 
-  const handleSaveGoal = (e) => {
+  const handleSaveGoal = async (e) => {
     e.preventDefault();
-    const newGoal = { title, targetDate, description };
-    setGoals([...goals, newGoal]);
-    handleCloseForm();
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const newGoal = {
+      title,
+      targetDate, // YYYY-MM-DD
+      description,
+      goalUserId: userId,
+    };
+  
+    const { data, error } = await supabase
+      .from("Goal")
+      .insert([newGoal])
+      .select(); 
+  
+    if (error) {
+      console.error("Error inserting goal:", error);
+      return;
+    }
+  
+    setGoals([...goals, data[0]]);
+    handleCloseForm(); 
   };
+
 
   return (
     <ScreenLayout>
@@ -66,7 +109,7 @@ export const Perfil = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
-              {userData.profilePic ? (
+              {userData?.profilePic ? (
                 <img
                   src={userData.profilePic}
                   alt="Profile"
@@ -96,9 +139,9 @@ export const Perfil = () => {
               )}
             </div>
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-800">{userData.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{userData?.name}</h2>
               <p className="text-sm text-gray-500">
-                {userData.role} | {userData.location} | Career Level: {userData.careerLevel}
+                {userData?.role} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
             </div>
           </div>
@@ -118,7 +161,7 @@ export const Perfil = () => {
             Download CV
           </button>
         </div>
-        <p className="mt-4 text-gray-700 leading-relaxed">{userData.bio}</p>
+        <p className="mt-4 text-gray-700 leading-relaxed">{userData?.bio}</p>
       </InfoCard>
 
       <InfoCard>
@@ -169,6 +212,7 @@ export const Perfil = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
+                  minLength={"20"}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -179,6 +223,7 @@ export const Perfil = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Target Date</label>
                 <input
                   type="date"
+                  min={today}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   value={targetDate}
                   onChange={(e) => setTargetDate(e.target.value)}
@@ -190,6 +235,7 @@ export const Perfil = () => {
                 <textarea
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   rows="3"
+                  minLength={"100"}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required

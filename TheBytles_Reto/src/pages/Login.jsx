@@ -8,8 +8,6 @@ import '../styles/custom.css';
 import supabase from '../config/supabaseClient';
 
 export const Login = () => {
- // console.log(supabase)
- 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
@@ -24,15 +22,23 @@ export const Login = () => {
       password,
     })
 
-    if (error) {
+    if (!error) {
+      alert("Logged in succesfully!");
+      navigate("/perfil");
+      return;
+    } else if (error.message === "Email not confirmed") {
+      console.error("Login error:", error.message);
+      setFormError("Please check your inbox: You must authenticate before logging in.");
+      return;
+    } else if (error.message === "Invalid login credentials") {
       console.error("Login error:", error.message);
       setFormError("Invalid email or password.");
       return;
-    }
+    } 
 
-    setFormError(null);
-    alert("Logged in succesfully!");
-    navigate("/perfil");
+    //setFormError(null);
+    //alert("Logged in succesfully!");
+    //navigate("/perfil");
   }
 
   const onSignUp = () => {
