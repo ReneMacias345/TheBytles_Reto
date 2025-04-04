@@ -8,6 +8,7 @@ import { Employees } from './pages/Employees';
 import { Clients } from './pages/Clients';
 import { Assignments } from './pages/Assignments';
 import { PrivateRoute } from './components/PrivateRoute';
+import { AdminRoute } from './components/AdminRoute';
 
 export const App = () => {
   return (
@@ -17,14 +18,16 @@ export const App = () => {
         <Route path="/" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
 
-        // rutas privadas (solo logeados)
+        // rutas privadas (cualquier persona logeada)
         <Route path="/perfil" element={<PrivateRoute> <Perfil /> </PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute> <Projects /> </PrivateRoute>} />
-        <Route path="/employees" element={<PrivateRoute> <Employees /> </PrivateRoute>} />
-        <Route path="/clients" element={<PrivateRoute> <Clients /> </PrivateRoute>} />
-        <Route path="/assignments" element={<PrivateRoute> <Assignments /> </PrivateRoute>} />
 
-        <Route path="*" element={<Login />} /> // redireccion al login
+        // rutas privadas (solo para admins)
+        <Route path="/employees" element={<AdminRoute> <Employees /> </AdminRoute>} />
+        <Route path="/clients" element={<AdminRoute> <Clients /> </AdminRoute>} />
+        <Route path="/assignments" element={<AdminRoute> <Assignments /> </AdminRoute>} />
+
+        <Route path="*" element={<Login />} /> // redireccion al login cuando una pantalla no esta accesible
       </Routes>
 
   );
