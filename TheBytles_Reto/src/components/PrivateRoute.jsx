@@ -33,6 +33,6 @@ export const PrivateRoute = ({ children }) => {
   }, []);
 
   if (loading) return <div>Loading...</div>;
-  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
   return children;
 };

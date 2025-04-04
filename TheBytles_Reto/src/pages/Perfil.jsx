@@ -12,48 +12,47 @@ export const Perfil = () => {
   const [description, setDescription] = useState('');
   const today = new Date().toISOString().split("T")[0]
 
-//Estos los hice solo para ver el formato del perfil luego los cambiamos 
-  const userData = {
-    name: 'Pedro Pascal',
-    role: 'Senior Product Manager',
-    location: 'Monterrey ATC',
-    careerLevel: 4,
-    profilePic: '', 
-    bio: `Results-driven Senior Product Manager with 6+ years of experience in digital commerce,
-     mobile strategy, and AI-driven personalization. Expertise in agile product development, 
-     user research, and go-to-market execution across Accenture, 
-     Disney+, and Netflix. Certified in Digital Product Leadership,
-     AI Personalization, and Agile Roadmap Mastery. Passionate about scaling digital experiences, 
-     optimizing user engagement, and driving innovation.`,
-  };
-
 
   const [goals, setGoals] = useState([]);
+  const [userData, setUserData] = useState(null);
 
   useEffect(() => {
-    const fetchGoals = async () => {
+    const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-  
+
       if (!userId) {
         console.error("User not logged in.");
         return;
       }
-  
-      const { data, error } = await supabase
-        .from('Goal')
-        .select('*')
-        .eq('goalUserId', userId)
-  
-      if (error) {
-        console.error("Error fetching goals:", error);
-        return;
+
+      // Goals
+      const { data: goalsData, error: goalsError } = await supabase
+        .from("Goal")
+        .select("*")
+        .eq("goalUserId", userId);
+
+      if (goalsError) {
+        console.error("Error fetching goals:", goalsError);
+      } else {
+        setGoals(goalsData);
       }
-  
-      setGoals(data);
+
+      // User info
+      const { data: userInfoData, error: userError } = await supabase
+        .from("User")
+        .select("firstName, lastName, role, atc, careerLevel")
+        .eq("userId", userId)
+        .single();
+
+      if (userError) {
+        console.error("Error fetching user info:", userError);
+      } else {
+        setUserData(userInfoData);
+      }
     };
-  
-    fetchGoals();
+
+    fetchData();
   }, []);
 
   const handleCompleteGoal = (goalTitle) => {
@@ -103,13 +102,14 @@ export const Perfil = () => {
     handleCloseForm(); 
   };
 
+
   return (
     <ScreenLayout>
       <InfoCard>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
-              {userData.profilePic ? (
+              {userData?.profilePic ? (
                 <img
                   src={userData.profilePic}
                   alt="Profile"
@@ -139,9 +139,9 @@ export const Perfil = () => {
               )}
             </div>
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-800">{userData.name}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">{userData?.name}</h2>
               <p className="text-sm text-gray-500">
-                {userData.role} | {userData.location} | Career Level: {userData.careerLevel}
+                {userData?.role} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
             </div>
           </div>
@@ -161,7 +161,7 @@ export const Perfil = () => {
             Download CV
           </button>
         </div>
-        <p className="mt-4 text-gray-700 leading-relaxed">{userData.bio}</p>
+        <p className="mt-4 text-gray-700 leading-relaxed">{userData?.bio}</p>
       </InfoCard>
 
       <InfoCard>

@@ -8,6 +8,7 @@ export const Navbar = () => {
 
   async function signOut() {
     await supabase.auth.signOut() // en todos lados, globalmente
+    localStorage.clear();
     navigate("/");
   };
 
