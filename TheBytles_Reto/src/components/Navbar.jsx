@@ -1,11 +1,13 @@
 import React from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../assets/logo.png';
+import supabase from '../config/supabaseClient';
 
 export const Navbar = () => {
   const navigate = useNavigate();
 
-  const handleLogout = () => {
+  async function signOut() {
+    await supabase.auth.signOut() // en todos lados, globalmente
     navigate("/");
   };
 
@@ -207,7 +209,7 @@ export const Navbar = () => {
           </div>
         </div>
         <button
-          onClick={handleLogout}
+          onClick={signOut}
           className="mt-3 px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
         >
           Logout
