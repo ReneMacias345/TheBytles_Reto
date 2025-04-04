@@ -3,6 +3,7 @@ import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import { GoalCard } from '../components/GoalCard';
 import supabase from '../config/supabaseClient';
+import { useEffect } from 'react';
 
 export const Perfil = () => {
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -26,17 +27,34 @@ export const Perfil = () => {
      optimizing user engagement, and driving innovation.`,
   };
 
-  // Igual estas 
-  const initialGoal = {
-    title: 'Become a Certified Cloud Solutions Architect',
-    targetDate: '2026-06-24',
-    description: `I aim to obtain a Cloud Solutions Architect certification within the next 12 months.
-                  This will enhance my expertise in cloud computing, architecture design, and security
-                  best practices. I will complete online courses, gain hands-on experience with cloud
-                  platforms such as AWS and Azure, and pass the certification exam.`,
-  };
 
-  const [goals, setGoals] = useState([initialGoal]);
+  const [goals, setGoals] = useState([]);
+
+  useEffect(() => {
+    const fetchGoals = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+  
+      if (!userId) {
+        console.error("User not logged in.");
+        return;
+      }
+  
+      const { data, error } = await supabase
+        .from('Goal')
+        .select('*')
+        .eq('goalUserId', userId)
+  
+      if (error) {
+        console.error("Error fetching goals:", error);
+        return;
+      }
+  
+      setGoals(data);
+    };
+  
+    fetchGoals();
+  }, []);
 
   const handleCompleteGoal = (goalTitle) => {
     alert(`Goal Completed: ${goalTitle}`);
@@ -53,11 +71,36 @@ export const Perfil = () => {
     setDescription('');
   };
 
-  const handleSaveGoal = (e) => {
+  const handleSaveGoal = async (e) => {
     e.preventDefault();
-    const newGoal = { title, targetDate, description };
-    setGoals([...goals, newGoal]);
-    handleCloseForm();
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const newGoal = {
+      title,
+      targetDate, // YYYY-MM-DD
+      description,
+      goalUserId: userId,
+    };
+  
+    const { data, error } = await supabase
+      .from("Goal")
+      .insert([newGoal])
+      .select(); 
+  
+    if (error) {
+      console.error("Error inserting goal:", error);
+      return;
+    }
+  
+    setGoals([...goals, data[0]]);
+    handleCloseForm(); 
   };
 
   return (
