@@ -70,7 +70,7 @@ export const SignUp = () => {
           role,
           careerLevel,
           atc,
-
+          password, // PLS PLS PLS quitar en produccion, supabase ya lo guarda seguramente :D
         },
       ]);
   
@@ -82,11 +82,11 @@ export const SignUp = () => {
         return;
       }
   
-    // Optional: You can handle profilePic and CV file upload here
+    // profilePic y CV aca ?
   
     setFormError(null);
-    alert("Account created succesfully!");
-    navigate("/perfil");
+    alert("Account created succesfully! Please check your inbox: You must authenticate before logging in.");
+    navigate("/");
   };
   
   //const handleSignUp = (e) => {
