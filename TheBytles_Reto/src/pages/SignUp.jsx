@@ -211,7 +211,7 @@ export const SignUp = () => {
                   type="text"
                   pattern="[A-Za-zÀ-ÿ\s]+"
                   title="Please enter only letters"
-                  value={firstName}
+                  value={lastName}
                   onChange={(e) => setFirstName(e.target.value)}
                   required
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
