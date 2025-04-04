@@ -210,6 +210,7 @@ export const SignUp = () => {
                   </label>
                   <input
                   type="text"
+                  pattern="[A-Za-zÀ-ÿ\s]+"
                   title="Please enter only letters"
                   value={lastName}
                   onChange={(e) => setLastName(e.target.value)}
