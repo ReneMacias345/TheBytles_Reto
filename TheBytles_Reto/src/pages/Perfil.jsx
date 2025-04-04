@@ -5,7 +5,6 @@ import { GoalCard } from '../components/GoalCard';
 import supabase from '../config/supabaseClient';
 
 export const Perfil = () => {
-  console.log(supabase)
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [title, setTitle] = useState('');
   const [targetDate, setTargetDate] = useState('');

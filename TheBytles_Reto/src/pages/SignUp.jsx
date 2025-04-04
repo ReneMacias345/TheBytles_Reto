@@ -6,7 +6,6 @@ import warningLogo from '../assets/warning.png';
 import supabase from '../config/supabaseClient';
 
 export const SignUp = () => {
-  //console.log(supabase)
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -58,26 +57,39 @@ export const SignUp = () => {
       password,
     });
   
+    if (authError) {
+      setFormError(authError.message);
+      return;
+    }
+
+    const userId = authData?.user?.id;
+
+  if (!userId) {
+    setFormError("User ID not found after signup.");
+    return;
+  }
+
     // User table inserts
   
     const { data: userData, error: userError } = await supabase
       .from("User")
       .insert([
         {
+          userId,
           firstName,
           lastName,
           email,
           role,
-          careerLevel,
+          careerLevel: parseInt(careerLevel),
           atc,
-          password, // PLS PLS PLS quitar en produccion, supabase ya lo guarda seguramente :D
+          //password, // PLS PLS PLS quitar en produccion, supabase ya lo guarda seguramente :D
         },
       ]);
   
       if (userError) {
         if (userError.code === "23505") {
           setFormError("This email is already registered in our database. Please try logging in.");
-        }
+        } 
 
         return;
       }
@@ -262,7 +274,7 @@ export const SignUp = () => {
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
                   value={careerLevel}
-                  onChange={(e) => setCareerLevel(e.target.value)}
+                  onChange={(e) => setCareerLevel(parseInt(e.target.value))}
                   required
                 >
                   <option value="">Select Career Level</option>

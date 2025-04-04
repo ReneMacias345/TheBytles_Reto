@@ -8,8 +8,6 @@ import '../styles/custom.css';
 import supabase from '../config/supabaseClient';
 
 export const Login = () => {
- // console.log(supabase)
- 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
