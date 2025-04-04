@@ -193,6 +193,8 @@ export const SignUp = () => {
                   </label>
                   <input
                     type="text"
+                    pattern="[A-Za-zÀ-ÿ\s]+"
+                    title="Please enter only letters"
                     className="w-full px-3 py-2 text-base text-gray-700 
                                bg-gray-100 border border-gray-200 rounded-full
                                focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -206,14 +208,15 @@ export const SignUp = () => {
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                    type="text"
-                    className="w-full px-3 py-2 text-base text-gray-700 
-                               bg-gray-100 border border-gray-200 rounded-full
-                               focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    value={lastName}
-                    onChange={(e) => setLastName(e.target.value)}
-                    required
+                  type="text"
+                  pattern="[A-Za-zÀ-ÿ\s]+"
+                  title="Please enter only letters"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
+
                 </div>
               </div>
               <div>
@@ -253,15 +256,29 @@ export const SignUp = () => {
                   <label className="block mb-1 text-sm font-medium text-gray-700">
                     Career Level <span className="text-red-500">*</span>
                   </label>
-                  <input
-                    type="text"
-                    className="w-full px-3 py-2 text-base text-gray-700 
-                               bg-gray-100 border border-gray-200 rounded-full
-                               focus:outline-none focus:ring-2 focus:ring-purple-500"
-                    value={careerLevel}
-                    onChange={(e) => setCareerLevel(e.target.value)}
-                    required
-                  />
+                  <select
+                  className="w-full px-3 py-2 text-base text-gray-700
+                             bg-gray-100 border border-gray-200 rounded-full
+                             focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={careerLevel}
+                  onChange={(e) => setCareerLevel(e.target.value)}
+                  required
+                >
+                  <option value="">Select Career Level</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                  <option value="6">6</option>
+                  <option value="7">7</option>
+                  <option value="8">8</option>
+                  <option value="9">9</option>
+                  <option value="10">10</option>
+                  <option value="11">11</option>
+                  <option value="12">12</option>
+                  <option value="13">13</option>
+                </select>
                 </div>
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">

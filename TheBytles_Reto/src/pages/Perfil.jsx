@@ -10,6 +10,7 @@ export const Perfil = () => {
   const [title, setTitle] = useState('');
   const [targetDate, setTargetDate] = useState('');
   const [description, setDescription] = useState('');
+  const today = new Date().toISOString().split("T")[0]
 
 //Estos los hice solo para ver el formato del perfil luego los cambiamos 
   const userData = {
@@ -169,6 +170,7 @@ export const Perfil = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Title</label>
                 <input
                   type="text"
+                  minLength={"20"}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
@@ -179,6 +181,7 @@ export const Perfil = () => {
                 <label className="block mb-1 text-sm font-medium text-gray-700">Target Date</label>
                 <input
                   type="date"
+                  min={today}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   value={targetDate}
                   onChange={(e) => setTargetDate(e.target.value)}
@@ -190,6 +193,7 @@ export const Perfil = () => {
                 <textarea
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   rows="3"
+                  minLength={"100"}
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
                   required
