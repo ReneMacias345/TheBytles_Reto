@@ -19,7 +19,7 @@ export const Navbar = () => {
       // User info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, role")
+        .select("firstName, lastName, capability")
         .eq("userId", userId)
         .single();
 
@@ -232,7 +232,7 @@ export const Navbar = () => {
           </div>
           <div className="ml-3">
           <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
-          <p className="text-xs text-gray-500">{userData?.role}</p>
+          <p className="text-xs text-gray-500">{userData?.capability}</p>
           </div>
         </div>
         <button

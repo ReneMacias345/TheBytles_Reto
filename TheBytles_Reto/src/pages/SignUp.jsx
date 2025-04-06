@@ -9,7 +9,7 @@ export const SignUp = () => {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState('');
+  const [capability, setCapability] = useState('');
   const [careerLevel, setCareerLevel] = useState('');
   const [atc, setAtc] = useState('');
   const [password, setPassword] = useState('');
@@ -25,7 +25,7 @@ export const SignUp = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !role) {
+    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !capability) {
       setFormError("Please fill in all the required fields");
       return;
     }
@@ -79,7 +79,7 @@ export const SignUp = () => {
           firstName,
           lastName,
           email,
-          role,
+          capability,
           careerLevel: parseInt(careerLevel),
           atc,
           //password, // PLS PLS PLS quitar en produccion, supabase ya lo guarda seguramente :D
@@ -248,17 +248,17 @@ export const SignUp = () => {
               </div>
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Role <span className="text-red-500">*</span>
+                  Capability <span className="text-red-500">*</span>
                 </label>
                 <select
                   className="w-full px-3 py-2 text-base text-gray-700
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
+                  value={capability}
+                  onChange={(e) => setCapability(e.target.value)}
                   required
                 >
-                  <option value="">Select Role</option>
+                  <option value="">Select Capability</option>
                   <option value="Backend Developer">Backend Developer</option>
                   <option value="SCRUM Master">SCRUM Master</option>
                   <option value="QA Automation Test Lead">QA Automation Test Lead</option>

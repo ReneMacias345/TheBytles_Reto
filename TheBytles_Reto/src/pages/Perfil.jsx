@@ -41,7 +41,7 @@ export const Perfil = () => {
       // User info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, role, atc, careerLevel")
+        .select("firstName, lastName, capability, atc, careerLevel")
         .eq("userId", userId)
         .single();
 
@@ -141,7 +141,7 @@ export const Perfil = () => {
             <div className="ml-4">
               <h2 className="text-2xl font-bold text-gray-800">{userData?.firstName} {userData?.lastName}</h2>
               <p className="text-sm text-gray-500">
-                {userData?.role} | {userData?.atc} | Career Level: {userData?.careerLevel}
+                {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
             </div>
           </div>
