@@ -12,6 +12,8 @@ export const Assignments = () => {
   const [endDate, setEndDate] = useState('');
   const [projectPic, setProjectPic] = useState(null);
   const [RFPFile, setRFPFile] = useState(null);
+  const today = new Date().toISOString().split("T")[0]
+  
 
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
@@ -66,18 +68,19 @@ export const Assignments = () => {
       </div>
 
         <ProjectCard {...caseData} />
+        
         {showProjectForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-58 max-w-xl p-8 rounded-3xl shadow-md relative">
+          <div className="bg-white w-full max-w-4xl p-8 rounded-3xl shadow-md relative">
             <button
               onClick={handleCloseForm}
               className="absolute top-4 right-4 bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center"
             >
               &times;
             </button>
-            <div className="grid grid-cols-2 gap-6 items-start">
+            <div className=" grid grid-cols-2 gap-6 items-start">
               <div className="flex flex-col items-center">
-                <div className="w-28 h-28 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center">
+                <div className="w-28 h-28 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center mt-24">
                   {projectPic ? (
                     <img
                       src={URL.createObjectURL(projectPic)}
@@ -103,7 +106,7 @@ export const Assignments = () => {
                 </div>
                 <button
                   type="button"
-                  className="mt-2 px-4 py-1 rounded-full border border-gray-300 text-gray-200 bg-[#A100FF]"
+                  className=" bg-[#A100FF] mt-2 px-4 py-1 rounded-full border border-gray-300 text-white"
                   onClick={() => projectPicRef.current.click()}
                 >
                   Change
@@ -126,7 +129,64 @@ export const Assignments = () => {
                     onChange={(e) => setProjectName(e.target.value)}
                   />
                 </div>
-
+                <div className="col-span-2">
+                  <label className="text-sm font-medium text-gray-700">Project Description</label>
+                  <textarea
+                    rows="3"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    value={projectDescription}
+                    onChange={(e) => setProjectDescription(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Staffing Stage</label>
+                  <input
+                    type="date"
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    value={staffingStage}
+                    onChange={(e) => setStaffingStage(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">Start Date</label>
+                  <input
+                    type="date"
+                    min={today}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    value={startDate}
+                    onChange={(e) => setStartDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-700">End Date</label>
+                  <input
+                    type="date"
+                    min={today}
+                    className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
+                    value={endDate}
+                    onChange={(e) => setEndDate(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col items-start justify-end">
+                  <label className="text-sm font-medium text-gray-700">Upload RFP</label>
+                  <button
+                    onClick={() => RFPRef.current.click()}
+                    className="mt-1 px-4 py-2 border border-gray-300 rounded-3xl bg-[#A100FF] text-white"
+                  >
+                    Upload RFP
+                  </button>
+                  <input
+                    type="file"
+                    accept="application/pdf"
+                    ref={RFPRef}
+                    className="hidden"
+                    onChange={(e) => setRFPFile(e.target.files[0])}
+                    required
+                  />
+                </div>
               </div>
             </div>
           </div>
