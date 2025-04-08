@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Layout } from '../layouts/Layout'; 
 import { Button } from '../components/Button';
@@ -14,11 +14,7 @@ export const SignUp = () => {
   const [atc, setAtc] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
-  const [profilePic, setProfilePic] = useState(null);
-  const [cvFile, setCVFile] = useState(null);
-  const profilePicInputRef = useRef(null);
   const navigate = useNavigate();
-
   const [formError, setFormError] = useState(null);
 
 
@@ -109,24 +105,6 @@ export const SignUp = () => {
     navigate('/');
   };
 
-  const handleProfilePicChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type === 'image/png') {
-      setProfilePic(file);
-    } else {
-      alert('Please select a PNG image.');
-    }
-  };
-
-  const handleCVChange = (e) => {
-    const file = e.target.files[0];
-    if (file && file.type === 'application/pdf') {
-      setCVFile(file);
-    } else {
-      alert('Please select a PDF file.');
-    }
-  };
-
   return (
     <Layout>
       <div className="flex min-h-screen bg-[#F8F9FD]">
@@ -149,53 +127,6 @@ export const SignUp = () => {
         </div>
         <div className="w-full md:w-3/5 flex justify-center items-center p-4 mt-[-200px]">
           <div className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-lg">
-            <div className="flex items-center mb-4">
-              <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center overflow-hidden">
-                {profilePic ? (
-                  <img
-                    src={URL.createObjectURL(profilePic)}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                ) : (
-                  <svg
-                    className="w-6 h-6 text-gray-400"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    viewBox="0 0 24 24"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375
-                         M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M2 20h20"
-                    />
-                  </svg>
-                )}
-              </div>
-
-              <button
-                type="button"
-                className="ml-3 font-medium text-[#A100FF] hover:underline bg-transparent"
-                onClick={() => profilePicInputRef.current.click()}
-              >
-                Change
-              </button>
-              <input
-                type="file"
-                ref={profilePicInputRef}
-                className="hidden"
-                accept="image/png"
-                onChange={handleProfilePicChange}
-              />
-            </div>
 
             <form onSubmit={handleSubmit} className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
@@ -349,29 +280,6 @@ export const SignUp = () => {
                   onChange={(e) => setRepeatPassword(e.target.value)}
                   required
                 />
-              </div>
-
-              <div>
-                <label className="block mb-1 text-sm font-medium text-gray-700">
-                  Upload CV
-                </label>
-                <label className="border-2 border-dashed border-gray-300 rounded-2xl p-4 text-center text-gray-500 bg-gray-50 cursor-pointer block">
-                  <p className="text-sm">
-                    Choose a file or drag &amp; drop it here <br />
-                    PDF only
-                  </p>
-                  <input
-                    type="file"
-                    accept="application/pdf"
-                    className="hidden"
-                    onChange={handleCVChange}
-                  />
-                </label>
-                {cvFile && (
-                  <p className="mt-2 text-sm text-gray-700">
-                    File selected: {cvFile.name}
-                  </p>
-                )}
               </div>
 
               <Button type="submit" className="w-full mt-3 py-2">

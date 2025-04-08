@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef} from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import { GoalCard } from '../components/GoalCard';
@@ -11,7 +11,11 @@ export const Perfil = () => {
   const [targetDate, setTargetDate] = useState('');
   const [description, setDescription] = useState('');
   const today = new Date().toISOString().split("T")[0]
-
+  const [showBioForm, setShowBioForm] = useState(false);
+  const [newBio, setNewBio] = useState('');
+  const [cvFile, setCVFile] = useState(null);
+  const profilePicInputRef = useRef(null);
+  const cvInputRef = useRef(null);
 
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
@@ -102,22 +106,54 @@ export const Perfil = () => {
     handleCloseForm(); 
   };
 
+  const handleOpenBioForm = () => {
+    setNewBio(userData?.bio || "");
+    setShowBioForm(true);
+  };
+
+  const handleSaveBio = () => {
+    setUserData({ ...userData, bio: newBio });
+    setShowBioForm(false);
+  };
+
+  const handleProfilePicChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'image/png') {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUserData({ ...userData, profilePic: reader.result });
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleCVChange = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setCVFile(file);
+      alert('CV uploaded successfully.');
+    } else {
+      alert('Please upload a PDF file.');
+    }
+  };
+
+
 
   return (
     <ScreenLayout>
       <InfoCard>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
-            <div className="w-24 h-24 bg-gray-200 rounded-full overflow-hidden">
+            <div className="relative w-24 h-24 bg-gray-200 rounded-full">
               {userData?.profilePic ? (
                 <img
                   src={userData.profilePic}
                   alt="Profile"
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-full"
                 />
               ) : (
                 <svg
-                  className="w-20 h-20 text-gray-400 mx-auto my-auto"
+                  className="w-24 h-20 text-gray-400 mx-auto my-auto"
                   fill="none"
                   stroke="currentColor"
                   strokeWidth="2"
@@ -126,26 +162,45 @@ export const Perfil = () => {
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M5.121 17.804A6.978 6.978 0 0112 15
-                       c1.57 0 3.013.51 4.121 1.375
-                       M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+                    d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375M15 10a3 3 0 11-6 0 3 3 0 016 0z"
                   />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
+                </svg>
+              )}
+  
+              <button
+                onClick={() => profilePicInputRef.current.click()}
+                className="absolute bottom-0 right-0 bg-white border border-gray-300 rounded-full p-1 shadow-md z-10"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-5 h-5 text-gray-600"
+                >
                   <path
                     strokeLinecap="round"
                     strokeLinejoin="round"
-                    d="M2 20h20"
+                    d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
                   />
                 </svg>
-              )}
+              </button>
             </div>
+
             <div className="ml-4">
-              <h2 className="text-2xl font-bold text-gray-800">{userData?.firstName} {userData?.lastName}</h2>
+              <h2 className="text-2xl font-bold text-gray-800">
+                {userData?.firstName} {userData?.lastName}
+              </h2>
               <p className="text-sm text-gray-500">
                 {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
             </div>
           </div>
+          
           <button
+            onClick={() => cvInputRef.current.click()}
             className="flex items-center border border-gray-300 px-4 py-2 rounded-full text-white bg-[#A100FF] hover:bg-[#A100FF] transition-colors"
           >
             <svg
@@ -156,12 +211,37 @@ export const Perfil = () => {
               stroke="currentColor"
               className="w-6 h-6 inline-block mr-2"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5M16.5 12 12 16.5m0 0L7.5 12m4.5 4.5V3" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75V16.5m-13.5-9L12 3m0 0 4.5 4.5M12 3v13.5" />
             </svg>
-            Download CV
+            Upload CV
+          </button>
+          <input
+            type="file"
+            ref={cvInputRef}
+            accept="application/pdf"
+            className="hidden"
+            onChange={handleCVChange}
+          />
+        </div>
+
+        <p className="mt-4 text-gray-700 leading-relaxed">
+          {userData?.bio}
+        </p>      
+        <div className="mt-4">
+          <button
+            onClick={handleOpenBioForm}
+            className="border border-gray-300 px-4 py-2 rounded-full text-white bg-[#A100FF] hover:bg-[#A100FF] transition-colors"
+          >
+            Bio
           </button>
         </div>
-        <p className="mt-4 text-gray-700 leading-relaxed">{userData?.bio}</p>
+        <input
+          type="file"
+          ref={profilePicInputRef}
+          accept="image/png"
+          className="hidden"
+          onChange={handleProfilePicChange}
+        />
       </InfoCard>
 
       <InfoCard>
@@ -250,6 +330,34 @@ export const Perfil = () => {
                 Save Goal
               </button>
             </form>
+          </div>
+        </div>
+      )}
+     {showBioForm && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+            <button
+              onClick={() => setShowBioForm(false)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              &times;
+            </button>
+            <h2 className="text-xl font-bold text-center mb-4">Edit Bio</h2>
+            <div className="space-y-4">
+              <label className="block mb-1 text-sm font-medium text-gray-700">Description:</label>
+              <textarea
+                className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
+                rows="3"
+                value={newBio}
+                onChange={(e) => setNewBio(e.target.value)}
+              />
+              <button
+                onClick={handleSaveBio}
+                className="w-full mt-3 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
+              >
+                Save
+              </button>
+            </div>
           </div>
         </div>
       )}
