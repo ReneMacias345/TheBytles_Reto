@@ -5,10 +5,19 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
   const [editTitle, setEditTitle] = useState(null);
   const [editTargetDate, setEditTargetDate] = useState(null);
   const [editDescription, setEditDescription] = useState(null);
+  const [showConfirm, setShowConfirm] = useState(false);
 
+  const handleYes = () => {
+    setShowConfirm(false);
+    onComplete();
+  };
+
+  const handleNo = () => {
+    setShowConfirm(false);
+  };
 
   return (
-    <div className="bg-gray-50 p-4 rounded-xl shadow-sm mb-4">
+    <div className="bg-gray-50 p-4 rounded-xl shadow-sm mb-4 relative">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         <span className="text-sm text-gray-500">Target date: {targetDate}</span>
@@ -48,12 +57,36 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
           Edit
         </button>
         <button
-          onClick={onComplete}
+          onClick={() => setShowConfirm(true)}
           className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
         >
           Complete
         </button>
       </div>
+
+      {showConfirm && (
+        <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+            <p className="text-gray-800 font-semibold mb-4"> Are you sure you want to mark this goal as completed?</p>
+            <p className="text-gray-800 font-bold mb-6 text-center "> {title} </p>
+            <div className="flex justify-center space-x-4">
+              <button
+                onClick={handleYes}
+                className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
+              >
+                Yes
+              </button>
+
+              <button
+                onClick={handleNo}
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition"
+              >
+                No
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showEditModal && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
