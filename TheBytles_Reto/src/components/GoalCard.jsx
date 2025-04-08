@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export const GoalCard = ({ title, targetDate, description, onComplete }) => {
+export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpdate, onDeleteStatus }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTitle, setEditTitle] = useState(null);
   const [editTargetDate, setEditTargetDate] = useState(null);
@@ -23,7 +23,12 @@ export const GoalCard = ({ title, targetDate, description, onComplete }) => {
 
       <div className="flex justify-end space-x-2 mt-4">
         <button
-          onClick={() => setShowEditModal(true)}
+          onClick={() => {
+            setEditTitle(title);
+            setEditTargetDate(targetDate);
+            setEditDescription(description);
+            setShowEditModal(true);
+          }}
           className="flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-full hover:opacity-90 transition"
         >
           <svg
@@ -91,12 +96,26 @@ export const GoalCard = ({ title, targetDate, description, onComplete }) => {
               <div className="flex justify-between mt-6 space-x-4">
                 <button
                   type="button"
+                  onClick={() => {
+                    onDeleteStatus(id);
+                    setShowEditModal(false);
+                  }}
                   className="w-full py-2 bg-red-500 text-white rounded-full hover:opacity-90"
                 >
                   Delete
                 </button>
                 <button
                   type="button"
+                  onClick={() => {
+                    const updatedGoal = {
+                      id,
+                      title: editTitle,
+                      targetDate: editTargetDate,
+                      description: editDescription,
+                    };
+                    onUpdate(updatedGoal);
+                    setShowEditModal(false);
+                  }}
                   className="w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90"
                 >
                   Save

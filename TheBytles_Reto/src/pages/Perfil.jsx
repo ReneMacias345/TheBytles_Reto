@@ -16,6 +16,7 @@ export const Perfil = () => {
   const [cvFile, setCVFile] = useState(null);
   const profilePicInputRef = useRef(null);
   const cvInputRef = useRef(null);
+  
 
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
@@ -45,7 +46,7 @@ export const Perfil = () => {
       // User info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability, atc, careerLevel")
+        .select("firstName, lastName, capability, atc, careerLevel, bio")
         .eq("userId", userId)
         .single();
 
@@ -111,7 +112,65 @@ export const Perfil = () => {
     setShowBioForm(true);
   };
 
-  const handleSaveBio = () => {
+  const handleUpdateGoal = async (updatedGoal) => {
+    const { data, error } = await supabase
+      .from("Goal")
+      .update({
+        title: updatedGoal.title,
+        targetDate: updatedGoal.targetDate,
+        description: updatedGoal.description,
+      })
+      .eq("Goal_ID", updatedGoal.id)
+      .select();
+  
+    if (error) {
+      console.error("Error updating goal:", error);
+      return;
+    }
+  
+    const updatedGoals = goals.map((goal) =>
+      goal.id === updatedGoal.id ? data[0] : goal
+    );
+    setGoals(updatedGoals);
+  };
+
+  const handleAbandonGoal = async (goalId) => {
+    const { data, error } = await supabase
+      .from("Goal")
+      .update({ status: "abandoned" })
+      .eq("Goal_ID", goalId)
+      .select();
+  
+    if (error) {
+      console.error("Error marking goal as abandoned:", error);
+      return;
+    }
+  
+    const updatedGoals = goals.map((goal) =>
+      goal.id === goalId ? data[0] : goal
+    );
+    setGoals(updatedGoals);
+  };
+
+  const handleSaveBio = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const { error } = await supabase
+      .from("User")
+      .update({ bio: newBio })
+      .eq("userId", userId);
+  
+    if (error) {
+      console.error("Error updating bio:", error);
+      return;
+    }
+  
     setUserData({ ...userData, bio: newBio });
     setShowBioForm(false);
   };
@@ -267,11 +326,14 @@ export const Perfil = () => {
         <div className="mt-4">
           {goals.map((goal, index) => (
             <GoalCard
-              key={index}
+              key={goal.Goal_ID}
+              id={goal.Goal_ID}
               title={goal.title}
               targetDate={goal.targetDate}
               description={goal.description}
               onComplete={() => handleCompleteGoal(goal.title)}
+              onUpdate={handleUpdateGoal}
+              onDeleteStatus={handleAbandonGoal}
             />
           ))}
         </div>
