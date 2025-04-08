@@ -259,9 +259,17 @@ export const SignUp = () => {
                   required
                 >
                   <option value="">Select Capability</option>
-                  <option value="Backend Developer">Backend Developer</option>
-                  <option value="SCRUM Master">SCRUM Master</option>
-                  <option value="QA Automation Test Lead">QA Automation Test Lead</option>
+                  <option value="Desarrollo de Software">Desarrollo de Software</option>
+                  <option value="Administración de Sistemas y Redes">Administración de Sistemas y Redes</option>
+                  <option value="Ciberseguridad">Ciberseguridad</option>
+                  <option value="Ciencia de Datos y Big Data">Ciencia de Datos y Big Data</option>
+                  <option value="Inteligencia Artificial y Machine Learning">Inteligencia Artificial y Machine Learning</option>
+                  <option value="Gestión de TI y Proyectos">Gestión de TI y Proyectos</option>
+                  <option value="Computación en la Nube y DevOps">Computación en la Nube y DevOps</option>
+                  <option value="Desarrollo de Videojuegos">Desarrollo de Videojuegos</option>
+                  <option value="Internet de las Cosas (IoT)">Internet de las Cosas (IoT)</option>
+                  <option value="Blockchain y Criptomonedas">Blockchain y Criptomonedas</option>
+                  <option value="Soporte Técnico y Help Desk">Soporte Técnico y Help Desk</option>
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
