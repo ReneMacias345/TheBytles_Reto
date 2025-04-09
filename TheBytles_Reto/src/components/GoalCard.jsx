@@ -9,7 +9,7 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
 
   const handleYes = () => {
     setShowConfirm(false);
-    onComplete();
+    onComplete(id);
   };
 
   const handleNo = () => {

@@ -60,8 +60,22 @@ export const Perfil = () => {
     fetchData();
   }, []);
 
-  const handleCompleteGoal = (goalTitle) => {
-    alert(`Goal Completed: ${goalTitle}`);
+  const handleCompleteGoal = async (goalId) => {
+    const { data, error } = await supabase
+      .from("Goal")
+      .update({ Status: "completed" })
+      .eq("Goal_ID", goalId)
+      .select();
+  
+    if (error) {
+      console.error("Error marking goal as completed:", error);
+      return;
+    }
+  
+    const updatedGoals = goals.map((goal) =>
+      goal.Goal_ID === goalId ? data[0] : goal
+    );
+    setGoals(updatedGoals);
   };
 
   const handleAddGoal = () => {
@@ -129,7 +143,7 @@ export const Perfil = () => {
     }
   
     const updatedGoals = goals.map((goal) =>
-      goal.id === updatedGoal.id ? data[0] : goal
+      goal.Goal_ID === updatedGoal.id ? data[0] : goal
     );
     setGoals(updatedGoals);
   };
@@ -137,7 +151,7 @@ export const Perfil = () => {
   const handleAbandonGoal = async (goalId) => {
     const { data, error } = await supabase
       .from("Goal")
-      .update({ status: "abandoned" })
+      .update({ Status: "abandoned" })
       .eq("Goal_ID", goalId)
       .select();
   
@@ -147,7 +161,7 @@ export const Perfil = () => {
     }
   
     const updatedGoals = goals.map((goal) =>
-      goal.id === goalId ? data[0] : goal
+      goal.Goal_ID === goalId ? data[0] : goal
     );
     setGoals(updatedGoals);
   };
@@ -324,17 +338,19 @@ export const Perfil = () => {
           </button>
         </div>
         <div className="mt-4">
-          {goals.map((goal, index) => (
-            <GoalCard
-              key={goal.Goal_ID}
-              id={goal.Goal_ID}
-              title={goal.title}
-              targetDate={goal.targetDate}
-              description={goal.description}
-              onComplete={() => handleCompleteGoal(goal.title)}
-              onUpdate={handleUpdateGoal}
-              onDeleteStatus={handleAbandonGoal}
-            />
+          {goals
+            .filter((goal) => goal.Status === "active")
+            .map((goal) => (
+              <GoalCard
+                key={goal.Goal_ID}
+                id={goal.Goal_ID}
+                title={goal.title}
+                targetDate={goal.targetDate}
+                description={goal.description}
+                onComplete={handleCompleteGoal}
+                onUpdate={handleUpdateGoal}
+                onDeleteStatus={handleAbandonGoal}
+              />
           ))}
         </div>
       </InfoCard>
