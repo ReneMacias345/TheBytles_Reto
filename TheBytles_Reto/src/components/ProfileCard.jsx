@@ -1,8 +1,20 @@
-import React from 'react';
+import React, {useState} from 'react';
 
 export const ProfileCard = ({ profilePic, firstName, lastName, capability }) => {
+    const [isSelected, setIsSelected] = useState(false);
+
+    const toggleSelect = () => {
+      setIsSelected(!isSelected);
+    };
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4 w-full max-w-xs text-center">
+    <div
+    onClick={toggleSelect}
+    className={`cursor-pointer border p-4 rounded-2xl transition-all bg-white rounded-2xl shadow-md p-4 w-full max-w-xs text-center ${
+      isSelected
+        ? 'border-[#A100FF] ring-2 ring-[#A100FF] bg-purple-50'
+        : 'border-gray-200 hover:shadow'
+    }`}
+    >
       <div className="flex justify-between items-center">
       </div>
       <div className="mt-2">
@@ -21,6 +33,6 @@ export const ProfileCard = ({ profilePic, firstName, lastName, capability }) => 
         <h3 className="text-lg font-semibold mt-3">{firstName} {lastName}</h3>
         <p className="text-gray-500 text-sm">{capability}</p>
       </div>
-    </div>
+      </div>
   );
 };
