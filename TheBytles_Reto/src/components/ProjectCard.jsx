@@ -1,6 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { ProfileCard } from './ProfileCard';
 
 export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp }) => {
+  const [showProfiles, setShowProfiles] = useState(false);
+
+  const toggleProfiles = () => {
+    setShowProfiles(!showProfiles);
+  };
+
   return (
     <div className="bg-white p-6 rounded-3xl shadow-lg mb-6">
       <div className="flex justify-between items-start">
@@ -36,7 +43,6 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
             <p className="text-sm text-gray-500">Start Date: {startDate}</p>
           </div>
         </div>
-
         <button className="flex items-center gap-2 px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition">
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -55,13 +61,33 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
           Download RFP
         </button>
       </div>
-
-
       <div className="mt-4">
         <p className="text-gray-700 leading-relaxed text-gd">
           {projectDescription}
         </p>
       </div>
+      <div className="mt-4">
+        <button
+          onClick={toggleProfiles}
+          className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
+        >
+          Assign
+        </button>
+      </div>
+
+      {showProfiles && (
+        <div className="grid grid-cols-4 gap-4 mt-6">
+          {Array.from({ length: 8 }).map((_, index) => (
+            <ProfileCard
+              key={index}
+              firstName={`Profile`}
+              lastName={index + 1}
+              capability="UX/UI Designer"
+              profilePic={null}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
