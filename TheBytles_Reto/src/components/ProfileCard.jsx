@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 
-export const ProfileCard = ({ profilePic, firstName, lastName, capability }) => {
+export const ProfileCard = ({ profilePic, firstName, lastName, capability,assignmentPercentage }) => {
+    assignmentPercentage = 80;
     const [isSelected, setIsSelected] = useState(false);
 
     const toggleSelect = () => {
@@ -9,14 +10,16 @@ export const ProfileCard = ({ profilePic, firstName, lastName, capability }) => 
   return (
     <div
     onClick={toggleSelect}
-    className={`cursor-pointer border p-4 rounded-2xl transition-all bg-white rounded-2xl shadow-md p-4 w-full max-w-xs text-center ${
+    className={`relative cursor-pointer border p-4 rounded-2xl transition-all bg-white shadow-md w-full max-w-xs text-center ${
       isSelected
         ? 'border-[#A100FF] ring-2 ring-[#A100FF] bg-purple-50'
         : 'border-gray-200 hover:shadow'
     }`}
     >
-      <div className="flex justify-between items-center">
+      <div className="absolute top-2 right-3 text-xs font-semibold text-[#A100FF]">
+        {assignmentPercentage}%
       </div>
+      <div className="flex justify-between items-center"></div>
       <div className="mt-2">
         <div className="w-24 h-24 mx-auto rounded-full overflow-hidden">
           {profilePic ? (
