@@ -1,12 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ProfileCard } from './ProfileCard';
+import supabase from '../config/supabaseClient';
 
 export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp }) => {
   const [showProfiles, setShowProfiles] = useState(false);
+  const [profiles, setProfiles] = useState([]);
 
   const toggleProfiles = () => {
     setShowProfiles(!showProfiles);
   };
+
+  useEffect(() => {
+    const fetchProfiles = async () => {
+      const { data, error } = await supabase
+        .from('User')
+        .select('firstName, lastName, capability, assignmentPercentage') 
+        .order('assignmentPercentage', { ascending: false }) 
+        .limit(8); 
+
+      if (error) {
+        console.error("Error fetching profiles:", error);
+      } else {
+        setProfiles(data);
+      }
+    };
+
+    if (showProfiles) fetchProfiles();
+  }, [showProfiles]);
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-lg mb-6">
@@ -77,13 +97,14 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
       {showProfiles && (
         <div className="grid grid-cols-4 gap-4 mt-6">
-          {Array.from({ length: 8 }).map((_, index) => (
+          {profiles.map((user, index) => (
             <ProfileCard
               key={index}
-              firstName={`Profile`}
-              lastName={index + 1}
-              capability="UX/UI Designer"
-              profilePic={null}
+              firstName={user.firstName}
+              lastName={user.lastName}
+              capability={user.capability}
+              assignmentPercentage={user.assignmentPercentage}
+              // profilePic={user.profilePic}
             />
           ))}
         </div>
