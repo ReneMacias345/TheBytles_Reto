@@ -43,12 +43,13 @@ export const Perfil = () => {
         setGoals(goalsData);
       }
 
-      // User info
+      // User Info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability, atc, careerLevel, bio")
+        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url") // <- aquí
         .eq("userId", userId)
         .single();
+
 
       if (userError) {
         console.error("Error fetching user info:", userError);
@@ -204,14 +205,76 @@ export const Perfil = () => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
       setCVFile(file);
-      alert('CV uploaded successfully.');
+      uploadCVToSupabase(file); // <- llama la nueva función
     } else {
       alert('Please upload a PDF file.');
     }
   };
-
-
-
+  
+  const uploadCVToSupabase = async (file) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId || !file) {
+      console.error("User not logged in or file missing.");
+      alert("You must be logged in and select a valid file.");
+      return;
+    }
+  
+    const fileExt = file.name.split('.').pop();
+    const fileName = `cvs/${userId}-cv.pdf`;
+    const contentType = file.type || "application/pdf";
+  
+    // 🔥 Eliminar archivo anterior si existe
+    const { data: deletedData, error: deleteError } = await supabase.storage
+      .from("media")
+      .remove([fileName]);
+  
+    if (deleteError) {
+      console.error("❌ Delete error:", deleteError.message);
+    } else {
+      console.log("✅ Deleted previous file:", deletedData);
+    }
+  
+    // 📤 Subir nuevo archivo
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("media")
+      .upload(fileName, file, {
+        upsert: false,
+        contentType,
+        cacheControl: '3600',
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      alert("Error uploading CV. Please try again.");
+      return;
+    }
+  
+    // 🔗 Obtener la URL pública del archivo
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    const publicUrl = publicUrlData.publicUrl;
+  
+    // 📝 Actualizar `cv_url` en la tabla User
+    const { error: updateError } = await supabase
+      .from("User")
+      .update({ cv_url: publicUrl })
+      .eq("userId", userId);
+  
+    if (updateError) {
+      console.error("Error updating user CV URL:", updateError.message);
+      alert("CV uploaded but failed to link it to your profile.");
+      return;
+    }
+  
+    // ✅ Actualizar estado local en el frontend
+    setUserData(prev => ({ ...prev, cv_url: publicUrl }));
+    alert("CV uploaded and linked successfully!");
+  };
+  
   return (
     <ScreenLayout>
       <InfoCard>
@@ -269,6 +332,31 @@ export const Perfil = () => {
               <p className="text-sm text-gray-500">
                 {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel}
               </p>
+              {userData?.cv_url && (
+                <a
+                  href={`${userData.cv_url}?t=${Date.now()}`} // 💡 evita caché
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-flex items-center text-sm text-[#A100FF] hover:underline"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="w-5 h-5 mr-1"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M12 4v16m8-8H4"
+                    />
+                  </svg>
+                  View CV
+                </a>
+              )}
+
             </div>
           </div>
           
