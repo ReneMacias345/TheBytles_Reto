@@ -154,6 +154,8 @@ export const Assignments = () => {
                     <label className="text-sm font-medium text-gray-700">Project Name</label>
                     <input
                       type="text"
+                      minLength={"10"}
+                      maxLength={"35"}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                       value={projectName}
                       onChange={(e) => setProjectName(e.target.value)}
@@ -164,6 +166,8 @@ export const Assignments = () => {
                     <label className="text-sm font-medium text-gray-700">Project Description</label>
                     <textarea
                       rows="3"
+                      minLength={"10"}
+                      maxLength={"50"}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"
                       value={projectDescription}
                       onChange={(e) => setProjectDescription(e.target.value)}
