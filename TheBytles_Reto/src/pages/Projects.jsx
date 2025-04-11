@@ -1,15 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
+import supabase from '../config/supabaseClient';
 
 export const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [userData, setUserData] = useState(null);
 
-  const user = {
-    firstName: 'Pedro',
-    lastName: 'Pascal'
-  };
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        console.error("User not logged in.");
+        return;
+      }
+
+      const { data: userInfoData, error } = await supabase
+        .from("User")
+        .select("firstName, lastName")
+        .eq("userId", userId)
+        .single();
+
+      if (error) {
+        console.error("Error fetching user info:", error);
+      } else {
+        setUserData(userInfoData);
+      }
+    };
+
+    fetchUserInfo();
+  }, []);
 
   const workingIn = {
     projectName: 'Mobile Application for Starbucks',
@@ -62,7 +85,7 @@ export const Projects = () => {
     <ScreenLayout>
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800">
-          Hello {user.firstName} {user.lastName} 👋🏼,
+          Hello {userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...'} 👋🏼
         </h2>
       </div>
 
