@@ -8,7 +8,7 @@ export const Projects = () => {
 
   const user = {
     firstName: 'Pedro',
-    lastName: 'Gomez'
+    lastName: 'Pascal'
   };
 
   const workingIn = {
