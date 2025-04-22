@@ -1,6 +1,7 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { ProjectCard } from '../components/ProjectCard';
+import supabase from '../config/supabaseClient';
 
 export const Assignments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -20,6 +21,21 @@ export const Assignments = () => {
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
 
+  useEffect(() => {
+    const fetchProjects = async () => {
+      const { data, error } = await supabase.from("Project").select("*");
+
+      if (error) {
+        console.error("Error fetching projects:", error);
+        return;
+      }
+
+      setProjects(data);
+    };
+
+    fetchProjects();
+  }, []);
+
   const handleAddNew = () => {
     setShowProjectForm(true);
     setError('');
@@ -37,7 +53,7 @@ export const Assignments = () => {
     setError('');
   };
 
-  const handleAddProject = () => {
+  const handleAddProject = async () => {
     if (!RFPFile) {
       setError('Please upload an RFP file.');
       return;
@@ -46,27 +62,28 @@ export const Assignments = () => {
       setError('Please upload a project picture.');
       return;
     }
-    const newProject = {
-      projectName,
-      projectDescription,
-      staffingStage,
-      startDate,
-      endDate,
-      projectPic,
-      rfp: RFPFile,
-    };
-    setProjects([...projects, newProject]);
-    handleCloseForm();
-  };
 
-  const caseData = {
-    projectName: "Mobile Application for Starbucks",
-    projectDescription: "Strong understanding of scalable system architecture, data security, and high-performance backend development. Expertise in designing and maintaining APIs for seamless app functionality. Ability to manage databases, authentication, and third-party integrations. Strong leadership, strategic thinking, and problem-solving. Ability to define product vision, prioritize features, and align business and technical teams. Expertise in customer experience, digital commerce, and user engagement.",
-    staffingStage: "Planning",
-    startDate: "2025-04-15",
-    endDate: "2025-08-30",
-    projectPic: null,
-    rfp: null
+    const newProject = {
+      Project_Name: projectName,
+      description: projectDescription,
+      StaffingStage: staffingStage,
+      StartDate: startDate,
+      EndDate: endDate
+    };
+
+    const { data, error } = await supabase
+      .from("Project")
+      .insert([newProject])
+      .select();
+
+    if (error) {
+      console.error("Error inserting project:", error);
+      setError("Error saving project. Try again.");
+      return;
+    }
+
+    setProjects([...projects, data[0]]);
+    handleCloseForm();
   };
 
   return (
@@ -93,9 +110,17 @@ export const Assignments = () => {
         </button>
       </div>
 
-      <ProjectCard {...caseData} />
       {projects.map((project, index) => (
-        <ProjectCard key={index} {...project} />
+        <ProjectCard
+          key={index}
+          projectName={project.Project_Name}
+          projectDescription={project.description}
+          staffingStage={project.StaffingStage}
+          startDate={project.StartDate}
+          endDate={project.EndDate}
+          projectPic={null}
+          rfp={null}
+        />
       ))}
 
       {showProjectForm && (
