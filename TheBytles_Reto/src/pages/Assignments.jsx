@@ -1,6 +1,8 @@
 import React, { useState, useRef } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { ProjectCard } from '../components/ProjectCard';
+import supabase from '../config/supabaseClient';
+
 
 export const Assignments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -37,16 +39,78 @@ export const Assignments = () => {
     setError('');
   };
 
-  const handleAddProject = () => {
+  const uploadRFPToSupabase = async (file) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId || !file) {
+      console.error("User not logged in or file missing.");
+      setError("You must be logged in and upload a file.");
+      return null;
+    }
+  
+    const fileName = `rfps/${userId}-${Date.now()}-rfp.pdf`; // carpeta correcta
+    const contentType = file.type || "application/pdf";
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("media") // bucket correcto
+      .upload(fileName, file, {
+        upsert: false,
+        contentType,
+        cacheControl: '3600',
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      setError("Error uploading RFP. Try again.");
+      return null;
+    }
+  
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    return publicUrlData?.publicUrl || null;
+  };
+  
+  const handleAddProject = async () => {
     if (!RFPFile) {
       setError('Please upload an RFP file.');
       return;
     }
+
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+
     if (!projectPic) {
       setError('Please upload a project picture.');
       return;
     }
-    const newProject = {
+  
+    const rfpUrl = await uploadRFPToSupabase(RFPFile); // ← subir archivo a Supabase
+    if (!rfpUrl) return;
+  
+    // Insertar en la tabla Project
+    const { data, error: insertError } = await supabase
+      .from("Project")
+      .insert([{
+        projectName,
+        description: projectDescription,
+        staffingStage,
+        startDate,
+        endDate,
+        rfp_url: rfpUrl,
+        created_by: userId, 
+      }]);
+  
+    if (insertError) {
+      console.error("Error saving project:", insertError.message);
+      setError("Error saving project. Please try again.");
+      return;
+    }
+  
+    // Añadir localmente (para mostrar en la UI)
+    setProjects([...projects, {
       projectName,
       projectDescription,
       staffingStage,
@@ -54,10 +118,13 @@ export const Assignments = () => {
       endDate,
       projectPic,
       rfp: RFPFile,
-    };
-    setProjects([...projects, newProject]);
-    handleCloseForm();
+      
+    }]);
+  
+    handleCloseForm(); // cerrar modal y limpiar
   };
+  
+
 
   const caseData = {
     projectName: "Mobile Application for Starbucks",
