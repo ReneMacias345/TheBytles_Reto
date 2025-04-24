@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
@@ -7,9 +7,10 @@ export const Projects = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userData, setUserData] = useState(null);
+  const [historyProjects, setHistoryProjects] = useState([]);
 
   useEffect(() => {
-    const fetchUserInfo = async () => {
+    const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
@@ -18,20 +19,59 @@ export const Projects = () => {
         return;
       }
 
-      const { data: userInfoData, error } = await supabase
+      const { data: userInfoData, error: userError } = await supabase
         .from("User")
         .select("firstName, lastName")
         .eq("userId", userId)
         .single();
 
-      if (error) {
-        console.error("Error fetching user info:", error);
-      } else {
-        setUserData(userInfoData);
+      if (!userError) setUserData(userInfoData);
+
+      const { data: historyData, error: historyError } = await supabase
+        .from("User_History")
+        .select(`
+          FeedBack,
+          project_element_id,
+          user_element_id,
+          Project:project_element_id (
+            Project_Name,
+            description,
+            StartDate,
+            EndDate
+          )
+        `)
+        .eq("user_element_id", userId);
+
+      if (historyError) {
+        console.error("Error fetching project history:", historyError);
+        return;
       }
+
+      const { data: rolesData, error: rolesError } = await supabase
+        .from("Role")
+        .select("project_id, user_id, role_description")
+        .eq("user_id", userId);
+
+      if (rolesError) {
+        console.error("Error fetching roles:", rolesError);
+        return;
+      }
+
+      const historyWithRoles = historyData.map((history) => {
+        const matchingRole = rolesData.find(role =>
+          role.project_id === history.project_element_id &&
+          role.user_id === history.user_element_id
+        );
+        return {
+          ...history,
+          role_description: matchingRole?.role_description || '—',
+        };
+      });
+
+      setHistoryProjects(historyWithRoles);
     };
 
-    fetchUserInfo();
+    fetchData();
   }, []);
 
   const workingIn = {
@@ -41,45 +81,6 @@ export const Projects = () => {
     startDate: '13/05/2025',
     endDate: '13/08/2025'
   };
-
-  const projects = [
-    {
-      ...workingIn,
-      feedback: 'Pedro managed the SCRUM team with excellent communication and delivery pace.'
-    },
-    {
-      projectName: 'E-Commerce Platform for Nike',
-      projectDescription: 'Online store for Nike products and accessories',
-      role: 'Web Dev',
-      startDate: '01/06/2025',
-      endDate: '01/11/2025',
-      feedback: 'Delivered well-structured and responsive frontend components.'
-    },
-    {
-      projectName: 'Fitness Tracker App for Apple',
-      projectDescription: 'Health and activity monitoring application',
-      role: 'Full Stack',
-      startDate: '15/07/2025',
-      endDate: '15/10/2025',
-      feedback: 'Built full-stack features including login, dashboard, and analytics.'
-    },
-    {
-      projectName: 'Smart Home System for Google',
-      projectDescription: 'IoT-based home automation solution',
-      role: 'BackEnd Dev',
-      startDate: '20/08/2025',
-      endDate: '20/12/2025',
-      feedback: 'Implemented secure APIs for device communication.'
-    },
-    {
-      projectName: 'Online Learning Portal for Coursera',
-      projectDescription: 'Platform for interactive courses and quizzes',
-      role: 'FrontEnd Dev',
-      startDate: '05/09/2025',
-      endDate: '05/02/2026',
-      feedback: 'Designed accessible and responsive UI with modern design principles.'
-    }
-  ];
 
   return (
     <ScreenLayout>
@@ -146,23 +147,23 @@ export const Projects = () => {
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
-            {projects
+            {historyProjects
               .filter(p =>
-                p.projectName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                p.projectDescription.toLowerCase().includes(searchTerm.toLowerCase())
+                p.Project?.Project_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                p.Project?.description?.toLowerCase().includes(searchTerm.toLowerCase())
               )
-              .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))
-              .map((project, idx) => (
+              .sort((a, b) => new Date(b.Project?.EndDate) - new Date(a.Project?.EndDate))
+              .map((item, idx) => (
                 <tr key={idx} className="border-t">
-                  <td className="py-2">{project.projectName}</td>
-                  <td>{project.projectDescription}</td>
-                  <td>{project.role}</td>
-                  <td>{project.startDate}</td>
-                  <td>{project.endDate}</td>
+                  <td className="py-2">{item.Project?.Project_Name}</td>
+                  <td>{item.Project?.description}</td>
+                  <td>{item.role_description}</td>
+                  <td>{item.Project?.StartDate}</td>
+                  <td>{item.Project?.EndDate}</td>
                   <td>
                     <button
                       className="px-4 py-1 bg-gray-100 text-sm rounded-md text-gray-600 hover:shadow"
-                      onClick={() => setSelectedFeedback(project.feedback)}
+                      onClick={() => setSelectedFeedback(item.FeedBack)}
                     >
                       View
                     </button>
