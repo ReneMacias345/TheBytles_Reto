@@ -190,17 +190,17 @@ export const SignUp = () => {
                   required
                 >
                   <option value="">Select Capability</option>
-                  <option value="Desarrollo de Software">Desarrollo de Software</option>
-                  <option value="Administración de Sistemas y Redes">Administración de Sistemas y Redes</option>
-                  <option value="Ciberseguridad">Ciberseguridad</option>
-                  <option value="Ciencia de Datos y Big Data">Ciencia de Datos y Big Data</option>
-                  <option value="Inteligencia Artificial y Machine Learning">Inteligencia Artificial y Machine Learning</option>
-                  <option value="Gestión de TI y Proyectos">Gestión de TI y Proyectos</option>
-                  <option value="Computación en la Nube y DevOps">Computación en la Nube y DevOps</option>
-                  <option value="Desarrollo de Videojuegos">Desarrollo de Videojuegos</option>
-                  <option value="Internet de las Cosas (IoT)">Internet de las Cosas (IoT)</option>
-                  <option value="Blockchain y Criptomonedas">Blockchain y Criptomonedas</option>
-                  <option value="Soporte Técnico y Help Desk">Soporte Técnico y Help Desk</option>
+                  <option value="Software Development">Software Development</option>
+                  <option value="Systems and Network Administration">Systems and Network Administration</option>
+                  <option value="Cybersecurity">Cybersecurity</option>
+                  <option value="Data Science and Big Data">Data Science and Big Data</option>
+                  <option value="Artificial Intelligence and Machine Learning">Artificial Intelligence and Machine Learning</option>
+                  <option value="IT and Project Management">IT and Project Management</option>
+                  <option value="Cloud Computing and DevOps">Cloud Computing and DevOps</option>
+                  <option value="Video Game Development">Video Game Development</option>
+                  <option value="Internet of Things (IoT)">Internet of Things (IoT)</option>
+                  <option value="Blockchain and Cryptocurrencies">Blockchain and Cryptocurrencies</option>
+                  <option value="Technical Support and Help Desk">Technical Support and Help Desk</option>  
                 </select>
               </div>
               <div className="grid grid-cols-2 gap-3">
