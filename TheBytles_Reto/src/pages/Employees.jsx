@@ -123,7 +123,11 @@ export const Employees = () => {
                   <td>{emp.level}</td>
                   <td>{emp.role}</td>
                   <td>{emp.project}</td>
-                  <td>{emp.status}</td>
+                  <td>
+                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${emp.status === 'Staffed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                    {emp.status}
+                    </span>
+                  </td>
                 </tr>
               ))}
           </tbody>
