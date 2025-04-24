@@ -19,7 +19,7 @@ export const Navbar = () => {
       // User info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability")
+        .select("firstName, lastName, capability, profilePic_url")
         .eq("userId", userId)
         .single();
 
@@ -214,22 +214,31 @@ export const Navbar = () => {
 
       <div className="p-4 flex flex-col items-center">
         <div className="flex items-center">
-          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
-            <svg
-              className="w-10 h-8 text-gray-400 mx-auto my-auto"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-              <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
-            </svg>
-          </div>
+        <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
+  {userData?.profilePic_url ? (
+    <img
+      src={userData.profilePic_url}
+      alt="Profile"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <svg
+      className="w-10 h-8 text-gray-400 mx-auto my-auto"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      viewBox="0 0 24 24"
+    >
+      <path
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+      />
+      <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
+    </svg>
+  )}
+</div>
+
           <div className="ml-3">
           <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
           <p className="text-xs text-gray-500">{userData?.capability}</p>
