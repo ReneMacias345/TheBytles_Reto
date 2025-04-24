@@ -562,7 +562,7 @@ export const Perfil = () => {
             </button>
             <h2 className="text-xl font-bold text-center mb-4">Edit Bio</h2>
             <div className="space-y-4">
-              <label className="block mb-1 text-sm font-medium text-gray-700">Description:</label>
+              <label className="block mb-1 text-sm font-large text-gray-700">Tell us about your strength, experiences and skills :</label>
               <textarea
                 className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                 rows="3"
