@@ -53,6 +53,41 @@ export const Assignments = () => {
     setError('');
   };
 
+  const uploadRFPToSupabase = async (file) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId || !file) {
+      console.error("User not logged in or file missing.");
+      setError("You must be logged in and upload a file.");
+      return null;
+    }
+  
+    const fileName = `rfps/${userId}-${Date.now()}-rfp.pdf`; // carpeta correcta
+    const contentType = file.type || "application/pdf";
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("media") // bucket correcto
+      .upload(fileName, file, {
+        upsert: false,
+        contentType,
+        cacheControl: '3600',
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      setError("Error uploading RFP. Try again.");
+      return null;
+    }
+  
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    return publicUrlData?.publicUrl || null;
+  };
+  
+
   const handleAddProject = async () => {
     if (!RFPFile) {
       setError('Please upload an RFP file.');
@@ -62,29 +97,38 @@ export const Assignments = () => {
       setError('Please upload a project picture.');
       return;
     }
-
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    const rfpUrl = await uploadRFPToSupabase(RFPFile);
+    if (!rfpUrl) return;
+  
     const newProject = {
       Project_Name: projectName,
       description: projectDescription,
       StaffingStage: staffingStage,
       StartDate: startDate,
-      EndDate: endDate
+      EndDate: endDate,
+      rfp_url: rfpUrl,
+      created_by: userId,
     };
-
+  
     const { data, error } = await supabase
       .from("Project")
       .insert([newProject])
       .select();
-
+  
     if (error) {
       console.error("Error inserting project:", error);
       setError("Error saving project. Try again.");
       return;
     }
-
+  
     setProjects([...projects, data[0]]);
     handleCloseForm();
   };
+  
 
   return (
     <ScreenLayout>
@@ -119,7 +163,7 @@ export const Assignments = () => {
           startDate={project.StartDate}
           endDate={project.EndDate}
           projectPic={null}
-          rfp={null}
+          rfp_url={project.rfp_url}
         />
       ))}
 

@@ -46,7 +46,7 @@ export const Perfil = () => {
       // User Info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url") // <- aquí
+        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url, profilePic_url") // <- aquí
         .eq("userId", userId)
         .single();
 
@@ -190,16 +190,68 @@ export const Perfil = () => {
     setShowBioForm(false);
   };
 
-  const handleProfilePicChange = (e) => {
+  const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
-    if (file && file.type === 'image/png') {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUserData({ ...userData, profilePic: reader.result });
-      };
-      reader.readAsDataURL(file);
+  
+    if (!file || !file.type.startsWith("image/")) {
+      alert("Please upload a valid image file.");
+      return;
     }
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const fileName = `profilepics/${userId}-${Date.now()}.png`;
+    const contentType = file.type || "image/png";
+  
+    // Subir la imagen
+    const { error: uploadError } = await supabase.storage
+      .from("media")
+      .upload(fileName, file, {
+        upsert: true,
+        contentType,
+        cacheControl: "3600",
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      alert("Error uploading profile picture.");
+      return;
+    }
+  
+    // Obtener la URL pública
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    const publicUrl = publicUrlData?.publicUrl;
+    if (!publicUrl) {
+      alert("Failed to get public URL.");
+      return;
+    }
+  
+    // Guardar en la tabla User
+    const { error: updateError } = await supabase
+      .from("User")
+      .update({ profilePic_url: publicUrl })
+      .eq("userId", userId);
+  
+    if (updateError) {
+      console.error("Error saving profile URL:", updateError.message);
+      alert("Profile picture uploaded, but failed to update profile.");
+      return;
+    }
+  
+    // Actualizar estado local
+    setUserData(prev => ({ ...prev, profilePic_url: publicUrl }));
+    alert("Profile picture updated!");
   };
+  
 
   const handleCVChange = (e) => {
     const file = e.target.files[0];
@@ -281,9 +333,9 @@ export const Perfil = () => {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <div className="relative w-24 h-24 bg-gray-200 rounded-full">
-              {userData?.profilePic ? (
+              {userData?.profilePic_url ? (
                 <img
-                  src={userData.profilePic}
+                  src={userData.profilePic_url}
                   alt="Profile"
                   className="w-full h-full object-cover rounded-full"
                 />
