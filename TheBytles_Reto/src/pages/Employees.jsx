@@ -122,7 +122,7 @@ export const Employees = () => {
   
       setEmployees(enrichedUsers);
   
-      setAssignedEmpTotal(enrichedUsers.length);
+      setAssignedEmpTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "benched").length);
       setStaffedTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "staffed").length);
     };
   
@@ -140,7 +140,7 @@ export const Employees = () => {
       <InfoCard>
         <div className="grid grid-cols-2 gap-6 text-center">
           <div>
-            <div className="text-sm text-gray-500">Assigned Employees</div>
+            <div className="text-sm text-gray-500">Benched</div>
             <div className="text-2xl font-semibold text-gray-800">{assignedEmpTotal.toLocaleString()}</div>
           </div>
           <div>
