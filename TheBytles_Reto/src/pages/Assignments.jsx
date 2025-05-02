@@ -154,7 +154,11 @@ export const Assignments = () => {
         </button>
       </div>
 
-      {projects.map((project, index) => (
+      {projects
+      .filter(project =>
+        project.Project_Name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .map((project, index) => (
         <ProjectCard
           key={index}
           projectName={project.Project_Name}

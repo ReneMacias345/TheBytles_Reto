@@ -1,10 +1,10 @@
 import React, { useState , useEffect} from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import supabase from '../config/supabaseClient';
 
 export const NavbarEmp = () => {
-  const navigate = useNavigate();
+  const location = useLocation();
   const [userData, setUserData] = useState(null);
   
   useEffect(() => {
@@ -54,7 +54,11 @@ export const NavbarEmp = () => {
         <nav className="mt-4 space-y-2 px-2">
           <Link
             to="/perfil"
-            className="group flex items-center justify-between py-2 px-3 rounded-lg text-[#696969] transition-colors hover:bg-[#A100FF] hover:text-white"
+            className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+              location.pathname === '/perfil'
+                ? 'bg-[#A100FF] text-white'
+                : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
+            }`}
           >
             <div className="flex items-center space-x-2">
               <svg
@@ -86,7 +90,11 @@ export const NavbarEmp = () => {
 
           <Link
             to="/projects"
-            className="group flex items-center justify-between py-2 px-3 rounded-lg text-[#696969] transition-colors hover:bg-[#A100FF] hover:text-white"
+            className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+              location.pathname === '/projects'
+                ? 'bg-[#A100FF] text-white'
+                : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
+            }`}
           >
             <div className="flex items-center space-x-2">
               <svg
