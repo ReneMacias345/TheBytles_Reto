@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export const ProfileCard = ({ profilePic, firstName, lastName, capability, assignmentPercentage }) => {
+export const ProfileCard = ({ profilePic, firstName, lastName, capability, assignmentPercentage, similarityPercent }) => {
   const [isSelected, setIsSelected] = useState(false);
 
   const toggleSelect = () => {
@@ -17,7 +17,7 @@ export const ProfileCard = ({ profilePic, firstName, lastName, capability, assig
       }`}
     >
       <div className="absolute top-2 right-3 text-xs font-semibold text-[#A100FF]">
-        {assignmentPercentage ?? 0}%
+        {similarityPercent > 0 ? `${similarityPercent}%` : null}
       </div>
       <div className="mt-2">
         <div className="w-24 h-24 mx-auto rounded-full overflow-hidden">

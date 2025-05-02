@@ -15,6 +15,7 @@ export const Assignments = () => {
   const [RFPFile, setRFPFile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState('');
+  const [rolesMap, setRolesMap] = useState({});
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -31,6 +32,16 @@ export const Assignments = () => {
       }
 
       setProjects(data);
+      const { data: roleData, error: roleError } = await supabase.from("Role").select("*");
+    if (roleError) return;
+
+    const grouped = {};
+    roleData.forEach(role => {
+      if (!grouped[role.project_id]) grouped[role.project_id] = [];
+      grouped[role.project_id].push(role);
+    });
+
+    setRolesMap(grouped);
     };
 
     fetchProjects();
@@ -168,6 +179,7 @@ export const Assignments = () => {
           endDate={project.EndDate}
           projectPic={null}
           rfp_url={project.rfp_url}
+          roles={rolesMap[project.Project_ID] || []}
         />
       ))}
 
