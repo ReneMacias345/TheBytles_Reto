@@ -2,6 +2,7 @@ import React, { useState, useRef} from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import { GoalCard } from '../components/GoalCard';
+import { SkillCard } from '../components/SkillCard';
 import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
 
@@ -16,6 +17,38 @@ export const Perfil = () => {
   const [cvFile, setCVFile] = useState(null);
   const profilePicInputRef = useRef(null);
   const cvInputRef = useRef(null);
+  
+  const [showSkillForm, setShowSkillForm] = useState(false);
+  const [newSkill, setNewSkill] = useState('');
+  const [skillSuggestions, setSkillSuggestions] = useState([]);
+
+  
+  const [skills, setSkills] = useState({
+    technical: [],
+    soft: []
+  });
+
+  const availableSkills = [
+    'Stakeholder Management',
+    'Jira & Confluence',
+    'Trello or Asana',
+    'Project Reporting & Dashboards',
+    'Gantt Chart Creation',
+    'Work Breakdown Structures (WBS)',
+    'Time Management',
+    'Conflict Resolution',
+    'Adaptability',
+    'Problem-Solving',
+    'Leadership & Team Coordination'
+  ];
+  const softSkills = [
+    'Time Management',
+    'Conflict Resolution',
+    'Adaptability',
+    'Problem-Solving',
+    'Leadership & Team Coordination'
+  ];
+  
   
 
   const [goals, setGoals] = useState([]);
@@ -325,7 +358,51 @@ export const Perfil = () => {
     // ✅ Actualizar estado local en el frontend
     setUserData(prev => ({ ...prev, cv_url: publicUrl }));
     alert("CV uploaded and linked successfully!");
+    
   };
+  useEffect(() => {
+    if (!newSkill) {
+      setSkillSuggestions([]);
+      return;
+    }
+    const filtered = availableSkills.filter(skill =>
+      skill.toLowerCase().includes(newSkill.toLowerCase())
+    );
+    setSkillSuggestions(filtered);
+  }, [newSkill]);
+
+  const handleAddSkill = () => {
+    const trimmedSkill = newSkill.trim();
+    const isInSuggestions = availableSkills.some(
+      (skill) => skill.toLowerCase() === trimmedSkill.toLowerCase()
+    );
+    const isAlreadyAdded =
+      skills.technical.includes(trimmedSkill) || skills.soft.includes(trimmedSkill);
+
+    if (isAlreadyAdded) {
+      alert("You already have this skill.");
+      return;
+    }
+
+    if (!isInSuggestions) {
+      alert("Please select a skill from the suggestion list.");
+      return;
+    }
+
+    const isSoft = softSkills.includes(trimmedSkill);
+
+    setSkills((prev) => ({
+      ...prev,
+      [isSoft ? 'soft' : 'technical']: [...prev[isSoft ? 'soft' : 'technical'], trimmedSkill]
+    }));
+
+    setNewSkill('');
+    setSkillSuggestions([]);
+    setShowSkillForm(false);
+  };
+
+
+
   
   return (
     <ScreenLayout>
@@ -494,6 +571,48 @@ export const Perfil = () => {
           ))}
         </div>
       </InfoCard>
+      <InfoCard>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-800">Skills</h3>
+          <button
+            onClick={() => {
+              setNewSkill('');
+              setShowSkillForm(true);
+            }}
+            className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
+          >
+             <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Add new skill
+          </button>
+        </div>
+
+        <div className="mb-4">
+          <h4 className="bg-[#A100FF] text-white px-3 py-1 rounded-full inline-block text-sm font-medium mb-2">Technical</h4>
+          <div className="flex flex-wrap gap-2">
+            {skills.technical.map((skill, index) => (
+              <SkillCard key={index} name={skill} />
+            ))}
+          </div>
+        </div>
+
+        <div>
+          <h4 className="bg-[#A100FF] text-white px-3 py-1 rounded-full inline-block text-sm font-medium mb-2">Soft</h4>
+          <div className="flex flex-wrap gap-2">
+            {skills.soft.map((skill, index) => (
+              <SkillCard key={index} name={skill} />
+            ))}
+          </div>
+        </div>
+      </InfoCard>
 
       {showGoalForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -576,6 +695,49 @@ export const Perfil = () => {
                 Save
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {showSkillForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+            <button
+              onClick={() => setShowSkillForm(false)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold text-center mb-4">New skill</h3>
+          
+            <input
+              type="text"
+              placeholder="Search"
+              value={newSkill}
+              onChange={(e) => setNewSkill(e.target.value)}
+              className="w-full mb-2 px-3 py-2 border rounded-lg bg-gray-50"
+            />
+
+            {skillSuggestions.length > 0 && (
+              <ul className="border mb-3 rounded-lg bg-white shadow max-h-40 overflow-y-auto z-50">
+                {skillSuggestions.map((skill, index) => (
+                  <li
+                    key={index}
+                    className="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                    onClick={() => {
+                      setNewSkill(skill);
+                    }}
+                  >
+                    {skill}
+                  </li>
+                ))}
+              </ul>)}
+            <button
+              onClick={handleAddSkill}
+              className="w-full py-2 bg-[#A100FF] text-white rounded-full"
+            >
+              Save skill
+            </button>
           </div>
         </div>
       )}
