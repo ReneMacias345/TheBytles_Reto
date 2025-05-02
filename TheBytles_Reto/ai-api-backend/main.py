@@ -1,19 +1,23 @@
-from fastapi import FastAPI, Request
-from generate_profile_summaries import generate_single_user_summary
+from fastapi import FastAPI
+from pydantic import BaseModel
+from generate_profile_summaries import generate_user_summary
+from generate_roles_from_rfp import generate_roles_from_rfp
 
 app = FastAPI()
 
-@app.get("/")
-def root():
-    return {"status": "Bart API running"}
+class SummaryRequest(BaseModel):
+    user_id: str
 
 @app.post("/generate-summary")
-async def generate_summary(request: Request):
-    data = await request.json()
-    user_id = data.get("user_id")
-    
-    if not user_id:
-        return {"error": "Missing user_id"}
-
-    success = generate_single_user_summary(user_id)
+async def generate_summary(payload: SummaryRequest):
+    user_id = payload.user_id
+    success = generate_user_summary(user_id)
     return {"status": "success" if success else "error"}
+ 
+class RoleGenRequest(BaseModel):
+    project_id: str
+
+@app.post("/generate-roles")
+async def generate_roles(request: RoleGenRequest):
+    success = generate_roles_from_rfp(request.project_id)
+    return { "status": "success" if success else "error"}

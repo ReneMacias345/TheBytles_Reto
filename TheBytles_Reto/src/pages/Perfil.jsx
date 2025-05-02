@@ -326,7 +326,7 @@ export const Perfil = () => {
     setUserData(prev => ({ ...prev, cv_url: publicUrl }));
     alert("CV uploaded and linked successfully!");
 
-    await fetch("http://localhost:5173/generate-summary", {
+    await fetch("http://localhost:8000/generate-summary", {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: { "Content-Type": "application/json" },

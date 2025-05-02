@@ -2,15 +2,20 @@ import os
 import requests
 import io
 import fitz  # PyMuPDF
-from bart_hf import generate_roles
-from supabase import create_client
 from dotenv import load_dotenv
-from transformers import AutoTokenizer
 from datetime import datetime
+from supabase import create_client
+from transformers import AutoTokenizer
+from cohere_summarizer import summarize_user
+from cohere_embed import generate_embedding
+
 
 load_dotenv()
 
-supabase = create_client(os.getenv("SUPABASE_URL"), os.getenv("SUPABASE_KEY"))
+# Supabase setup
+supabase = create_client(os.getenv("VITE_SUPABASE_URL"), os.getenv("VITE_SUPABASE_ANON_KEY"))
+
+# Tokenizer for trimming
 tokenizer = AutoTokenizer.from_pretrained("facebook/bart-large-cnn")
 
 def trim_to_token_limit(text, max_tokens=1024):
@@ -25,37 +30,36 @@ def download_and_extract_text(cv_url):
         text = "\n".join([page.get_text() for page in doc])
     return text
 
-def generate_single_user_summary(user_id):
+def generate_user_summary(user_id):
     try:
-        user = supabase.table("User").select("*").eq("id", user_id).single().execute().data
-        if not user:
-            print("User not found")
+        print(f"\nStarting summary for {user_id}")
+
+        user = supabase.table("User").select("*").eq("userId", user_id).single().execute().data
+        print("Got user:", user)
+
+        if not user or not user.get("cv_url"):
+            print("Missing user or cv_url")
             return False
 
-        print(f"Generating summary for {user['id']} - {user.get('name', '')}")
         pdf_text = download_and_extract_text(user["cv_url"])
+        print("Extracted PDF text")
 
-        combined_info = f"""
-        BIO: {user.get('bio', '')}
-        CAPABILITY: {user.get('capability', '')}
-        CV TEXT: {pdf_text}
-        """
+        bio = user.get("bio", "")
+        capability = user.get("capability", "")
+        trimmed_cv = trim_to_token_limit(pdf_text)
 
-        prompt = f"""
-        You are an AI assistant summarizing a candidate's profile. Based on the information below, write a concise paragraph that captures the candidate's key skills, experience, and strengths:\n\n{trim_to_token_limit(combined_info)}
-        """
-
-        summary_lines = generate_roles(prompt)
-        full_summary = " ".join(summary_lines)
-
+        summary = summarize_user(bio, capability, trimmed_cv)
+        print("AI Summary:\n", summary)
+        embedding = generate_embedding(summary)
         supabase.table("User").update({
-            "ai_summary": full_summary,
-            "summary_generated_at": datetime.utcnow().isoformat()
-        }).eq("id", user_id).execute()
+            "ai_summary": summary,
+            "summary_generated_at": datetime.utcnow().isoformat(),
+            "embedding": embedding
+        }).eq("userId", user_id).execute()
 
-        print(f"✅ Summary saved for user {user_id}")
+        print("Summary saved for user")
         return True
 
     except Exception as e:
-        print(f"❌ Error generating summary for user {user_id}: {e}")
+        print(f"Error generating summary for user {user_id}: {e}")
         return False

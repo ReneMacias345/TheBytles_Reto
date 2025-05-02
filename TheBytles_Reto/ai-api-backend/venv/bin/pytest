@@ -1,4 +1,4 @@
-#!/Users/anakaramoni/Documents/GitHub/TheBytles_Reto/TheBytles_Reto/ai-api-backend/venv/bin/python3
+#!/Users/anakaramoni/Documents/GitHub/TheBytles_Reto/TheBytles_Reto/ai-api-backend/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
