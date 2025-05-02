@@ -9,6 +9,8 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
+  const [assignedRoles, setAssignedRoles] = useState([]);
+
 
 
 
@@ -147,11 +149,18 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
           {roles.map((role) => (
             <button
               key={role.id_role}
-              onClick={() => handleRoleClick(role)}
+              onClick={() => {
+                if (!assignedRoles.includes(role.id_role)) {
+                  handleRoleClick(role);
+                }
+              }}
+              disabled={assignedRoles.includes(role.id_role)}
               className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
-                selectedRoleId === role.id_role
-                  ? 'bg-[#A100FF] text-white'
-                  : 'bg-white text-gray-700 hover:bg-purple-200 hover:text-[#A100FF]'
+                assignedRoles.includes(role.id_role)
+                  ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                  : selectedRoleId === role.id_role
+                    ? 'bg-[#A100FF] text-white'
+                    : 'bg-white text-gray-700 hover:bg-purple-200 hover:text-[#A100FF]'
               }`}
               
             >
@@ -201,7 +210,9 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
                 <button
                   onClick={() => {
                     alert("Employees assigned!"); 
+                    setAssignedRoles(prev => [...prev, selectedRoleId]);
                     setShowConfirm(false);
+                    setSelectedRoleId(null); 
                   }}
                   className="px-6 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
                 >
