@@ -5,6 +5,8 @@ import supabase from '../config/supabaseClient';
 export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url }) => {
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
+  const [showConfirm, setShowConfirm] = useState(false);
+
 
   const toggleProfiles = () => {
     setShowProfiles(!showProfiles);
@@ -121,8 +123,49 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
               // profilePic={user.profilePic}
             />
           ))}
+          <div className="col-span-4 flex justify-center mt-4">
+            <button 
+              onClick={() => setShowConfirm(true)}
+              className="w-1/2 py-3 bg-[#A100FF] text-white text-lg rounded-full hover:opacity-90 transition">
+              Add to Project
+            </button>
+          </div>
         </div>
       )}
+      {showConfirm && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-6 rounded-xl shadow-lg max-w-md w-full relative">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="absolute top-3 right-3 bg-gray-400 text-white rounded-full w-6 h-6 flex items-center justify-center"
+              >
+                &times;
+              </button>
+              <h2 className="text-xl font-bold text-center mb-4">Are you sure?</h2>
+              <p className="text-gray-700 text-center mb-6">
+                You want to add these employees to the project: {projectName}?
+              </p>
+              <div className="flex justify-center gap-4">
+                <button
+                  onClick={() => {
+                    alert("Employees assigned!"); 
+                    setShowConfirm(false);
+                  }}
+                  className="px-6 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
+                >
+                  Yes
+                </button>
+                <button
+                  onClick={() => setShowConfirm(false)}
+                  className="px-6 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300 transition"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
     </div>
+    
   );
 };
