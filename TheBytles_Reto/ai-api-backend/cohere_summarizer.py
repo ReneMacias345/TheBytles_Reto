@@ -10,7 +10,14 @@ co = cohere.Client(COHERE_API_KEY)
 def summarize_user(bio: str, capability: str, cv_text: str) -> str:
     try:
         prompt = f"""
-You are an AI assistant summarizing a candidate’s professional profile for the purpose of semantic role matching. Based on the information provided, generate a concise, role-agnostic paragraph that highlights the candidate’s key technical and soft skills, relevant experience, and core competencies. Use specific, descriptive language to capture practical abilities and professional strengths (e.g., “Skilled in prototyping and usability testing” rather than “good with design”). The summary should be clear, professional, and suitable for comparing against a role description embedding.
+You are an AI assistant summarizing a candidate’s professional profile. Your task is to write a **single, self-contained paragraph** that clearly describes the candidate’s technical skills, relevant experience, and professional strengths.
+
+Do not include:
+- Any introductions like “Here is a summary of the candidate’s profile”
+- Any conclusions like “This highlights their skills” or “This overview is useful for...”
+- Any bullet points, headings, or lists
+
+Only output the clean, concise paragraph — optimized for semantic embedding and role matching.
 
 BIO:
 {bio}

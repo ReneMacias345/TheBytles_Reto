@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { ProfileCard } from './ProfileCard';
 import supabase from '../config/supabaseClient';
+import { cosineSimilarity } from '../utilis/cosineSimilarity'
 
-export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url }) => {
+
+export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url, roles = [] }) => {
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -16,8 +18,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
     const fetchProfiles = async () => {
       const { data, error } = await supabase
         .from('User')
-        .select('firstName, lastName, capability, assignmentPercentage') 
-        .order('assignmentPercentage', { ascending: false }) 
+        .select('firstName, lastName, capability') 
         .limit(8); 
 
       if (error) {
@@ -29,6 +30,43 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
     if (showProfiles) fetchProfiles();
   }, [showProfiles]);
+
+  const handleRoleClick = async (role) => {
+    setShowProfiles(true);
+
+    if (!role.embedding_vector) {
+      console.error("Role is missing an embedding vector.");
+      return;
+    }
+
+    const { data: users, error } = await supabase
+    .from('User')
+    .select('firstName, lastName, capability, assignmentPercentage, embedding');
+
+
+    if (error) {
+      console.error("Error fetching user embeddings:", error);
+      return;
+    }
+  
+    // se calcula similtiud con rol 
+    const scoredUsers = users
+    .filter(u => u.embedding)
+    .map(user => {
+      const sim = cosineSimilarity(role.embedding_vector, user.embedding);
+      return {
+        ...user,
+        similarity: sim,
+        similarityPercent: ((1 - sim) * 100).toFixed(1), 
+      };
+    });
+
+  const topMatches = scoredUsers
+    .sort((a, b) => a.similarity - b.similarity)
+    .slice(0, 8);
+
+  setProfiles(topMatches);
+  };
 
   return (
     <div className="bg-white p-6 rounded-3xl shadow-lg mb-6">
@@ -102,6 +140,23 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
           {projectDescription}
         </p>
       </div>
+      {/* ROLES */}
+      {roles.length > 0 && (
+      <div className="mt-4">
+        <h3 className="text-sm font-semibold text-gray-700 mb-2">Available Roles:</h3>
+        <div className="flex flex-col gap-2">
+          {roles.map((role) => (
+            <button
+              key={role.id_role}
+              onClick={() => handleRoleClick(role)}
+              className="w-full text-left px-4 py-2 text-sm bg-white text-gray-700 rounded-xl hover:bg-purple-200 hover:text-[#A100FF] transition whitespace-normal break-words"
+            >
+              {role.role_description}
+            </button>
+          ))}
+        </div>
+      </div>
+    )}
       <div className="mt-4">
         <button
           onClick={toggleProfiles}
@@ -120,6 +175,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
               lastName={user.lastName}
               capability={user.capability}
               assignmentPercentage={user.assignmentPercentage}
+              similarityPercent={user.similarityPercent}
               // profilePic={user.profilePic}
             />
           ))}

@@ -2,8 +2,17 @@ from fastapi import FastAPI
 from pydantic import BaseModel
 from generate_profile_summaries import generate_user_summary
 from generate_roles_from_rfp import generate_roles_from_rfp
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # Domain 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class SummaryRequest(BaseModel):
     user_id: str
