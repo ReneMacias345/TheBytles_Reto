@@ -14,6 +14,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+@app.get("/")
+def read_root():
+    return {"message": "Backend is working!"}
+
 class SummaryRequest(BaseModel):
     user_id: str
 
