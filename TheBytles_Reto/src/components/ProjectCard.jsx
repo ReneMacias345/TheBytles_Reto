@@ -8,11 +8,9 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedRoleId, setSelectedRoleId] = useState(null);
 
 
-  const toggleProfiles = () => {
-    setShowProfiles(!showProfiles);
-  };
 
   useEffect(() => {
     const fetchProfiles = async () => {
@@ -32,6 +30,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   }, [showProfiles]);
 
   const handleRoleClick = async (role) => {
+    setSelectedRoleId(role.id_role);
     setShowProfiles(true);
 
     if (!role.embedding_vector) {
@@ -149,7 +148,12 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
             <button
               key={role.id_role}
               onClick={() => handleRoleClick(role)}
-              className="w-full text-left px-4 py-2 text-sm bg-white text-gray-700 rounded-xl hover:bg-purple-200 hover:text-[#A100FF] transition whitespace-normal break-words"
+              className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
+                selectedRoleId === role.id_role
+                  ? 'bg-[#A100FF] text-white'
+                  : 'bg-white text-gray-700 hover:bg-purple-200 hover:text-[#A100FF]'
+              }`}
+              
             >
               {role.role_description}
             </button>
@@ -157,14 +161,6 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         </div>
       </div>
     )}
-      <div className="mt-4">
-        <button
-          onClick={toggleProfiles}
-          className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
-        >
-          Assign
-        </button>
-      </div>
 
       {showProfiles && (
         <div className="grid grid-cols-4 gap-4 mt-6">
