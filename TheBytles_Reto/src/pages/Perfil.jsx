@@ -21,35 +21,15 @@ export const Perfil = () => {
   const [showSkillForm, setShowSkillForm] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [skillSuggestions, setSkillSuggestions] = useState([]);
-
   
   const [skills, setSkills] = useState({
     technical: [],
     soft: []
   });
 
-  const availableSkills = [
-    'Stakeholder Management',
-    'Jira & Confluence',
-    'Trello or Asana',
-    'Project Reporting & Dashboards',
-    'Gantt Chart Creation',
-    'Work Breakdown Structures (WBS)',
-    'Time Management',
-    'Conflict Resolution',
-    'Adaptability',
-    'Problem-Solving',
-    'Leadership & Team Coordination'
-  ];
-  const softSkills = [
-    'Time Management',
-    'Conflict Resolution',
-    'Adaptability',
-    'Problem-Solving',
-    'Leadership & Team Coordination'
-  ];
-  
-  
+  const [availableSkills, setAvailableSkills] = useState([]);
+  const [softSkills, setSoftSkills] = useState([]);
+  const [skillNameToIdMap, setSkillNameToIdMap] = useState({});
 
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
@@ -58,39 +38,87 @@ export const Perfil = () => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-
+  
       if (!userId) {
         console.error("User not logged in.");
         return;
       }
-
-      // Goals
+  
       const { data: goalsData, error: goalsError } = await supabase
         .from("Goal")
         .select("*")
         .eq("goalUserId", userId);
-
+  
       if (goalsError) {
         console.error("Error fetching goals:", goalsError);
       } else {
         setGoals(goalsData);
       }
-
-      // User Info
+  
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url, profilePic_url") // <- aquí
+        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url, profilePic_url")
         .eq("userId", userId)
         .single();
-
-
+  
       if (userError) {
         console.error("Error fetching user info:", userError);
       } else {
         setUserData(userInfoData);
       }
+      
+      const { data: skillsData, error: skillsError } = await supabase
+        .from("Skills")
+        .select("SkillID, SkillName, Type");
+        
+      if (skillsError) {
+        console.error("Error fetching skills:", skillsError);
+      } else {
+        const allSkills = skillsData.map(skill => skill.SkillName);
+        setAvailableSkills(allSkills);
+        
+        const softSkillsList = skillsData
+          .filter(skill => skill.Type === "Soft")
+          .map(skill => skill.SkillName);
+        setSoftSkills(softSkillsList);
+        
+        // Crear un mapa de nombres de habilidades a sus IDs para uso posterior
+        const skillNameToIdMap = {};
+        skillsData.forEach(skill => {
+          skillNameToIdMap[skill.SkillName] = skill.SkillID;
+        });
+        setSkillNameToIdMap(skillNameToIdMap);
+      }
+      
+      const { data: userSkillsData, error: userSkillsError } = await supabase
+        .from("User_Skills")
+        .select(`
+          skillid,
+          Skills (SkillID, SkillName, Type)
+        `)
+        .eq("userid", userId);
+        
+      if (userSkillsError) {
+        console.error("Error fetching user skills:", userSkillsError);
+      } else {
+        const technicalSkills = [];
+        const softSkills = [];
+        
+        userSkillsData.forEach(item => {
+          if (item.Skills.Type === "Soft") {
+            softSkills.push(item.Skills.SkillName);
+          } else {
+            technicalSkills.push(item.Skills.SkillName);
+          }
+        });
+        
+        setSkills({
+          technical: technicalSkills,
+          soft: softSkills
+        });
+      }
     };
-
+  
     fetchData();
   }, []);
 
@@ -364,6 +392,7 @@ export const Perfil = () => {
       headers: { "Content-Type": "application/json" },
   });
   };
+  
   useEffect(() => {
     if (!newSkill) {
       setSkillSuggestions([]);
@@ -373,40 +402,101 @@ export const Perfil = () => {
       skill.toLowerCase().includes(newSkill.toLowerCase())
     );
     setSkillSuggestions(filtered);
-  }, [newSkill]);
+  }, [newSkill, availableSkills]);
 
-  const handleAddSkill = () => {
+  const handleAddSkill = async () => {
     const trimmedSkill = newSkill.trim();
     const isInSuggestions = availableSkills.some(
       (skill) => skill.toLowerCase() === trimmedSkill.toLowerCase()
     );
     const isAlreadyAdded =
       skills.technical.includes(trimmedSkill) || skills.soft.includes(trimmedSkill);
-
+  
     if (isAlreadyAdded) {
       alert("You already have this skill.");
       return;
     }
-
+  
     if (!isInSuggestions) {
       alert("Please select a skill from the suggestion list.");
       return;
     }
-
+  
     const isSoft = softSkills.includes(trimmedSkill);
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const skillId = skillNameToIdMap[trimmedSkill];
+    
+    if (!skillId) {
+      alert("Error identifying skill ID. Please try again.");
+      return;
+    }
 
+    const { error } = await supabase
+      .from("User_Skills")
+      .insert([
+        { 
+          userid: userId,
+          skillid: skillId
+        }
+      ]);
+  
+    if (error) {
+      console.error("Error adding skill to user:", error);
+      alert("Failed to add skill. Please try again.");
+      return;
+    }
+  
     setSkills((prev) => ({
       ...prev,
       [isSoft ? 'soft' : 'technical']: [...prev[isSoft ? 'soft' : 'technical'], trimmedSkill]
     }));
-
+  
     setNewSkill('');
     setSkillSuggestions([]);
     setShowSkillForm(false);
   };
 
+  const handleRemoveSkill = async (skillName, skillType) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
 
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
 
+    const skillId = skillNameToIdMap[skillName];
+    
+    if (!skillId) {
+      alert("Error identifying skill ID. Please try again.");
+      return;
+    }
+
+    const { error } = await supabase
+      .from("User_Skills")
+      .delete()
+      .eq("userid", userId)
+      .eq("skillid", skillId);
+
+    if (error) {
+      console.error("Error removing skill from user:", error);
+      alert("Failed to remove skill. Please try again.");
+      return;
+    }
+
+    // Actualizar el estado local
+    setSkills((prev) => ({
+      ...prev,
+      [skillType]: prev[skillType].filter(skill => skill !== skillName)
+    }));
+  };
   
   return (
     <ScreenLayout>
@@ -603,7 +693,12 @@ export const Perfil = () => {
           <h4 className="bg-[#A100FF] text-white px-3 py-1 rounded-full inline-block text-sm font-medium mb-2">Technical</h4>
           <div className="flex flex-wrap gap-2">
             {skills.technical.map((skill, index) => (
-              <SkillCard key={index} name={skill} />
+              <SkillCard 
+                key={index} 
+                name={skill} 
+                type="technical"
+                onRemove={handleRemoveSkill} 
+              />
             ))}
           </div>
         </div>
@@ -612,7 +707,12 @@ export const Perfil = () => {
           <h4 className="bg-[#A100FF] text-white px-3 py-1 rounded-full inline-block text-sm font-medium mb-2">Soft</h4>
           <div className="flex flex-wrap gap-2">
             {skills.soft.map((skill, index) => (
-              <SkillCard key={index} name={skill} />
+              <SkillCard 
+                key={index} 
+                name={skill} 
+                type="soft"
+                onRemove={handleRemoveSkill} 
+              />
             ))}
           </div>
         </div>

@@ -1,8 +1,8 @@
 import React from 'react';
 
-export const SkillCard = ({ name }) => {
+export const SkillCard = ({ name, type, onRemove }) => {
   return (
-    <div className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm">
+    <div className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm group">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         fill="none"
@@ -18,6 +18,28 @@ export const SkillCard = ({ name }) => {
         />
       </svg>
       <span>{name}</span>
+      {onRemove && (
+        <button 
+          onClick={() => onRemove(name, type)} 
+          className="ml-1 text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
+          title="Remove skill"
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            className="h-4 w-4" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M6 18L18 6M6 6l12 12" 
+            />
+          </svg>
+        </button>
+      )}
     </div>
   );
 };
