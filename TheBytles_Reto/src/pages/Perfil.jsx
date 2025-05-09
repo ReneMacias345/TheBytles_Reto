@@ -953,6 +953,7 @@ export const Perfil = () => {
               <input
                 type="date"
                 placeholder="Date of realization"
+                min = "2020-01-01"
                 value={certDate}
                 onChange={(e) => setCertDate(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
