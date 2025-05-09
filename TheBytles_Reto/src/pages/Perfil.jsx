@@ -5,6 +5,7 @@ import { GoalCard } from '../components/GoalCard';
 import { SkillCard } from '../components/SkillCard';
 import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
+import { CertCard } from '../components/CertCard';
 
 export const Perfil = () => {
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -21,7 +22,33 @@ export const Perfil = () => {
   const [showSkillForm, setShowSkillForm] = useState(false);
   const [newSkill, setNewSkill] = useState('');
   const [skillSuggestions, setSkillSuggestions] = useState([]);
-  
+
+  const [showCertForm, setShowCertForm] = useState(false);
+  const [certName, setCertName] = useState('');
+  const [certDate, setCertDate] = useState('');
+  const [certExpire, setCertExpire] = useState('');
+  const [certDesc, setCertDesc] = useState('');
+
+  const [certifications, setCertifications] = useState([
+    {
+      cert_name: "Certified Digital Product Leader (CDPL)",
+      cert_date: "2023-06-01",
+      expiration_date: "2026-06-01",
+      description: "Product strategy, digital transformation and go-to-market execution."
+    },
+    {
+      cert_name: "Mobile Commerce & Loyalty Certification",
+      cert_date: "2023-08-15",
+      expiration_date: "2025-08-15",
+      description: "Covers mobile UX, user retention and loyalty systems."
+    },
+    {
+      cert_name: "AI-Driven Personalization Specialist",
+      cert_date: "2024-01-10",
+      expiration_date: "2026-01-10",
+      description: "Agile development with backlog prioritization and sprint planning."
+    }
+  ]);
   const [skills, setSkills] = useState({
     technical: [],
     soft: []
@@ -496,6 +523,22 @@ export const Perfil = () => {
       ...prev,
       [skillType]: prev[skillType].filter(skill => skill !== skillName)
     }));
+
+  };
+  const handleSaveCert = (e) => {
+    e.preventDefault();
+    const newCert = {
+      cert_name: certName,
+      cert_date: certDate,
+      expiration_date: certExpire,
+      description: certDesc
+    };
+    setCertifications((prev) => [...prev, newCert]);
+    setShowCertForm(false);
+    setCertName('');
+    setCertDate('');
+    setCertExpire('');
+    setCertDesc('');
   };
   
   return (
@@ -665,6 +708,7 @@ export const Perfil = () => {
           ))}
         </div>
       </InfoCard>
+
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Skills</h3>
@@ -715,6 +759,46 @@ export const Perfil = () => {
               />
             ))}
           </div>
+        </div>
+      </InfoCard>
+
+      <InfoCard>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+          <button
+            onClick={() => {
+              setCertName('');
+              setCertDate('');
+              setCertExpire('');
+              setCertDesc('');
+              setShowCertForm(true);
+            }}
+            className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Add new certification
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-5 max-h-[600px] overflow-y-auto pr-2">
+          {certifications.map((cert, index) => (
+            <CertCard
+              key={index}
+              certName={cert.cert_name}
+              date={cert.cert_date}
+              expiration={cert.expiration_date}
+              description={cert.description}
+            />
+          ))}
         </div>
       </InfoCard>
 
@@ -842,6 +926,63 @@ export const Perfil = () => {
             >
               Save skill
             </button>
+          </div>
+        </div>
+      )}
+      {showCertForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+            <button
+              onClick={() => setShowCertForm(false)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold text-center mb-4">New Certification</h3>
+            <form onSubmit={handleSaveCert} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Certification Name"
+                value={certName}
+                minLength={"10"}
+                maxLength={"40"}
+                onChange={(e) => setCertName(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <input
+                type="date"
+                placeholder="Date of realization"
+                min = "2020-01-01"
+                value={certDate}
+                onChange={(e) => setCertDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <input
+                type="date"
+                placeholder="Expiration date"
+                value={certExpire}
+                onChange={(e) => setCertExpire(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+              />
+              <textarea
+                placeholder="Description"
+                rows="3"
+                value={certDesc}
+                minLength={"10"}
+                maxLength={"80"}
+                onChange={(e) => setCertDesc(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full py-2 bg-[#A100FF] text-white rounded-full"
+              >
+                Save Certification
+              </button>
+            </form>
           </div>
         </div>
       )}
