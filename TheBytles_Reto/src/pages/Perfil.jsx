@@ -766,7 +766,13 @@ export const Perfil = () => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
           <button
-            onClick={() => setShowCertForm(true)}
+            onClick={() => {
+              setCertName('');
+              setCertDate('');
+              setCertExpire('');
+              setCertDesc('');
+              setShowCertForm(true);
+            }}
             className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
           >
             <svg
@@ -783,8 +789,8 @@ export const Perfil = () => {
           </button>
         </div>
 
-        <div className="grid grid-cols-2 gap-5 max-h-[600px] overflow-y-auto">
-          {certifications.slice(0, 6).map((cert, index) => (
+        <div className="grid grid-cols-2 gap-5 max-h-[600px] overflow-y-auto pr-2">
+          {certifications.map((cert, index) => (
             <CertCard
               key={index}
               certName={cert.cert_name}
@@ -934,7 +940,6 @@ export const Perfil = () => {
             </button>
             <h3 className="text-lg font-bold text-center mb-4">New Certification</h3>
             <form onSubmit={handleSaveCert} className="space-y-3">
-
               <input
                 type="text"
                 placeholder="Certification Name"
