@@ -29,26 +29,7 @@ export const Perfil = () => {
   const [certExpire, setCertExpire] = useState('');
   const [certDesc, setCertDesc] = useState('');
 
-  const [certifications, setCertifications] = useState([
-    {
-      cert_name: "Certified Digital Product Leader (CDPL)",
-      cert_date: "2023-06-01",
-      expiration_date: "2026-06-01",
-      description: "Product strategy, digital transformation and go-to-market execution."
-    },
-    {
-      cert_name: "Mobile Commerce & Loyalty Certification",
-      cert_date: "2023-08-15",
-      expiration_date: "2025-08-15",
-      description: "Covers mobile UX, user retention and loyalty systems."
-    },
-    {
-      cert_name: "AI-Driven Personalization Specialist",
-      cert_date: "2024-01-10",
-      expiration_date: "2026-01-10",
-      description: "Agile development with backlog prioritization and sprint planning."
-    }
-  ]);
+  const [certifications, setCertifications] = useState([]);
   const [skills, setSkills] = useState({
     technical: [],
     soft: []
@@ -143,6 +124,17 @@ export const Perfil = () => {
           technical: technicalSkills,
           soft: softSkills
         });
+      }
+
+      const { data: certsData, error: certsError } = await supabase
+      .from("Certificates")
+      .select("*")
+      .eq("userCertId", userId);
+  
+      if (certsError) {
+        console.error("Error fetching certifications:", certsError);
+      } else {
+        setCertifications(certsData);
       }
     };
   
@@ -518,27 +510,87 @@ export const Perfil = () => {
       return;
     }
 
-    // Actualizar el estado local
     setSkills((prev) => ({
       ...prev,
       [skillType]: prev[skillType].filter(skill => skill !== skillName)
     }));
 
   };
-  const handleSaveCert = (e) => {
+
+  const handleSaveCert = async (e) => {
     e.preventDefault();
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      alert("You must be logged in to save a certification.");
+      return;
+    }
+  
     const newCert = {
-      cert_name: certName,
-      cert_date: certDate,
-      expiration_date: certExpire,
-      description: certDesc
+      Cert_Name: certName,
+      Date_of_realization: certDate,
+      Expiration_Date: certExpire,
+      Description: certDesc,
+      userCertId: userId
     };
-    setCertifications((prev) => [...prev, newCert]);
+  
+    const { data, error } = await supabase
+      .from("Certificates")
+      .insert([newCert])
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error saving certification:", error);
+      alert("Failed to save certification. Please try again.");
+      return;
+    }
+  
+    setCertifications((prev) => [...prev, data]);
+  
     setShowCertForm(false);
     setCertName('');
     setCertDate('');
     setCertExpire('');
     setCertDesc('');
+  };
+
+  const handleEditCert = async (updatedCert) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from("Certificates")
+      .update({
+        Cert_Name: updatedCert.certName,
+        Date_of_realization: updatedCert.date,
+        Expiration_Date: updatedCert.expiration,
+        Description: updatedCert.description
+      })
+      .eq("Cert_ID", updatedCert.id)
+      .eq("userCertId", userId)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error updating certificate:", error);
+      alert("Failed to update certificate.");
+      return;
+    }
+  
+    setCertifications((prev) =>
+      prev.map((cert) =>
+        cert.Cert_ID === updatedCert.id ? data : cert
+      )
+    );
   };
   
   return (
@@ -790,13 +842,15 @@ export const Perfil = () => {
         </div>
 
         <div className="grid grid-cols-2 gap-5 max-h-[600px] overflow-y-auto pr-2">
-          {certifications.map((cert, index) => (
+          {certifications.map((cert) => (
             <CertCard
-              key={index}
-              certName={cert.cert_name}
-              date={cert.cert_date}
-              expiration={cert.expiration_date}
-              description={cert.description}
+              key={cert.Cert_ID}
+              id={cert.Cert_ID}
+              certName={cert.Cert_Name}
+              date={cert.Date_of_realization}
+              expiration={cert.Expiration_Date}
+              description={cert.Description}
+              onEdit={handleEditCert}
             />
           ))}
         </div>

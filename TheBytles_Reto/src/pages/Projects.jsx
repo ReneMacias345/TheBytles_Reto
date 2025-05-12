@@ -13,7 +13,7 @@ export const Projects = () => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-
+  
       if (!userId) {
         console.error("User not logged in.");
         return;
@@ -21,12 +21,16 @@ export const Projects = () => {
 
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName")
+        .select("firstName, lastName, Status")
         .eq("userId", userId)
         .single();
-
-      if (!userError) setUserData(userInfoData);
-
+  
+      if (userError) {
+        console.error("Error fetching user info:", userError);
+        return;
+      }
+      setUserData(userInfoData);
+  
       const { data: historyData, error: historyError } = await supabase
         .from("User_History")
         .select(`
@@ -41,22 +45,22 @@ export const Projects = () => {
           )
         `)
         .eq("user_element_id", userId);
-
+  
       if (historyError) {
         console.error("Error fetching project history:", historyError);
         return;
       }
-
+  
       const { data: rolesData, error: rolesError } = await supabase
         .from("Role")
-        .select("project_id, user_id, role_description")
+        .select("id_role, project_id, user_id, role_description")
         .eq("user_id", userId);
-
+  
       if (rolesError) {
         console.error("Error fetching roles:", rolesError);
         return;
       }
-
+  
       const historyWithRoles = historyData.map((history) => {
         const matchingRole = rolesData.find(role =>
           role.project_id === history.project_element_id &&
@@ -67,20 +71,55 @@ export const Projects = () => {
           role_description: matchingRole?.role_description || '—',
         };
       });
-
+  
       setHistoryProjects(historyWithRoles);
+  
+      if (userInfoData.Status === "staffed" && rolesData.length > 0) {
+        const sortedRoles = [...rolesData].sort((a, b) =>
+          b.id_role.localeCompare(a.id_role)
+        );
+  
+        const latestRole = sortedRoles[0];
+  
+        const { data: projectData, error: projectError } = await supabase
+          .from("Project")
+          .select("Project_Name, description, StartDate, EndDate")
+          .eq("Project_ID", latestRole.project_id)
+          .single();
+  
+        if (projectError) {
+          console.error("Error fetching project for workingIn:", projectError);
+          return;
+        }
+  
+        setWorkingIn({
+          projectName: projectData.Project_Name,
+          projectDescription: projectData.description,
+          role: latestRole.role_description,
+          startDate: projectData.StartDate,
+          endDate: projectData.EndDate,
+        });
+      } else {
+        setWorkingIn({
+          projectName: "N/A",
+          projectDescription: "N/A",
+          role: "N/A",
+          startDate: "N/A",
+          endDate: "N/A",
+        });
+      }
     };
-
+  
     fetchData();
   }, []);
 
-  const workingIn = {
-    projectName: 'Mobile Application for Starbucks',
-    projectDescription: 'Mobile app for placing Starbucks orders online',
-    role: 'SCRUM Master',
-    startDate: '13/05/2025',
-    endDate: '13/08/2025'
-  };
+  const [workingIn, setWorkingIn] = useState({
+    projectName: "Loading...",
+    projectDescription: "Loading...",
+    role: "Loading...",
+    startDate: "Loading...",
+    endDate: "Loading...",
+  });
 
   return (
     <ScreenLayout>
