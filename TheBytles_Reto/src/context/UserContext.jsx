@@ -6,50 +6,55 @@ export const UserContext = createContext();
 export const UserProvider = ({ children }) => {
   const [userData, setUserData] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [session, setSession] = useState(null); 
 
-  const fetchUser = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    const userId = session?.user?.id;
+  useEffect(() => {
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
+      if (session?.user) {
+        await fetchUser(session.user.id);
+      } else {
+        setUserData(null);
+        setLoading(false);
+      }
+    };
 
-    console.log("Session userId:", userId);
+    getSession();
 
-    if (!userId) {
-      setUserData(null);
-      setLoading(false);
-      return;
-    }
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("Auth changed:", _event, session);
+      setSession(session);
+      if (session?.user) {
+        fetchUser(session.user.id);
+      } else {
+        setUserData(null);
+      }
+    });
 
+    return () => {
+      listener.subscription.unsubscribe();
+    };
+  }, []);
+
+  const fetchUser = async (userId) => {
     const { data, error } = await supabase
       .from("User")
-      .select("*") 
+      .select("*")
       .eq("userId", userId)
       .single();
 
     if (error) {
       console.error("Failed to fetch user info:", error);
     } else {
-      console.log("User fetched:", data);
       setUserData(data);
     }
 
     setLoading(false);
   };
 
-  useEffect(() => {
-    fetchUser(); //load inicial
-
-    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
-      console.log("Auth changed:", _event, session);
-      fetchUser(); // cambio de estado 
-    });
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, []);
-
   return (
-    <UserContext.Provider value={{ userData, loading }}>
+    <UserContext.Provider value={{ userData, loading, session }}>
       {children}
     </UserContext.Provider>
   );
