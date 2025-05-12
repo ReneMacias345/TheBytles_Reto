@@ -135,6 +135,21 @@ export const Assignments = () => {
       setError("Error saving project. Try again.");
       return;
     }
+
+    try {
+      await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
+        method: "POST",
+        body: JSON.stringify({ project_id: projectId }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+  
+      alert("RFP uploaded, project created, and roles are being generated!");
+    } catch (e) {
+      console.error("Error triggering role generation", e);
+      alert("Project created but failed to trigger role generation.");
+    }
   
     setProjects([...projects, data[0]]);
     handleCloseForm();
