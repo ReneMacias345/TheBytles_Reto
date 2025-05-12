@@ -413,7 +413,7 @@ export const Perfil = () => {
     // ✅ Actualizar estado local en el frontend
     setUserData(prev => ({ ...prev, cv_url: publicUrl }));
     alert("CV uploaded and linked successfully!");
-    await fetch("http://thebytlesbackend-production.up.railway.app/generate-summary", {
+    await fetch("https://thebytlesbackend-production.up.railway.app/generate-summary", {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: { "Content-Type": "application/json" },
