@@ -42,6 +42,10 @@ export const Perfil = () => {
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
 
+  const [certFile, setCertFile] = useState(null);
+  const certInputRef = useRef(null);
+
+
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -592,6 +596,15 @@ export const Perfil = () => {
       )
     );
   };
+
+  const handleCertFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setCertFile(file);
+    } else {
+      alert('Please upload a PDF file.');
+    }
+  };
   
   return (
     <ScreenLayout>
@@ -1030,6 +1043,35 @@ export const Perfil = () => {
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
                 required
               />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 ">Upload Certification PDF</label>
+                <button
+                  onClick={() => certInputRef.current.click()}
+                  type="button"
+                  className="flex items-center px-3 py-1 bg-gray-100 text-sm text-[#A100FF] rounded hover:underline"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  Add certification
+                </button>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  ref={certInputRef}
+                  className="hidden"
+                  onChange={handleCertFileUpload}
+                  required
+                />
+                {certFile && <p className="text-sm mt-1 text-gray-500">Selected: {certFile.name}</p>}
+              </div>
               <button
                 type="submit"
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full"
