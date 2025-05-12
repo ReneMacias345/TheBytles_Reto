@@ -21,6 +21,7 @@ export const Assignments = () => {
 
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
+  const [showWait, setShowWait] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -149,8 +150,8 @@ export const Assignments = () => {
       console.error("Error triggering role generation", e);
       alert("Project created but failed to trigger role generation.");
     }
-  
     setProjects([...projects, data[0]]);
+    setShowWait(false);
     handleCloseForm();
   };
   
@@ -173,8 +174,18 @@ export const Assignments = () => {
 
         <button
           onClick={handleAddNew}
-          className="ml-4 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 font-semibold hover:shadow"
+          className="flex items-center px-3 py-1 bg-white text-sm text-[#A100FF] rounded hover:underline"
         >
+          <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
           Add new project
         </button>
       </div>
@@ -338,6 +349,14 @@ export const Assignments = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+      {showWait && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-2xl shadow-md text-center">
+            <h3 className="text-xl font-bold mb-2 text-gray-800">Please wait...</h3>
+            <p className="text-gray-600">Creating roles. This will take about 5 seconds.</p>
           </div>
         </div>
       )}
