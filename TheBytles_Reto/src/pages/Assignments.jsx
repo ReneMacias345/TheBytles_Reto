@@ -17,6 +17,8 @@ export const Assignments = () => {
   const [error, setError] = useState('');
   const [rolesMap, setRolesMap] = useState({});
 
+  const Project_ID = data[0].project_id;
+
   const today = new Date().toISOString().split("T")[0];
 
   const projectPicRef = useRef(null);
@@ -137,15 +139,12 @@ export const Assignments = () => {
     }
 
     try {
-      await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
-        method: "POST",
-        body: JSON.stringify({ project_id: projectId }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
       alert("RFP uploaded, project created, and roles are being generated!");
+      await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
+      method: "POST",
+      body: JSON.stringify({ project_id: Project_ID }),
+      headers: { "Content-Type": "application/json" },
+    });
     } catch (e) {
       console.error("Error triggering role generation", e);
       alert("Project created but failed to trigger role generation.");
