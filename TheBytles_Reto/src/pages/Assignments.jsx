@@ -135,9 +135,10 @@ export const Assignments = () => {
       setError("Error saving project. Try again.");
       return;
     }
+    
+    const Project_ID = data[0].Project_ID;
 
     try {
-      const Project_ID = data[0].project_id;
       alert("RFP uploaded, project created, and roles are being generated!");
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
       method: "POST",
