@@ -17,8 +17,6 @@ export const Assignments = () => {
   const [error, setError] = useState('');
   const [rolesMap, setRolesMap] = useState({});
 
-  const Project_ID = data[0].project_id;
-
   const today = new Date().toISOString().split("T")[0];
 
   const projectPicRef = useRef(null);
@@ -139,6 +137,7 @@ export const Assignments = () => {
     }
 
     try {
+      const Project_ID = data[0].project_id;
       alert("RFP uploaded, project created, and roles are being generated!");
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
       method: "POST",
