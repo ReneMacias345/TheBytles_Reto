@@ -12,7 +12,7 @@ import { AdminRoute } from './components/AdminRoute';
 
 export const App = () => {
   return (
-    <BrowserRouter>
+
         <Routes>
         // rutas publicas (acessibles a cualquiera)
         <Route path="/" element={<Login />} />
@@ -29,6 +29,6 @@ export const App = () => {
 
         <Route path="*" element={<Login />} /> // redireccion al login cuando una pantalla no esta accesible
       </Routes>
-    </BrowserRouter>
+
   );
 };
