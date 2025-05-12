@@ -18,7 +18,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
     const fetchProfiles = async () => {
       const { data, error } = await supabase
         .from('User')
-        .select('firstName, lastName, capability') 
+        .select('firstName, lastName, capability')
         .limit(8); 
 
       if (error) {
@@ -42,7 +42,8 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
     const { data: users, error } = await supabase
     .from('User')
-    .select('firstName, lastName, capability, assignmentPercentage, embedding');
+    .select('firstName, lastName, capability, assignmentPercentage, embedding,Status')
+    .eq('Status','benched');
 
 
     if (error) {
