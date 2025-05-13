@@ -1,15 +1,9 @@
 import React, { useState } from 'react';
 
-export const ProfileCard = ({ profilePic, firstName, lastName, capability, assignmentPercentage, similarityPercent }) => {
-  const [isSelected, setIsSelected] = useState(false);
-
-  const toggleSelect = () => {
-    setIsSelected(!isSelected);
-  };
-
+export const ProfileCard = ({ userId, profilePic, firstName, lastName, capability, assignmentPercentage, similarityPercent, isSelected, onToggleSelect }) => {
   return (
     <div
-      onClick={toggleSelect}
+      onClick={() => onToggleSelect(userId)}
       className={`relative cursor-pointer border p-4 rounded-2xl transition-all bg-white shadow-md w-full max-w-xs text-center ${
         isSelected
           ? 'border-[#A100FF] ring-2 ring-[#A100FF] bg-purple-50'
