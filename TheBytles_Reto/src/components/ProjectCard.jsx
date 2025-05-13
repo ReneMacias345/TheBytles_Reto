@@ -9,7 +9,6 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
-  const [assignedRoles, setAssignedRoles] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([])
   const [roles, setRoles] = useState([]);
 
@@ -114,7 +113,6 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       }
 
       alert("Employees successfully staffed and linked to role!");
-      setAssignedRoles((prev) => [...prev, selectedRoleId]);
       setShowConfirm(false);
       setSelectedUserIds([]);
       setSelectedRoleId(null);
@@ -209,9 +207,9 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
                   handleRoleClick(role);
                 }
               }}
-              disabled={assignedRoles.includes(role.id_role) || role.status === 'filled'}
+              disabled={role.status === 'filled'}
               className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
-                assignedRoles.includes(role.id_role)
+                role.status === 'filled'
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : selectedRoleId === role.id_role
                     ? 'bg-[#A100FF] text-white'
