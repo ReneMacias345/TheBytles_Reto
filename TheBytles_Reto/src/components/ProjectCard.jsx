@@ -11,26 +11,6 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [assignedRoles, setAssignedRoles] = useState([]);
 
-
-
-
-  useEffect(() => {
-    const fetchProfiles = async () => {
-      const { data, error } = await supabase
-        .from('User')
-        .select('firstName, lastName, capability')
-        .limit(8); 
-
-      if (error) {
-        console.error("Error fetching profiles:", error);
-      } else {
-        setProfiles(data);
-      }
-    };
-
-    if (showProfiles) fetchProfiles();
-  }, [showProfiles]);
-
   const handleRoleClick = async (role) => {
     setSelectedRoleId(role.id_role);
     setShowProfiles(true);
