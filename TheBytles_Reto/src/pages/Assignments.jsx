@@ -99,6 +99,39 @@ export const Assignments = () => {
     return publicUrlData?.publicUrl || null;
   };
   
+  const uploadPictureToSupabase = async (file) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId || !file) {
+      console.error("User not logged in or file missing.");
+      setError("You must be logged in and upload a file.");
+      return null;
+    }
+  
+    const fileName = `projectpics/${userId}-${Date.now()}-.png`; // carpeta correcta
+    const contentType = file.type || "image/png";
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("media") // bucket correcto
+      .upload(fileName, file, {
+        upsert: false,
+        contentType,
+        cacheControl: '3600',
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      setError("Error uploading RFP. Try again.");
+      return null;
+    }
+  
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    return publicUrlData?.publicUrl || null;
+  };
 
   const handleAddProject = async () => {
     if (!RFPFile) {
@@ -115,6 +148,9 @@ export const Assignments = () => {
   
     const rfpUrl = await uploadRFPToSupabase(RFPFile);
     if (!rfpUrl) return;
+
+    const projectPicUrl = await uploadPictureToSupabase(projectPic);
+    if (!projectPicUrl) return;
   
     const newProject = {
       Project_Name: projectName,
@@ -124,6 +160,7 @@ export const Assignments = () => {
       EndDate: endDate,
       rfp_url: rfpUrl,
       created_by: userId,
+      projectPic: projectPicUrl,
     };
   
     const { data, error } = await supabase
@@ -202,7 +239,7 @@ export const Assignments = () => {
           staffingStage={project.StaffingStage}
           startDate={project.StartDate}
           endDate={project.EndDate}
-          projectPic={null}
+          projectPic={project.projectPic}
           rfp_url={project.rfp_url}
           roles={rolesMap[project.Project_ID] || []}
         />
