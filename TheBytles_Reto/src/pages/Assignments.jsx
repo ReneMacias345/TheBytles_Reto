@@ -153,6 +153,12 @@ export const Assignments = () => {
     setProjects([...projects, data[0]]);
     setShowWait(false);
     handleCloseForm();
+    setShowWait(true);
+    setTimeout(() => {
+      setShowWait(false);
+      window.location.reload(); 
+    }, 5000);
+
   };
   
 
@@ -353,13 +359,13 @@ export const Assignments = () => {
         </div>
       )}
       {showWait && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white p-6 rounded-2xl shadow-md text-center">
-            <h3 className="text-xl font-bold mb-2 text-gray-800">Please wait...</h3>
-            <p className="text-gray-600">Creating roles. This will take about 5 seconds.</p>
+          <div className="fixed top-0 left-0 w-full h-full bg-[#A100FF] bg-opacity-95 z-50 flex items-center justify-center">
+            <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md text-center">
+              <h2 className="text-2xl font-bold text-[#A100FF] mb-4">Creating roles...</h2>
+              <p className="text-gray-700">Please wait 5 seconds while we finish setting up your project.</p>
+            </div>
           </div>
-        </div>
-      )}
+        )}
     </ScreenLayout>
   );
 };
