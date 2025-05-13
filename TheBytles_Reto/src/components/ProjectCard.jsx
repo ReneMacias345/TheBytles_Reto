@@ -28,7 +28,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     };
   
     fetchRoles();
-  }, [projectId, assignedRoles]);
+  }, [projectId]);
 
   const handleRoleClick = async (role) => {
     setSelectedRoleId(role.id_role);
