@@ -10,7 +10,8 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [assignedRoles, setAssignedRoles] = useState([]);
-
+  const [selectedUserIds, setSelectedUserIds] = useState([])
+  
   const handleRoleClick = async (role) => {
     setSelectedRoleId(role.id_role);
     setShowProfiles(true);
@@ -52,22 +53,16 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
   const handleRoleSubmission = async () => {
     try {
-      const userIds = profiles.map((user) => user.userId).filter(Boolean);
-      if (userIds.length === 0) {
-        alert("No valid users selected.");
+      if (selectedUserIds.length === 0) {
+        alert("No users selected.");
         return;
       }
       
       const { error } = await supabase
         .from('User')
-        .update({ Status: 'staffed' }) 
-        .in('userId', userIds);
-  
-      if (error) {
-        console.error("Error updating user statuses:", error);
-        alert("Something went wrong assigning the users.");
-        return;
-      }
+        .update({ Status: 'staffed' })
+        .in('userId', selectedUserIds);
+      
   
       alert("Employees assigned!");
       setAssignedRoles((prev) => [...prev, selectedRoleId]);
@@ -185,14 +180,22 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         <div className="grid grid-cols-4 gap-4 mt-6">
           {profiles.map((user, index) => (
             <ProfileCard
-              key={index}
-              firstName={user.firstName}
-              lastName={user.lastName}
-              capability={user.capability}
-              assignmentPercentage={user.assignmentPercentage}
-              similarityPercent={user.similarityPercent}
-              // profilePic={user.profilePic}
-            />
+            key={index}
+            userId={user.userId} // 👈 pass ID
+            isSelected={selectedUserIds.includes(user.userId)}
+            onToggleSelect={(id) => {
+              setSelectedUserIds((prev) =>
+                prev.includes(id)
+                  ? prev.filter((uid) => uid !== id)
+                  : [...prev, id]
+              );
+            }}
+            firstName={user.firstName}
+            lastName={user.lastName}
+            capability={user.capability}
+            assignmentPercentage={user.assignmentPercentage}
+            similarityPercent={user.similarityPercent}
+          />
           ))}
           <div className="col-span-4 flex justify-center mt-4">
             <button 
