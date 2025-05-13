@@ -12,14 +12,14 @@ export const NavbarEmp = () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
-      if (!userId) {
+      if (!userId) {m
         console.error("User not logged in.");
         return;
       }
       // User info
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, capability")
+        .select("firstName, lastName, capability,profilePic_url")
         .eq("userId", userId)
         .single();
 
@@ -129,6 +129,13 @@ export const NavbarEmp = () => {
       <div className="p-4 flex flex-col items-center">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
+          {userData?.profilePic_url ? (
+          <img
+            src={userData.profilePic_url}
+            alt="Profile"
+            className="w-full h-full object-cover"
+          />
+        ) : (
             <svg
               className="w-10 h-8 text-gray-400 mx-auto my-auto"
               fill="none"
@@ -143,6 +150,7 @@ export const NavbarEmp = () => {
               />
               <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
             </svg>
+            )}
           </div>
           <div className="ml-3">
             <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
