@@ -12,21 +12,21 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
   const [selectedUserIds, setSelectedUserIds] = useState([])
   const [roles, setRoles] = useState([]);
 
+  const fetchRoles = async () => {
+    const { data, error } = await supabase
+      .from('Role')
+      .select('*')
+      .eq('project_id', projectId);
+
+    if (error) {
+      console.error("Error fetching updated roles:", error);
+      return;
+    }
+
+    setRoles(data);
+  };
+
   useEffect(() => {
-    const fetchRoles = async () => {
-      const { data, error } = await supabase
-        .from('Role')
-        .select('*')
-        .eq('project_id', projectId);
-  
-      if (error) {
-        console.error("Error fetching updated roles:", error);
-        return;
-      }
-  
-      setRoles(data);
-    };
-  
     fetchRoles();
   }, [projectId]);
 
@@ -76,7 +76,6 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
         return;
       }
   
-      // 1. Update status of selected users
       const { error: updateError } = await supabase
         .from('User')
         .update({ Status: 'staffed' })
@@ -111,6 +110,17 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       if (roleUpdateError) {
         console.error("Error marking role as filled:", roleUpdateError);
       }
+
+      setRoles((prevRoles) =>
+      prevRoles.map((r) =>
+        r.id_role === selectedRoleId ? { ...r, status: 'filled' } : r
+      )
+    );
+
+    setTimeout(() => {
+      fetchRoles();
+    }, 2000);
+
 
       alert("Employees successfully staffed and linked to role!");
       setShowConfirm(false);
