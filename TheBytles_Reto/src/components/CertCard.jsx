@@ -1,6 +1,7 @@
 import React, { useState, useRef } from 'react';
+import supabase from '../config/supabaseClient';
 
-export const CertCard = ({ id, certName, description, date, expiration, onEdit }) => {
+export const CertCard = ({ id, certName, description, date, expiration, onEdit, cert_url }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(certName);
   const [editDate, setEditDate] = useState(date);
@@ -9,6 +10,31 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
   const [editFile, setEditFile] = useState(null);
   const fileInputRef = useRef(null);
 
+  const uploadCertPDF = async (file, userId) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `cert/${userId}-${id}.${fileExt}`;
+    const contentType = file.type || "application/pdf";
+
+    const { error: uploadError } = await supabase.storage
+      .from("media")
+      .upload(fileName, file, {
+        upsert: true,
+        contentType,
+        cacheControl: "3600",
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      alert("Error uploading certificate PDF.");
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+
+    return publicUrlData?.publicUrl || null;
+  };
 
   return (
     <div className="bg-gray-100 p-6 rounded-3xl shadow-md flex flex-col justify-between">
@@ -47,24 +73,31 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
           Edit
         </button>
         <button
-            className="flex items-center px-3 py-1 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition text-sm"
+          onClick={() => {
+            if (cert_url) {
+              window.open(cert_url, '_blank');
+            } else {
+              alert("No certification file available.");
+            }
+          }}
+          className="flex items-center px-3 py-1 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition text-sm"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-4 h-4 mr-1"
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="w-4 h-4 mr-1"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-              />
-            </svg>
-            See certification
-          </button>
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+          See certification
+        </button>
       </div>
 
       {showEditModal && (
@@ -146,15 +179,31 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
                 </div>
               <button
                 type="button"
-                onClick={() => {
-                  onEdit({
+                onClick={async () => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const userId = session?.user?.id;
+
+                  if (!userId) {
+                    alert("User not logged in.");
+                    return;
+                  }
+
+                  let publicUrl = null;
+
+                  if (editFile) {
+                    publicUrl = await uploadCertPDF(editFile, userId);
+                    if (!publicUrl) return;
+                  }
+
+                  await onEdit({
                     id,
                     certName: editName,
                     date: editDate,
                     expiration: editExpiration,
                     description: editDescription,
-                    file: editFile
+                    cert_url: publicUrl 
                   });
+
                   setShowEditModal(false);
                 }}
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"

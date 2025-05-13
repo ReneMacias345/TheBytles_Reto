@@ -523,80 +523,116 @@ export const Perfil = () => {
 
   const handleSaveCert = async (e) => {
     e.preventDefault();
-  
+
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
-  
+
     if (!userId) {
       console.error("User not logged in.");
       alert("You must be logged in to save a certification.");
       return;
     }
-  
+
+    let certUrl = null;
+
+    if (certFile) {
+      const fileExt = certFile.name.split('.').pop();
+      const fileName = `cert/${userId}-${Date.now()}.${fileExt}`;
+      const contentType = certFile.type || "application/pdf";
+
+      const { error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(fileName, certFile, {
+          upsert: true,
+          contentType,
+          cacheControl: "3600",
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError.message);
+        alert("Error uploading certificate PDF.");
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("media")
+        .getPublicUrl(fileName);
+
+      certUrl = publicUrlData?.publicUrl || null;
+    }
+
     const newCert = {
       Cert_Name: certName,
       Date_of_realization: certDate,
       Expiration_Date: certExpire,
       Description: certDesc,
-      userCertId: userId
+      userCertId: userId,
+      cert_url: certUrl6
     };
-  
+
     const { data, error } = await supabase
       .from("Certificates")
       .insert([newCert])
       .select()
       .single();
-  
+
     if (error) {
       console.error("Error saving certification:", error);
       alert("Failed to save certification. Please try again.");
       return;
     }
-  
+
     setCertifications((prev) => [...prev, data]);
-  
+
+    // Reset form
     setShowCertForm(false);
     setCertName('');
     setCertDate('');
     setCertExpire('');
     setCertDesc('');
+    setCertFile(null);
   };
 
   const handleEditCert = async (updatedCert) => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
-  
+
     if (!userId) {
       console.error("User not logged in.");
       return;
     }
-  
+
+    const updateFields = {
+      Cert_Name: updatedCert.certName,
+      Date_of_realization: updatedCert.date,
+      Expiration_Date: updatedCert.expiration,
+      Description: updatedCert.description
+    };
+
+    if (updatedCert.cert_url) {
+      updateFields.cert_url = updatedCert.cert_url;
+    }
+
     const { data, error } = await supabase
       .from("Certificates")
-      .update({
-        Cert_Name: updatedCert.certName,
-        Date_of_realization: updatedCert.date,
-        Expiration_Date: updatedCert.expiration,
-        Description: updatedCert.description
-      })
+      .update(updateFields)
       .eq("Cert_ID", updatedCert.id)
       .eq("userCertId", userId)
       .select()
       .single();
-  
+
     if (error) {
       console.error("Error updating certificate:", error);
       alert("Failed to update certificate.");
       return;
     }
-  
+
     setCertifications((prev) =>
       prev.map((cert) =>
         cert.Cert_ID === updatedCert.id ? data : cert
       )
     );
   };
-
   const handleCertFileUpload = (e) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
@@ -863,6 +899,7 @@ export const Perfil = () => {
               date={cert.Date_of_realization}
               expiration={cert.Expiration_Date}
               description={cert.Description}
+              cert_url={cert.cert_url}
               onEdit={handleEditCert}
             />
           ))}
