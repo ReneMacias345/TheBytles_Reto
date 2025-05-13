@@ -202,11 +202,8 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
           {roles.map((role) => (
             <button
               key={role.id_role}
-              onClick={() => {
-                if (role.status === 'filled') {
-                  handleRoleClick(role);
-                }
-              }}
+              onClick={() =>
+                  handleRoleClick(role)}
               disabled={role.status === 'filled'}
               className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
                 role.status === 'filled'
