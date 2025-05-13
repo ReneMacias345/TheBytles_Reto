@@ -4,7 +4,7 @@ import supabase from '../config/supabaseClient';
 import { cosineSimilarity } from '../utilis/cosineSimilarity'
 
 
-export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url = [] }) => {
+export const ProjectCard = ({ projectId, projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url = [] }) => {
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
