@@ -22,7 +22,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
     const { data: users, error } = await supabase
     .from('User')
-    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding,Status')
+    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding, Status')
     .eq('Status','benched');
 
 
@@ -52,8 +52,12 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
   const handleRoleSubmission = async () => {
     try {
-      const userIds = profiles.map((user) => user.userId);
-  
+      const userIds = profiles.map((user) => user.userId).filter(Boolean);
+      if (userIds.length === 0) {
+        alert("No valid users selected.");
+        return;
+      }
+      
       const { error } = await supabase
         .from('User')
         .update({ Status: 'staffed' }) 
