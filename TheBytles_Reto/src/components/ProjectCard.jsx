@@ -3,6 +3,23 @@ import { ProfileCard } from './ProfileCard';
 import supabase from '../config/supabaseClient';
 import { cosineSimilarity } from '../utilis/cosineSimilarity'
 
+useEffect(() => {
+  const fetchRoles = async () => {
+    const { data, error } = await supabase
+      .from('Role')
+      .select('*')
+      .eq('project_id', projectId);
+
+    if (error) {
+      console.error("Error fetching updated roles:", error);
+      return;
+    }
+
+    setRoles(data);
+  };
+
+  fetchRoles();
+}, [projectId, assignedRoles]); // <-- re-fetch on new assignment
 
 export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url, roles = [] }) => {
   const [showProfiles, setShowProfiles] = useState(false);
@@ -11,6 +28,25 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [assignedRoles, setAssignedRoles] = useState([]);
   const [selectedUserIds, setSelectedUserIds] = useState([])
+  const [roles, setRoles] = useState([]);
+
+  useEffect(() => {
+    const fetchRoles = async () => {
+      const { data, error } = await supabase
+        .from('Role')
+        .select('*')
+        .eq('project_id', projectId);
+
+      if (error) {
+        console.error("Error fetching updated roles:", error);
+        return;
+      }
+
+      setRoles(data);
+    };
+
+    fetchRoles();
+  }, [projectId, assignedRoles]); 
   
   const handleRoleClick = async (role) => {
     setSelectedRoleId(role.id_role);

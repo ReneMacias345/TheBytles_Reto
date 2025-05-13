@@ -240,6 +240,7 @@ export const Assignments = () => {
       .map((project, index) => (
         <ProjectCard
           key={index}
+          projectId={project.Project_ID} 
           projectName={project.Project_Name}
           projectDescription={project.description}
           staffingStage={project.StaffingStage}
