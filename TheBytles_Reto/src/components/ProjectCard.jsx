@@ -180,6 +180,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         <div className="grid grid-cols-4 gap-4 mt-6">
           {profiles.map((user, index) => (
             <ProfileCard
+
             key={index}
             userId={user.userId} // 👈 pass ID
             isSelected={selectedUserIds.includes(user.userId)}
