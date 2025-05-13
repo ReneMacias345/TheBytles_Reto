@@ -8,6 +8,7 @@ export const Projects = () => {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userData, setUserData] = useState(null);
   const [historyProjects, setHistoryProjects] = useState([]);
+  const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null); 
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,6 +121,11 @@ export const Projects = () => {
     startDate: "Loading...",
     endDate: "Loading...",
   });
+  const employeesAssociated = [
+    { id:1, firstName: "Ana", lastName: "Ramirez", role: "Backend Dev", feedback: "" },
+    { id:2, firstName: "Max", lastName: "Palafox", role: "Frontend Dev", feedback: "" },
+    { id:3, firstName: "Yuting", lastName: "Lin", role: "QA Tester", feedback: "" },
+  ];
 
   return (
     <ScreenLayout>
@@ -153,6 +159,44 @@ export const Projects = () => {
         </table>
       </InfoCard>
 
+      <InfoCard>
+        <h3 className="font-semibold text-lg text-gray-800 mb-2">Employees Associated</h3>
+        <table className="w-full text-sm">
+          <thead className="text-gray-500 text-left">
+            <tr>
+              <th className="py-2"> Name</th>
+              <th>Role</th>
+              <th>Feedback</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-700 font-medium">
+            {employeesAssociated.map((emp) => (
+              <tr key={emp.id} className="border-t">
+                <td className="py-2">{emp.firstName} {emp.lastName}</td>
+                <td>{emp.role}</td>
+                <td>
+                  <button
+                    onClick={() => setActiveFeedbackTarget(emp)}
+                    className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
+                  >
+                   <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                    Add Feedback
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </InfoCard>
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -224,6 +268,30 @@ export const Projects = () => {
             </button>
             <h2 className="text-lg font-bold mb-2 text-gray-800">Feedback</h2>
             <p className="text-sm text-gray-700 whitespace-pre-wrap">{selectedFeedback}</p>
+          </div>
+        </div>
+      )}
+      
+      {activeFeedbackTarget && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-lg relative">
+            <button
+              onClick={() => setActiveFeedbackTarget(null)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:opacity-90"
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-4 text-[#A100FF]">
+              Feedback for {activeFeedbackTarget.firstName} {activeFeedbackTarget.lastName}
+            </h2>
+            <textarea
+              className="w-full h-24 p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#A100FF] text-gray-80 bg-gray-100"
+              placeholder="Write your feedback here..."
+              defaultValue={activeFeedbackTarget.feedback || ''}
+            ></textarea>
+            <button className="mt-4 w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90">
+              Save Feedback
+            </button>
           </div>
         </div>
       )}
