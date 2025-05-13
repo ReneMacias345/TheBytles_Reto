@@ -234,9 +234,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
               </p>
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => {
-                    handleRoleSubmission
-                  }}
+                  onClick={handleRoleSubmission}
                   className="px-6 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
                 >
                   Yes
