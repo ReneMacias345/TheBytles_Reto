@@ -194,7 +194,7 @@ export const Assignments = () => {
       setShowWait(false);
       handleCloseForm();
       window.location.reload(); 
-    }, 8000);
+    }, 3000);
 
   };
   
@@ -399,7 +399,7 @@ export const Assignments = () => {
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-95 z-50 flex items-center justify-center">
             <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md text-center">
               <h2 className="text-2xl font-bold text-[#A100FF] mb-4">RFP uploaded, project created, and roles are being generated!</h2>
-              <p className="text-gray-700">Please wait 8 seconds while we finish setting up your project.</p>
+              <p className="text-gray-700">Please wait while we finish setting up your project.</p>
             </div>
           </div>
         )}
