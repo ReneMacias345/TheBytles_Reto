@@ -70,7 +70,6 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         return;
       }
   
-      // 2. Insert records into User_Rol join table
       const assignments = selectedUserIds.map(userId => ({
         id_user: userId,
         id_rol: selectedRoleId,
@@ -86,6 +85,15 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         return;
       }
   
+      const { error: roleUpdateError } = await supabase
+        .from('Role')
+        .update({ status: 'filled' })
+        .eq('id_role', selectedRoleId);
+
+      if (roleUpdateError) {
+        console.error("Error marking role as filled:", roleUpdateError);
+      }
+
       alert("Employees successfully staffed and linked to role!");
       setAssignedRoles((prev) => [...prev, selectedRoleId]);
       setShowConfirm(false);
@@ -178,7 +186,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
             <button
               key={role.id_role}
               onClick={() => {
-                if (!assignedRoles.includes(role.id_role)) {
+                if (!assignedRoles.includes(role.id_role) && role.status !== 'filled') {
                   handleRoleClick(role);
                 }
               }}
