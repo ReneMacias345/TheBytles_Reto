@@ -203,7 +203,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
             <button
               key={role.id_role}
               onClick={() => {
-                if (!assignedRoles.includes(role.id_role) && role.status !== 'filled') {
+                if (role.status === 'filled') {
                   handleRoleClick(role);
                 }
               }}
