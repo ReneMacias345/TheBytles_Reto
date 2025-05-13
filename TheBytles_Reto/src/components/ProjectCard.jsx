@@ -190,7 +190,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
                   handleRoleClick(role);
                 }
               }}
-              disabled={assignedRoles.includes(role.id_role)}
+              disabled={assignedRoles.includes(role.id_role) || role.status === 'filled'}
               className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
                 assignedRoles.includes(role.id_role)
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
