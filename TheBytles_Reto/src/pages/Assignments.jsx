@@ -177,7 +177,6 @@ export const Assignments = () => {
     const Project_ID = data[0].Project_ID;
 
     try {
-      alert("RFP uploaded, project created, and roles are being generated!");
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
       method: "POST",
       body: JSON.stringify({ project_id: Project_ID }),
@@ -398,7 +397,7 @@ export const Assignments = () => {
       {showWait && (
           <div className="fixed top-0 left-0 w-full h-full bg-[#A100FF] bg-opacity-95 z-50 flex items-center justify-center">
             <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md text-center">
-              <h2 className="text-2xl font-bold text-[#A100FF] mb-4">Creating roles...</h2>
+              <h2 className="text-2xl font-bold text-[#A100FF] mb-4">RFP uploaded, project created, and roles are being generated!</h2>
               <p className="text-gray-700">Please wait 5 seconds while we finish setting up your project.</p>
             </div>
           </div>
