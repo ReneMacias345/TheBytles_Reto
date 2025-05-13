@@ -567,7 +567,7 @@ export const Perfil = () => {
       Expiration_Date: certExpire,
       Description: certDesc,
       userCertId: userId,
-      cert_url: certUrl6
+      cert_url: certUrl
     };
 
     const { data, error } = await supabase
