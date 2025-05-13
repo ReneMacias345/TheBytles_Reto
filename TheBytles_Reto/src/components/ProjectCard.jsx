@@ -57,16 +57,39 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         alert("No users selected.");
         return;
       }
-      
-      const { error } = await supabase
+  
+      // 1. Update status of selected users
+      const { error: updateError } = await supabase
         .from('User')
         .update({ Status: 'staffed' })
         .in('userId', selectedUserIds);
-      
   
-      alert("Employees assigned!");
+      if (updateError) {
+        console.error("Error updating statuses:", updateError);
+        alert("Failed to update user statuses.");
+        return;
+      }
+  
+      // 2. Insert records into User_Rol join table
+      const assignments = selectedUserIds.map(userId => ({
+        id_user: userId,
+        id_rol: selectedRoleId,
+      }));
+  
+      const { error: insertError } = await supabase
+        .from('User_Rol')
+        .insert(assignments);
+  
+      if (insertError) {
+        console.error("Error inserting into User_Rol:", insertError);
+        alert("Users were updated but roles were not linked.");
+        return;
+      }
+  
+      alert("Employees successfully staffed and linked to role!");
       setAssignedRoles((prev) => [...prev, selectedRoleId]);
       setShowConfirm(false);
+      setSelectedUserIds([]);
       setSelectedRoleId(null);
       setShowProfiles(false);
     } catch (err) {
