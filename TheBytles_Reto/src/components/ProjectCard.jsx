@@ -42,7 +42,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
     const { data: users, error } = await supabase
     .from('User')
-    .select('firstName, lastName, capability, assignmentPercentage, embedding,Status')
+    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding,Status')
     .eq('Status','benched');
 
 
@@ -68,6 +68,31 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
     .slice(0, 8);
 
   setProfiles(topMatches);
+  };
+
+  const handleRoleSubmission = async () => {
+    try {
+      const userIds = profiles.map((user) => user.userId);
+  
+      const { error } = await supabase
+        .from('User')
+        .update({ Status: 'staffed' }) 
+        .in('userId', userIds);
+  
+      if (error) {
+        console.error("Error updating user statuses:", error);
+        alert("Something went wrong assigning the users.");
+        return;
+      }
+  
+      alert("Employees assigned!");
+      setAssignedRoles((prev) => [...prev, selectedRoleId]);
+      setShowConfirm(false);
+      setSelectedRoleId(null);
+      setShowProfiles(false);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
   };
 
   return (
@@ -210,10 +235,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
               <div className="flex justify-center gap-4">
                 <button
                   onClick={() => {
-                    alert("Employees assigned!"); 
-                    setAssignedRoles(prev => [...prev, selectedRoleId]);
-                    setShowConfirm(false);
-                    setSelectedRoleId(null); 
+                    handleRoleSubmission
                   }}
                   className="px-6 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
                 >
