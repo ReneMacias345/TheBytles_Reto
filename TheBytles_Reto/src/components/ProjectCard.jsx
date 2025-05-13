@@ -41,7 +41,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
 
     const { data: users, error } = await supabase
     .from('User')
-    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding, Status')
+    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding, Status,profilePic_url')
     .eq('Status','benched');
 
 
@@ -251,6 +251,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
             capability={user.capability}
             assignmentPercentage={user.assignmentPercentage}
             similarityPercent={user.similarityPercent}
+            profilePic={user.profilePic_url} 
           />
           ))}
           <div className="col-span-4 flex justify-center mt-4">
