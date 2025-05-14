@@ -6,6 +6,10 @@ import { SkillCard } from '../components/SkillCard';
 import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
 import { CertCard } from '../components/CertCard';
+import { CourCard } from '../components/CourCard';
+
+
+
 
 export const Perfil = () => {
   const [showGoalForm, setShowGoalForm] = useState(false);
@@ -41,9 +45,28 @@ export const Perfil = () => {
 
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
-
+   
   const [certFile, setCertFile] = useState(null);
   const certInputRef = useRef(null);
+
+  const [showCourseForm, setShowCourseForm] = useState(false);
+  const [courseTitle, setCourseTitle] = useState('');
+  const [courseDesc, setCourseDesc] = useState('');
+  const [courseDate, setCourseDate] = useState('');
+
+  const [courses, setCourses] = useState([
+    {
+    title: "Network Security with Palo Alto Firewalls",
+    description: "Covers the configuration, deployment, and management of Palo Alto Networks firewalls, focusing on threat prevention, traffic monitoring, and secure network segmentation using industry-standard practices.",
+    date:"2025-10-10"
+  },
+  {
+    title: "Cloud Security Fundamentals (AWS & Azure)",
+    description: "Explores foundational cloud security concepts, identity and access management (IAM), encryption, and compliance strategies across Amazon Web Services and Microsoft Azure environments.",
+    date:"2025-11-10"
+  }
+]);
+
 
 
   useEffect(() => {
@@ -633,7 +656,7 @@ export const Perfil = () => {
       )
     );
   };
-  const handleCertFileUpload = (e) => {
+    const handleCertFileUpload = (e) => {
     const file = e.target.files[0];
     if (file && file.type === 'application/pdf') {
       setCertFile(file);
@@ -641,6 +664,21 @@ export const Perfil = () => {
       alert('Please upload a PDF file.');
     }
   };
+  const handleSaveCourse = (e) => {
+    e.preventDefault();
+    const newCourse = {
+      title: courseTitle,
+      description: courseDesc,
+      date: courseDate
+    };
+    setCourses(prev => [...prev, newCourse]);
+    setCourseTitle('');
+    setCourseDesc('');
+    setCourseDate('');
+    setShowCourseForm(false);
+  };
+  
+
   
   return (
     <ScreenLayout>
@@ -906,6 +944,45 @@ export const Perfil = () => {
         </div>
       </InfoCard>
 
+      <InfoCard>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-bold text-gray-800">Courses</h3>
+          <button
+            onClick={() => {
+              setCourseTitle('');
+              setCourseDesc('');
+              setCourseDate('');
+              setShowCourseForm(true);
+            }}
+            className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
+            Add new course
+          </button>
+        </div>
+
+        <div className="grid grid-cols-2 gap-5 max-h-[600px] overflow-y-auto pr-2">
+          {courses.map((course, index) => (
+            <CourCard
+              key={index}
+              title={course.title}
+              description={course.description}
+              date={course.date}
+            />
+          ))}
+        </div>
+      </InfoCard>
+
+
       {showGoalForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-md relative">
@@ -1075,7 +1152,7 @@ export const Perfil = () => {
                 rows="3"
                 value={certDesc}
                 minLength={"10"}
-                maxLength={"80"}
+                maxLength={"150"}
                 onChange={(e) => setCertDesc(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
                 required
@@ -1114,6 +1191,57 @@ export const Perfil = () => {
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full"
               >
                 Save Certification
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showCourseForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+            <button
+              onClick={() => setShowCourseForm(false)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
+            >
+              &times;
+            </button>
+            <h3 className="text-lg font-bold text-center mb-4">New Course</h3>
+            <form onSubmit={handleSaveCourse} className="space-y-3">
+              <input
+                type="text"
+                placeholder="Course Title"
+                value={courseTitle}
+                minLength={5}
+                maxLength={50}
+                onChange={(e) => setCourseTitle(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <input
+                type="date"
+                placeholder="Date of realization"
+                min = "2000-01-01"
+                value={courseDate}
+                onChange={(e) => setCourseDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <textarea
+                placeholder="Course Description"
+                rows="3"
+                value={courseDesc}
+                minLength={10}
+                maxLength={150}
+                onChange={(e) => setCourseDesc(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <button
+                type="submit"
+                className="w-full py-2 bg-[#A100FF] text-white rounded-full"
+              >
+                Save Course
               </button>
             </form>
           </div>
