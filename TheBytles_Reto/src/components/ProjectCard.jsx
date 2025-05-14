@@ -81,11 +81,11 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     const scoredUsers = users
     .filter(u => u.embedding)
     .map(user => {
-      const sim = cosineSimilarity(role.embedding_vector, user.embedding);
+      const similarity = cosineSimilarity(role.embedding_vector, user.embedding);
       return {
         ...user,
-        similarity: sim,
-        similarityPercent: sim.toFixed(1), 
+        similarity: similarity,
+        similarityPercent: similarity.toFixed(1), 
       };
     });
 
