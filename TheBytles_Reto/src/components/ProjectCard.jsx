@@ -90,7 +90,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     });
 
   const topMatches = scoredUsers
-    .sort((a, b) => a.similarity - b.similarity)
+    .sort((a, b) => b.similarity - a.similarity)
     .slice(0, 8);
 
   setProfiles(topMatches);
