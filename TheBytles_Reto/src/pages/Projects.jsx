@@ -8,7 +8,8 @@ export const Projects = () => {
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userData, setUserData] = useState(null);
   const [historyProjects, setHistoryProjects] = useState([]);
-  const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null); 
+  const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
+  const [feedbackInput, setFeedbackInput] = useState(''); 
 
   const extractHighlightedText = (text) => {
     const matches = text?.match(/\*\*(.*?)\*\*/g); // busca **...**
@@ -154,12 +155,21 @@ export const Projects = () => {
     startDate: "Loading...",
     endDate: "Loading...",
   });
-  const employeesAssociated = [
+  const [employeesAssociated, setEmployeesAssociated] = useState([
     { id:1, firstName: "Ana", lastName: "Aramoni", email:"ana@k2k2",role: "Backend Dev", feedback: "" },
     { id:2, firstName: "Max", lastName: "Palafox",email:"Max@k2k2", role: "Frontend Dev", feedback: "" },
     { id:3, firstName: "Yuting", lastName: "Lin", email:"Yuting@k2k2", role: "QA Tester", feedback: "" },
-  ];
-
+  ]);
+  const handleSaveFeedback = () => {
+    setEmployeesAssociated(prev =>
+      prev.map(emp =>
+        emp.id === activeFeedbackTarget.id ? { ...emp, feedback: feedbackInput } : emp
+      )
+    );
+    setActiveFeedbackTarget(null);
+    setFeedbackInput('');
+  };
+ 
   return (
     <ScreenLayout>
       <div className="mb-8">
@@ -200,7 +210,8 @@ export const Projects = () => {
               <th className="py-2"> Name</th>
               <th>Email</th>
               <th>Role</th>
-              <th>Feedback</th>
+              <th>Add Feedback</th>
+              <th> Feedback Recieved </th>
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
@@ -227,6 +238,7 @@ export const Projects = () => {
                     Add Feedback
                   </button>
                 </td>
+                <td>{emp.feedback}</td>
               </tr>
             ))}
           </tbody>
@@ -319,11 +331,14 @@ export const Projects = () => {
               Feedback for {activeFeedbackTarget.firstName} {activeFeedbackTarget.lastName}
             </h2>
             <textarea
-              className="w-full h-24 p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#A100FF] text-gray-80 bg-gray-100"
+              value={feedbackInput}
+              onChange={(e) => setFeedbackInput(e.target.value)}
+              className="w-full h-24 p-3 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#A100FF] text-gray-800 bg-gray-100"
               placeholder="Write your feedback here..."
-              defaultValue={activeFeedbackTarget.feedback || ''}
             ></textarea>
-            <button className="mt-4 w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90">
+            <button 
+              onClick={handleSaveFeedback}
+              className="mt-4 w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90">
               Save Feedback
             </button>
           </div>
