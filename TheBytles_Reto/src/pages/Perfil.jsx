@@ -52,18 +52,21 @@ export const Perfil = () => {
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [courseTitle, setCourseTitle] = useState('');
   const [courseDesc, setCourseDesc] = useState('');
+  const [courseFinished, setCourseFinished] = useState('');
   const [courseDate, setCourseDate] = useState('');
 
   const [courses, setCourses] = useState([
     {
     title: "Network Security with Palo Alto Firewalls",
     description: "Covers the configuration, deployment, and management of Palo Alto Networks firewalls, focusing on threat prevention, traffic monitoring, and secure network segmentation using industry-standard practices.",
-    date:"2025-10-10"
+    date:"2025-10-10",
+    finished:"2025-11-11"
   },
   {
     title: "Cloud Security Fundamentals (AWS & Azure)",
     description: "Explores foundational cloud security concepts, identity and access management (IAM), encryption, and compliance strategies across Amazon Web Services and Microsoft Azure environments.",
-    date:"2025-11-10"
+    date:"2025-11-10",
+    finished:"2025-12-12"
   }
 ]);
 
@@ -669,12 +672,14 @@ export const Perfil = () => {
     const newCourse = {
       title: courseTitle,
       description: courseDesc,
-      date: courseDate
+      date: courseDate,
+      finished:courseFinished
     };
     setCourses(prev => [...prev, newCourse]);
     setCourseTitle('');
     setCourseDesc('');
     setCourseDate('');
+    setCourseFinished('');
     setShowCourseForm(false);
   };
   
@@ -952,6 +957,7 @@ export const Perfil = () => {
               setCourseTitle('');
               setCourseDesc('');
               setCourseDate('');
+              setCourseFinished('');
               setShowCourseForm(true);
             }}
             className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
@@ -977,6 +983,7 @@ export const Perfil = () => {
               title={course.title}
               description={course.description}
               date={course.date}
+              finished={course.finished}
             />
           ))}
         </div>
@@ -1146,6 +1153,7 @@ export const Perfil = () => {
                 value={certExpire}
                 onChange={(e) => setCertExpire(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
               />
               <textarea
                 placeholder="Description"
@@ -1224,6 +1232,14 @@ export const Perfil = () => {
                 min = "2000-01-01"
                 value={courseDate}
                 onChange={(e) => setCourseDate(e.target.value)}
+                className="w-full px-3 py-2 border rounded-lg bg-gray-50"
+                required
+              />
+              <input
+                type="date"
+                placeholder="Date of Completion "
+                value={courseFinished}
+                onChange={(e) => setCourseFinished(e.target.value)}
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
                 required
               />
