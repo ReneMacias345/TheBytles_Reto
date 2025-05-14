@@ -26,6 +26,33 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     setRoles(data);
   };
 
+  const checkAndSetProjectReady = async () => {
+    const { data: updatedRoles, error } = await supabase
+      .from('Role')
+      .select('status')
+      .eq('project_id', projectId);
+  
+    if (error) {
+      console.error("Error checking role statuses:", error);
+      return;
+    }
+  
+    const allFilled = updatedRoles.every(role => role.status === 'filled');
+  
+    if (allFilled) {
+      const { error: updateError } = await supabase
+        .from('Project')
+        .update({ status: 'ready' })
+        .eq('Project_ID', projectId);
+  
+      if (updateError) {
+        console.error("Error updating project status:", updateError);
+      } else {
+        console.log("Project status updated to 'ready'");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
   }, [projectId]);
@@ -121,6 +148,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       fetchRoles();
     }, 2000);
 
+    await checkAndSetProjectReady();
 
       alert("Employees successfully staffed and linked to role!");
       setShowConfirm(false);
