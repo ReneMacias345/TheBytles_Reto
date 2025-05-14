@@ -26,6 +26,33 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     setRoles(data);
   };
 
+  const checkAndSetProjectReady = async () => {
+    const { data: updatedRoles, error } = await supabase
+      .from('Role')
+      .select('status')
+      .eq('project_id', projectId);
+  
+    if (error) {
+      console.error("Error checking role statuses:", error);
+      return;
+    }
+  
+    const allFilled = updatedRoles.every(role => role.status === 'filled');
+  
+    if (allFilled) {
+      const { error: updateError } = await supabase
+        .from('Project')
+        .update({ Status: 'ready' })
+        .eq('Project_ID', projectId);
+  
+      if (updateError) {
+        console.error("Error updating project status:", updateError);
+      } else {
+        console.log("Project status updated to 'ready'");
+      }
+    }
+  };
+
   useEffect(() => {
     fetchRoles();
   }, [projectId]);
@@ -51,19 +78,18 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     }
   
     // se calcula similtiud con rol 
-    const scoredUsers = users
-    .filter(u => u.embedding)
-    .map(user => {
-      const sim = cosineSimilarity(role.embedding_vector, user.embedding);
-      return {
-        ...user,
-        similarity: sim,
-        similarityPercent: ((1 - sim) * 100).toFixed(1), 
-      };
-    });
+  const scoredUsers = users
+  .filter(u => u.embedding)
+  .map(user => {
+    const raw = cosineSimilarity(role.embedding_vector, user.embedding);
+    return {
+      ...user,
+      similarityPercent: raw,
+    };
+  });
 
   const topMatches = scoredUsers
-    .sort((a, b) => a.similarity - b.similarity)
+    .sort((a, b) => b.similarityPercent - a.similarityPercent)
     .slice(0, 8);
 
   setProfiles(topMatches);
@@ -121,6 +147,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       fetchRoles();
     }, 2000);
 
+    await checkAndSetProjectReady();
 
       alert("Employees successfully staffed and linked to role!");
       setShowConfirm(false);

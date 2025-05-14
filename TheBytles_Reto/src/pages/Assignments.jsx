@@ -180,6 +180,7 @@ export const Assignments = () => {
 
     try {
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
+      //await fetch("https://accurate-motivation-production.up.railway.app/generate-roles", {
       method: "POST",
       body: JSON.stringify({ project_id: Project_ID }),
       headers: { "Content-Type": "application/json" },
