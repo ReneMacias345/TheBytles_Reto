@@ -122,9 +122,9 @@ export const Projects = () => {
     endDate: "Loading...",
   });
   const employeesAssociated = [
-    { id:1, firstName: "Ana", lastName: "Ramirez", role: "Backend Dev", feedback: "" },
-    { id:2, firstName: "Max", lastName: "Palafox", role: "Frontend Dev", feedback: "" },
-    { id:3, firstName: "Yuting", lastName: "Lin", role: "QA Tester", feedback: "" },
+    { id:1, firstName: "Ana", lastName: "Aramoni", email:"ana@k2k2",role: "Backend Dev", feedback: "" },
+    { id:2, firstName: "Max", lastName: "Palafox",email:"Max@k2k2", role: "Frontend Dev", feedback: "" },
+    { id:3, firstName: "Yuting", lastName: "Lin", email:"Yuting@k2k2", role: "QA Tester", feedback: "" },
   ];
 
   return (
@@ -160,11 +160,12 @@ export const Projects = () => {
       </InfoCard>
 
       <InfoCard>
-        <h3 className="font-semibold text-lg text-gray-800 mb-2">Employees Associated</h3>
+        <h3 className="font-semibold text-lg text-gray-800 mb-2">Employees Associated to projectName</h3>
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
               <th className="py-2"> Name</th>
+              <th>Email</th>
               <th>Role</th>
               <th>Feedback</th>
             </tr>
@@ -173,11 +174,12 @@ export const Projects = () => {
             {employeesAssociated.map((emp) => (
               <tr key={emp.id} className="border-t">
                 <td className="py-2">{emp.firstName} {emp.lastName}</td>
+                <td>{emp.email}</td>
                 <td>{emp.role}</td>
                 <td>
                   <button
                     onClick={() => setActiveFeedbackTarget(emp)}
-                    className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
+                    className="flex items-center px-3 py-1 bg-white text-sm text-[#A100FF] rounded hover:underline"
                   >
                    <svg
                     xmlns="http://www.w3.org/2000/svg"
@@ -201,7 +203,6 @@ export const Projects = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h3 className="font-semibold text-lg text-gray-800">My Project History</h3>
-            <p className="text-sm text-[#38B2AC]">Monterrey, Nuevo León</p>
           </div>
 
           <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
