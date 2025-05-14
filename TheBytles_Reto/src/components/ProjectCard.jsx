@@ -78,16 +78,15 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     }
   
     // se calcula similtiud con rol 
-    const scoredUsers = users
-    .filter(u => u.embedding)
-    .map(user => {
-      const similarity = cosineSimilarity(role.embedding_vector, user.embedding);
-      return {
-        ...user,
-        similarity: similarity,
-        similarityPercent: similarity.toFixed(1), 
-      };
-    });
+  const scoredUsers = users
+  .filter(u => u.embedding)
+  .map(user => {
+    const raw = cosineSimilarity(role.embedding_vector, user.embedding);
+    return {
+      ...user,
+      similarityPercent: raw,
+    };
+  });
 
   const topMatches = scoredUsers
     .sort((a, b) => b.similarity - a.similarity)

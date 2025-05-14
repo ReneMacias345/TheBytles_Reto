@@ -11,9 +11,9 @@ export const ProfileCard = ({ userId, profilePic, firstName, lastName, capabilit
       }`}
     >
       <div className="absolute top-2 right-3 text-xs font-semibold text-[#A100FF]">
-      {typeof similarityPercent === 'number'
-        ? `${Math.round(similarityPercent)}%`
-        : '0%'}
+      {similarityPercent != null
+    ? `${similarityPercent.toFixed(1)}%`
+    : '0%'}
       </div>
       <div className="mt-2">
         <div className="w-24 h-24 mx-auto rounded-full overflow-hidden">
