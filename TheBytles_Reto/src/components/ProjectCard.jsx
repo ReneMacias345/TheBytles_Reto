@@ -85,7 +85,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       return {
         ...user,
         similarity: sim,
-        similarityPercent: ((1 - sim) * 100).toFixed(1), 
+        similarityPercent: sim.toFixed(1), 
       };
     });
 
