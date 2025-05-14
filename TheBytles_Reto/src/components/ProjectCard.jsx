@@ -42,7 +42,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     if (allFilled) {
       const { error: updateError } = await supabase
         .from('Project')
-        .update({ status: 'ready' })
+        .update({ Status: 'ready' })
         .eq('Project_ID', projectId);
   
       if (updateError) {
