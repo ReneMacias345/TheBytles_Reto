@@ -45,6 +45,9 @@ export const Perfil = () => {
 
   const [goals, setGoals] = useState([]);
   const [userData, setUserData] = useState(null);
+   
+  const [certFile, setCertFile] = useState(null);
+  const certInputRef = useRef(null);
 
   const [showCourseForm, setShowCourseForm] = useState(false);
   const [courseTitle, setCourseTitle] = useState('');
@@ -63,6 +66,7 @@ export const Perfil = () => {
     date:"2025-11-10"
   }
 ]);
+
 
 
   useEffect(() => {
@@ -428,7 +432,7 @@ export const Perfil = () => {
     // ✅ Actualizar estado local en el frontend
     setUserData(prev => ({ ...prev, cv_url: publicUrl }));
     alert("CV uploaded and linked successfully!");
-    await fetch("http://thebytlesbackend-production.up.railway.app/generate-summary", {
+    await fetch("https://thebytlesbackend-production.up.railway.app/generate-summary", {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: { "Content-Type": "application/json" },
@@ -542,80 +546,124 @@ export const Perfil = () => {
 
   const handleSaveCert = async (e) => {
     e.preventDefault();
-  
+
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
-  
+
     if (!userId) {
       console.error("User not logged in.");
       alert("You must be logged in to save a certification.");
       return;
     }
-  
+
+    let certUrl = null;
+
+    if (certFile) {
+      const fileExt = certFile.name.split('.').pop();
+      const fileName = `cert/${userId}-${Date.now()}.${fileExt}`;
+      const contentType = certFile.type || "application/pdf";
+
+      const { error: uploadError } = await supabase.storage
+        .from("media")
+        .upload(fileName, certFile, {
+          upsert: true,
+          contentType,
+          cacheControl: "3600",
+        });
+
+      if (uploadError) {
+        console.error("Upload error:", uploadError.message);
+        alert("Error uploading certificate PDF.");
+        return;
+      }
+
+      const { data: publicUrlData } = supabase.storage
+        .from("media")
+        .getPublicUrl(fileName);
+
+      certUrl = publicUrlData?.publicUrl || null;
+    }
+
     const newCert = {
       Cert_Name: certName,
       Date_of_realization: certDate,
       Expiration_Date: certExpire,
       Description: certDesc,
-      userCertId: userId
+      userCertId: userId,
+      cert_url: certUrl
     };
-  
+
     const { data, error } = await supabase
       .from("Certificates")
       .insert([newCert])
       .select()
       .single();
-  
+
     if (error) {
       console.error("Error saving certification:", error);
       alert("Failed to save certification. Please try again.");
       return;
     }
-  
+
     setCertifications((prev) => [...prev, data]);
-  
+
+    // Reset form
     setShowCertForm(false);
     setCertName('');
     setCertDate('');
     setCertExpire('');
     setCertDesc('');
+    setCertFile(null);
   };
 
   const handleEditCert = async (updatedCert) => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
-  
+
     if (!userId) {
       console.error("User not logged in.");
       return;
     }
-  
+
+    const updateFields = {
+      Cert_Name: updatedCert.certName,
+      Date_of_realization: updatedCert.date,
+      Expiration_Date: updatedCert.expiration,
+      Description: updatedCert.description
+    };
+
+    if (updatedCert.cert_url) {
+      updateFields.cert_url = updatedCert.cert_url;
+    }
+
     const { data, error } = await supabase
       .from("Certificates")
-      .update({
-        Cert_Name: updatedCert.certName,
-        Date_of_realization: updatedCert.date,
-        Expiration_Date: updatedCert.expiration,
-        Description: updatedCert.description
-      })
+      .update(updateFields)
       .eq("Cert_ID", updatedCert.id)
       .eq("userCertId", userId)
       .select()
       .single();
-  
+
     if (error) {
       console.error("Error updating certificate:", error);
       alert("Failed to update certificate.");
       return;
     }
-  
+
     setCertifications((prev) =>
       prev.map((cert) =>
         cert.Cert_ID === updatedCert.id ? data : cert
       )
     );
   };
-
+    const handleCertFileUpload = (e) => {
+    const file = e.target.files[0];
+    if (file && file.type === 'application/pdf') {
+      setCertFile(file);
+    } else {
+      alert('Please upload a PDF file.');
+    }
+  };
   const handleSaveCourse = (e) => {
     e.preventDefault();
     const newCourse = {
@@ -630,6 +678,7 @@ export const Perfil = () => {
     setShowCourseForm(false);
   };
   
+
   
   return (
     <ScreenLayout>
@@ -888,6 +937,7 @@ export const Perfil = () => {
               date={cert.Date_of_realization}
               expiration={cert.Expiration_Date}
               description={cert.Description}
+              cert_url={cert.cert_url}
               onEdit={handleEditCert}
             />
           ))}
@@ -1107,6 +1157,35 @@ export const Perfil = () => {
                 className="w-full px-3 py-2 border rounded-lg bg-gray-50"
                 required
               />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1 ">Upload Certification PDF</label>
+                <button
+                  onClick={() => certInputRef.current.click()}
+                  type="button"
+                  className="flex items-center px-3 py-1 bg-gray-100 text-sm text-[#A100FF] rounded hover:underline"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                  </svg>
+                  Add certification
+                </button>
+                <input
+                  type="file"
+                  accept="application/pdf"
+                  ref={certInputRef}
+                  className="hidden"
+                  onChange={handleCertFileUpload}
+                  required
+                />
+                {certFile && <p className="text-sm mt-1 text-gray-500">Selected: {certFile.name}</p>}
+              </div>
               <button
                 type="submit"
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full"

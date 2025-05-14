@@ -1,11 +1,40 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import supabase from '../config/supabaseClient';
 
-export const CertCard = ({ id, certName, description, date, expiration, onEdit }) => {
+export const CertCard = ({ id, certName, description, date, expiration, onEdit, cert_url }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState(certName);
   const [editDate, setEditDate] = useState(date);
   const [editExpiration, setEditExpiration] = useState(expiration);
   const [editDescription, setEditDescription] = useState(description);
+  const [editFile, setEditFile] = useState(null);
+  const fileInputRef = useRef(null);
+
+  const uploadCertPDF = async (file, userId) => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `cert/${userId}-${id}.${fileExt}`;
+    const contentType = file.type || "application/pdf";
+
+    const { error: uploadError } = await supabase.storage
+      .from("media")
+      .upload(fileName, file, {
+        upsert: true,
+        contentType,
+        cacheControl: "3600",
+      });
+
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      alert("Error uploading certificate PDF.");
+      return null;
+    }
+
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+
+    return publicUrlData?.publicUrl || null;
+  };
 
   return (
     <div className="bg-gray-100 p-6 rounded-3xl shadow-md flex flex-col justify-between">
@@ -14,11 +43,13 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
         <p className="text-sm text-gray-600 mb-4">{description}</p>
       </div>
 
-      <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
+      <div className="flex justify-between items-center text-xs text-gray-500 [mt-auto">
         <div>
           <p><strong>Realized:</strong> {date}</p>
           <p><strong>Expires:</strong> {expiration || 'N/A'}</p>
         </div>
+
+        <div className="flex gap-2 items-center ml-12"></div>
         <button
           onClick={() => setShowEditModal(true)}
           className="flex items-center px-3 py-1 bg-gray-200 text-gray-800 rounded-full hover:opacity-90 transition"
@@ -40,6 +71,32 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
             />
           </svg>
           Edit
+        </button>
+        <button
+          onClick={() => {
+            if (cert_url) {
+              window.open(cert_url, '_blank');
+            } else {
+              alert("No certification file available.");
+            }
+          }}
+          className="flex items-center px-3 py-1 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition text-sm"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth={1.5}
+            stroke="currentColor"
+            className="w-4 h-4 mr-1"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
+            />
+          </svg>
+          See certification
         </button>
       </div>
 
@@ -90,16 +147,63 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit }
                   rows="3"
                 />
               </div>
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">Replace Certification PDF</label>
+                <div className="flex items-center space-x-2">
+                    <button
+                    type="button"
+                    onClick={() => fileInputRef.current.click()}
+                    className="flex items-center px-3 py-1 bg-gray-100 text-sm text-[#A100FF] rounded hover:underline"
+                    >
+                     <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth="1.5"
+                    stroke="currentColor"
+                    className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+                    >
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                    </svg>
+                    Upload PDF
+                    </button>
+                    {editFile && <p className="text-sm text-gray-600">{editFile.name}</p>}
+                </div>
+                <input
+                    type="file"
+                    accept="application/pdf"
+                    ref={fileInputRef}
+                    className="hidden"
+                    onChange={(e) => setEditFile(e.target.files[0])}
+                />
+                </div>
               <button
                 type="button"
-                onClick={() => {
-                  onEdit({
+                onClick={async () => {
+                  const { data: { session } } = await supabase.auth.getSession();
+                  const userId = session?.user?.id;
+
+                  if (!userId) {
+                    alert("User not logged in.");
+                    return;
+                  }
+
+                  let publicUrl = null;
+
+                  if (editFile) {
+                    publicUrl = await uploadCertPDF(editFile, userId);
+                    if (!publicUrl) return;
+                  }
+
+                  await onEdit({
                     id,
                     certName: editName,
                     date: editDate,
                     expiration: editExpiration,
-                    description: editDescription
+                    description: editDescription,
+                    cert_url: publicUrl 
                   });
+
                   setShowEditModal(false);
                 }}
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"

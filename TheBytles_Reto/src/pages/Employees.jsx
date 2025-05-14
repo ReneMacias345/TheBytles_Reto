@@ -11,6 +11,13 @@ export const Employees = () => {
   const [projects, setProjects] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [userData, setUserData] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const extractHighlightedText = (text) => {
+    const matches = text?.match(/\*\*(.*?)\*\*/g); // busca todas las ocurrencias **...**
+    if (!matches) return 'N/A';
+    return matches.map(match => match.replace(/\*\*/g, '')).join(', '); // limpia los **
+  };
 
   useEffect(() => {
     const fetchUserData = async () => {
@@ -39,95 +46,120 @@ export const Employees = () => {
   }, []);
 
   useEffect(() => {
-    const fetchCountsAndEmployees = async () => {
-      const { data: allUsers, error } = await supabase
-        .from("User")
-        .select("firstName, lastName, email, atc, careerLevel, Status");
+    const fetchEnrichedEmployees = async () => {
+      setIsLoading(true);
+      
+      try {
+        const { data: users, error: userError } = await supabase
+          .from("User")
+          .select("userId, firstName, lastName, email, atc, careerLevel, Status");
 
-      if (error) {
-        console.error("Error fetching users:", error);
-        return;
+        if (userError) throw userError;
+
+        const { data: userRoles, error: userRolError } = await supabase
+          .from("User_Rol")
+          .select("id_user_rol, id_user, id_rol");
+
+        if (userRolError) throw userRolError;
+
+        const { data: roles, error: roleError } = await supabase
+          .from("Role")
+          .select("id_role, role_description, project_id");
+
+        if (roleError) throw roleError;
+
+        const { data: projects, error: projectError } = await supabase
+          .from("Project")
+          .select("Project_ID, Project_Name");
+
+        if (projectError) throw projectError;
+
+        const enrichedUsers = users.map(user => {
+          const userStatus = user.Status?.toLowerCase();
+          if (userStatus === "staffed") {
+            const rolesOfUser = userRoles.filter(r => r.id_user === user.userId);
+            const lastUserRole = rolesOfUser[rolesOfUser.length - 1];
+            const role = roles.find(r => r.id_role === lastUserRole?.id_rol);
+            const project = role ? projects.find(p => p.Project_ID === role.project_id) : null;
+
+            return {
+              ...user,
+              role_description: extractHighlightedText(role?.role_description),
+              project_name: project?.Project_Name || 'N/A',
+            };
+          }
+
+          return {
+            ...user,
+            role_description: 'N/A',
+            project_name: 'N/A',
+          };
+        });
+
+        setEmployees(enrichedUsers);
+        setAssignedEmpTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "benched").length);
+        setStaffedTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "staffed").length);
+      } catch (error) {
+        console.error("Error fetching enriched employee data:", error);
       }
 
-      setEmployees(allUsers);
-
-      const total = allUsers.length;
-      const staffed = allUsers.filter(u => u.Status?.toLowerCase() === "staffed").length;
-
-      setAssignedEmpTotal(total);
-      setStaffedTotal(staffed);
+      setIsLoading(false);
     };
 
-    fetchCountsAndEmployees();
+    fetchEnrichedEmployees();
   }, []);
+
 
   useEffect(() => {
     const fetchProjects = async () => {
-      const { data, error } = await supabase
-        .from("Project")
-        .select("Project_Name, description, Members, StartDate, EndDate");
+      try {
+        const { data: projects, error: projectError } = await supabase
+          .from("Project")
+          .select("Project_ID, Project_Name, description, StartDate, EndDate");
 
-      if (error) {
-        console.error("Error fetching projects:", error);
-        return;
+        if (projectError) throw projectError;
+
+        const { data: roles, error: roleError } = await supabase
+          .from("Role")
+          .select("id_role, project_id");
+
+        if (roleError) throw roleError;
+
+        const { data: userRoles, error: userRolError } = await supabase
+          .from("User_Rol")
+          .select("id_user_rol, id_rol");
+
+        if (userRolError) throw userRolError;
+
+        // Map project_id → count of users
+        const roleUserCountMap = {};
+
+        userRoles.forEach(({ id_rol }) => {
+          const role = roles.find(r => r.id_role === id_rol);
+          if (role) {
+            const projectId = role.project_id;
+            if (!roleUserCountMap[projectId]) {
+              roleUserCountMap[projectId] = 1;
+            } else {
+              roleUserCountMap[projectId]++;
+            }
+          }
+        });
+
+        const enrichedProjects = projects.map(project => ({
+          ...project,
+          Members: roleUserCountMap[project.Project_ID] > 0 ? roleUserCountMap[project.Project_ID] : 'N/A',
+        }));
+
+        setProjects(enrichedProjects);
+      } catch (error) {
+        console.error("Error enriching projects:", error);
       }
-
-      setProjects(data);
     };
 
     fetchProjects();
   }, []);
 
-  useEffect(() => {
-    const fetchAllEmployees = async () => {
-      const { data: users, error: userError } = await supabase
-        .from("User")
-        .select("userId, firstName, lastName, email, atc, careerLevel, Status");
-  
-      if (userError) {
-        console.error("Error fetching users:", userError);
-        return;
-      }
-  
-      const { data: roles, error: roleError } = await supabase
-        .from("Role")
-        .select("user_id, role_description, project_id");
-  
-      if (roleError) {
-        console.error("Error fetching roles:", roleError);
-        return;
-      }
-  
-      const { data: projects, error: projectError } = await supabase
-        .from("Project")
-        .select("Project_ID, Project_Name");
-  
-      if (projectError) {
-        console.error("Error fetching projects:", projectError);
-        return;
-      }
-  
-      const enrichedUsers = users.map(user => {
-        const userRole = roles.find(role => role.user_id === user.userId);
-        const project = userRole
-          ? projects.find(p => p.Project_ID === userRole.project_id)
-          : null;
-  
-        return {
-          ...user,
-          role_description: user.Status?.toLowerCase() === 'benched' ? 'N/A' : userRole?.role_description || 'N/A',
-          project_name: user.Status?.toLowerCase() === 'benched' ? 'N/A' : project?.Project_Name || 'N/A',
-        };
-      });
-  
-      setEmployees(enrichedUsers);
-  
-      setAssignedEmpTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "benched").length);
-      setStaffedTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "staffed").length);
-    };
-  
-    fetchAllEmployees();
-  }, []);
 
   return (
     <ScreenLayout>

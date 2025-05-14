@@ -21,6 +21,7 @@ export const Assignments = () => {
 
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
+  const [showWait, setShowWait] = useState(false);
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -98,8 +99,43 @@ export const Assignments = () => {
     return publicUrlData?.publicUrl || null;
   };
   
+  const uploadPictureToSupabase = async (file) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId || !file) {
+      console.error("User not logged in or file missing.");
+      setError("You must be logged in and upload a file.");
+      return null;
+    }
+  
+    const fileName = `projectpics/${userId}-${Date.now()}-.png`; // carpeta correcta
+    const contentType = file.type || "image/png";
+  
+    const { data: uploadData, error: uploadError } = await supabase.storage
+      .from("media") // bucket correcto
+      .upload(fileName, file, {
+        upsert: false,
+        contentType,
+        cacheControl: '3600',
+      });
+  
+    if (uploadError) {
+      console.error("Upload error:", uploadError.message);
+      setError("Error uploading RFP. Try again.");
+      return null;
+    }
+  
+    const { data: publicUrlData } = supabase.storage
+      .from("media")
+      .getPublicUrl(fileName);
+  
+    return publicUrlData?.publicUrl || null;
+  };
 
   const handleAddProject = async () => {
+    setShowWait(true);
+
     if (!RFPFile) {
       setError('Please upload an RFP file.');
       return;
@@ -114,6 +150,9 @@ export const Assignments = () => {
   
     const rfpUrl = await uploadRFPToSupabase(RFPFile);
     if (!rfpUrl) return;
+
+    const projectPicUrl = await uploadPictureToSupabase(projectPic);
+    if (!projectPicUrl) return;
   
     const newProject = {
       Project_Name: projectName,
@@ -123,6 +162,7 @@ export const Assignments = () => {
       EndDate: endDate,
       rfp_url: rfpUrl,
       created_by: userId,
+      projectPic: projectPicUrl,
     };
   
     const { data, error } = await supabase
@@ -135,24 +175,27 @@ export const Assignments = () => {
       setError("Error saving project. Try again.");
       return;
     }
+    
+    const Project_ID = data[0].Project_ID;
 
     try {
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
-        method: "POST",
-        body: JSON.stringify({ project_id: projectId }),
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-  
-      alert("RFP uploaded, project created, and roles are being generated!");
+      method: "POST",
+      body: JSON.stringify({ project_id: Project_ID }),
+      headers: { "Content-Type": "application/json" },
+    });
     } catch (e) {
       console.error("Error triggering role generation", e);
       alert("Project created but failed to trigger role generation.");
     }
-  
     setProjects([...projects, data[0]]);
-    handleCloseForm();
+
+    setTimeout(() => {
+      setShowWait(false);
+      handleCloseForm();
+      window.location.reload(); 
+    }, 3000);
+
   };
   
 
@@ -174,8 +217,18 @@ export const Assignments = () => {
 
         <button
           onClick={handleAddNew}
-          className="ml-4 px-4 py-2 rounded-xl bg-white border border-gray-200 text-gray-800 font-semibold hover:shadow"
+          className="flex items-center px-3 py-1 bg-white text-sm text-[#A100FF] rounded hover:underline"
         >
+          <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
+              className="w-6 h-6 inline-block mr-2 transition-colors group-hover:stroke-white"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+            </svg>
           Add new project
         </button>
       </div>
@@ -187,12 +240,13 @@ export const Assignments = () => {
       .map((project, index) => (
         <ProjectCard
           key={index}
+          projectId={project.Project_ID} 
           projectName={project.Project_Name}
           projectDescription={project.description}
           staffingStage={project.StaffingStage}
           startDate={project.StartDate}
           endDate={project.EndDate}
-          projectPic={null}
+          projectPic={project.projectPic}
           rfp_url={project.rfp_url}
           roles={rolesMap[project.Project_ID] || []}
         />
@@ -342,6 +396,14 @@ export const Assignments = () => {
           </div>
         </div>
       )}
+      {showWait && (
+          <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-95 z-50 flex items-center justify-center">
+            <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md text-center">
+              <h2 className="text-2xl font-bold text-[#A100FF] mb-4">RFP uploaded, project created, and roles are being generated!</h2>
+              <p className="text-gray-700">Please wait while we finish setting up your project.</p>
+            </div>
+          </div>
+        )}
     </ScreenLayout>
   );
 };

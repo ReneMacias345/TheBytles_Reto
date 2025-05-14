@@ -4,32 +4,31 @@ import supabase from '../config/supabaseClient';
 import { cosineSimilarity } from '../utilis/cosineSimilarity'
 
 
-export const ProjectCard = ({ projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url, roles = [] }) => {
+export const ProjectCard = ({ projectId, projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url = [] }) => {
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
-  const [assignedRoles, setAssignedRoles] = useState([]);
+  const [selectedUserIds, setSelectedUserIds] = useState([])
+  const [roles, setRoles] = useState([]);
 
+  const fetchRoles = async () => {
+    const { data, error } = await supabase
+      .from('Role')
+      .select('*')
+      .eq('project_id', projectId);
 
+    if (error) {
+      console.error("Error fetching updated roles:", error);
+      return;
+    }
 
+    setRoles(data);
+  };
 
   useEffect(() => {
-    const fetchProfiles = async () => {
-      const { data, error } = await supabase
-        .from('User')
-        .select('firstName, lastName, capability') 
-        .limit(8); 
-
-      if (error) {
-        console.error("Error fetching profiles:", error);
-      } else {
-        setProfiles(data);
-      }
-    };
-
-    if (showProfiles) fetchProfiles();
-  }, [showProfiles]);
+    fetchRoles();
+  }, [projectId]);
 
   const handleRoleClick = async (role) => {
     setSelectedRoleId(role.id_role);
@@ -42,7 +41,8 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
 
     const { data: users, error } = await supabase
     .from('User')
-    .select('firstName, lastName, capability, assignmentPercentage, embedding');
+    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding, Status,profilePic_url')
+    .eq('Status','benched');
 
 
     if (error) {
@@ -67,6 +67,69 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
     .slice(0, 8);
 
   setProfiles(topMatches);
+  };
+
+  const handleRoleSubmission = async () => {
+    try {
+      if (selectedUserIds.length === 0) {
+        alert("No users selected.");
+        return;
+      }
+  
+      const { error: updateError } = await supabase
+        .from('User')
+        .update({ Status: 'staffed' })
+        .in('userId', selectedUserIds);
+  
+      if (updateError) {
+        console.error("Error updating statuses:", updateError);
+        alert("Failed to update user statuses.");
+        return;
+      }
+  
+      const assignments = selectedUserIds.map(userId => ({
+        id_user: userId,
+        id_rol: selectedRoleId,
+      }));
+  
+      const { error: insertError } = await supabase
+        .from('User_Rol')
+        .insert(assignments);
+  
+      if (insertError) {
+        console.error("Error inserting into User_Rol:", insertError);
+        alert("Users were updated but roles were not linked.");
+        return;
+      }
+  
+      const { error: roleUpdateError } = await supabase
+        .from('Role')
+        .update({ status: 'filled' })
+        .eq('id_role', selectedRoleId);
+
+      if (roleUpdateError) {
+        console.error("Error marking role as filled:", roleUpdateError);
+      }
+
+      setRoles((prevRoles) =>
+      prevRoles.map((r) =>
+        r.id_role === selectedRoleId ? { ...r, status: 'filled' } : r
+      )
+    );
+
+    setTimeout(() => {
+      fetchRoles();
+    }, 2000);
+
+
+      alert("Employees successfully staffed and linked to role!");
+      setShowConfirm(false);
+      setSelectedUserIds([]);
+      setSelectedRoleId(null);
+      setShowProfiles(false);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
   };
 
   return (
@@ -149,14 +212,11 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
           {roles.map((role) => (
             <button
               key={role.id_role}
-              onClick={() => {
-                if (!assignedRoles.includes(role.id_role)) {
-                  handleRoleClick(role);
-                }
-              }}
-              disabled={assignedRoles.includes(role.id_role)}
+              onClick={() =>
+                  handleRoleClick(role)}
+              disabled={role.status === 'filled'}
               className={`w-full text-left px-4 py-2 text-sm rounded-xl transition whitespace-normal break-words ${
-                assignedRoles.includes(role.id_role)
+                role.status === 'filled'
                   ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
                   : selectedRoleId === role.id_role
                     ? 'bg-[#A100FF] text-white'
@@ -175,14 +235,24 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
         <div className="grid grid-cols-4 gap-4 mt-6">
           {profiles.map((user, index) => (
             <ProfileCard
-              key={index}
-              firstName={user.firstName}
-              lastName={user.lastName}
-              capability={user.capability}
-              assignmentPercentage={user.assignmentPercentage}
-              similarityPercent={user.similarityPercent}
-              // profilePic={user.profilePic}
-            />
+
+            key={index}
+            userId={user.userId} // 👈 pass ID
+            isSelected={selectedUserIds.includes(user.userId)}
+            onToggleSelect={(id) => {
+              setSelectedUserIds((prev) =>
+                prev.includes(id)
+                  ? prev.filter((uid) => uid !== id)
+                  : [...prev, id]
+              );
+            }}
+            firstName={user.firstName}
+            lastName={user.lastName}
+            capability={user.capability}
+            assignmentPercentage={user.assignmentPercentage}
+            similarityPercent={user.similarityPercent}
+            profilePic={user.profilePic_url} 
+          />
           ))}
           <div className="col-span-4 flex justify-center mt-4">
             <button 
@@ -208,12 +278,7 @@ export const ProjectCard = ({ projectName, projectDescription, staffingStage, st
               </p>
               <div className="flex justify-center gap-4">
                 <button
-                  onClick={() => {
-                    alert("Employees assigned!"); 
-                    setAssignedRoles(prev => [...prev, selectedRoleId]);
-                    setShowConfirm(false);
-                    setSelectedRoleId(null); 
-                  }}
+                  onClick={handleRoleSubmission}
                   className="px-6 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
                 >
                   Yes

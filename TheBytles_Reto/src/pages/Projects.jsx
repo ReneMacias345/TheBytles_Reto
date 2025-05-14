@@ -10,11 +10,17 @@ export const Projects = () => {
   const [historyProjects, setHistoryProjects] = useState([]);
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null); 
 
+  const extractHighlightedText = (text) => {
+    const matches = text?.match(/\*\*(.*?)\*\*/g); // busca **...**
+    if (!matches) return 'N/A';
+    return matches.map(match => match.replace(/\*\*/g, '')).join(', ');
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
-  
+
       if (!userId) {
         console.error("User not logged in.");
         return;
@@ -25,13 +31,14 @@ export const Projects = () => {
         .select("firstName, lastName, Status")
         .eq("userId", userId)
         .single();
-  
+
       if (userError) {
         console.error("Error fetching user info:", userError);
         return;
       }
+
       setUserData(userInfoData);
-  
+
       const { data: historyData, error: historyError } = await supabase
         .from("User_History")
         .select(`
@@ -46,61 +53,55 @@ export const Projects = () => {
           )
         `)
         .eq("user_element_id", userId);
-  
+
       if (historyError) {
         console.error("Error fetching project history:", historyError);
         return;
       }
-  
+
+      const { data: userRoles, error: userRolesError } = await supabase
+        .from("User_Rol")
+        .select("id_rol")
+        .eq("id_user", userId);
+
+      if (userRolesError || !userRoles || userRoles.length === 0) {
+        console.error("Error fetching user roles:", userRolesError);
+        return;
+      }
+
+      const roleIds = userRoles.map(r => r.id_rol);
+
       const { data: rolesData, error: rolesError } = await supabase
         .from("Role")
-        .select("id_role, project_id, user_id, role_description")
-        .eq("user_id", userId);
-  
+        .select("id_role, project_id, role_description")
+        .in("id_role", roleIds);
+
       if (rolesError) {
         console.error("Error fetching roles:", rolesError);
         return;
       }
-  
+
+      // Emparejar historial con descripción de rol desde tabla Role
       const historyWithRoles = historyData.map((history) => {
         const matchingRole = rolesData.find(role =>
-          role.project_id === history.project_element_id &&
-          role.user_id === history.user_element_id
+          role.project_id === history.project_element_id
         );
         return {
           ...history,
-          role_description: matchingRole?.role_description || '—',
+          role_description: extractHighlightedText(matchingRole?.role_description),
         };
       });
-  
+
       setHistoryProjects(historyWithRoles);
-  
-      if (userInfoData.Status === "staffed" && rolesData.length > 0) {
-        const sortedRoles = [...rolesData].sort((a, b) =>
-          b.id_role.localeCompare(a.id_role)
-        );
-  
-        const latestRole = sortedRoles[0];
-  
-        const { data: projectData, error: projectError } = await supabase
-          .from("Project")
-          .select("Project_Name, description, StartDate, EndDate")
-          .eq("Project_ID", latestRole.project_id)
-          .single();
-  
-        if (projectError) {
-          console.error("Error fetching project for workingIn:", projectError);
-          return;
-        }
-  
-        setWorkingIn({
-          projectName: projectData.Project_Name,
-          projectDescription: projectData.description,
-          role: latestRole.role_description,
-          startDate: projectData.StartDate,
-          endDate: projectData.EndDate,
-        });
-      } else {
+
+      const { data: userRolData, error: userRolError } = await supabase
+        .from("User_Rol")
+        .select("id_rol")
+        .eq("id_user", userId)
+        .maybeSingle();
+
+      if (userRolError || !userRolData) {
+        console.error("Error fetching user role assignment:", userRolError);
         setWorkingIn({
           projectName: "N/A",
           projectDescription: "N/A",
@@ -108,11 +109,43 @@ export const Projects = () => {
           startDate: "N/A",
           endDate: "N/A",
         });
+        return;
       }
+
+      const { data: roleInfo, error: roleError } = await supabase
+        .from("Role")
+        .select("role_description, project_id")
+        .eq("id_role", userRolData.id_rol)
+        .maybeSingle();
+
+      if (roleError || !roleInfo) {
+        console.error("Error fetching role data:", roleError);
+        return;
+      }
+
+      const { data: projectData, error: projectError } = await supabase
+        .from("Project")
+        .select("Project_Name, description, StartDate, EndDate")
+        .eq("Project_ID", roleInfo.project_id)
+        .single();
+
+      if (projectError || !projectData) {
+        console.error("Error fetching project for workingIn:", projectError);
+        return;
+      }
+
+      setWorkingIn({
+        projectName: projectData.Project_Name,
+        projectDescription: projectData.description,
+        role: roleInfo.role_description,
+        startDate: projectData.StartDate,
+        endDate: projectData.EndDate,
+      });
     };
-  
+
     fetchData();
   }, []);
+
 
   const [workingIn, setWorkingIn] = useState({
     projectName: "Loading...",
