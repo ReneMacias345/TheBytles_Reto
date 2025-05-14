@@ -10,6 +10,10 @@ export const Projects = () => {
   const [historyProjects, setHistoryProjects] = useState([]);
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState(''); 
+  const [status, setStatus] = useState("Ready");
+  const [pendingStatus, setPendingStatus] = useState(null); 
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+
 
   const extractHighlightedText = (text) => {
     const matches = text?.match(/\*\*(.*?)\*\*/g); // busca **...**
@@ -179,7 +183,23 @@ export const Projects = () => {
       </div>
 
       <InfoCard>
-        <h3 className="font-semibold text-lg text-gray-800 mb-2">Working In</h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-semibold text-lg text-gray-800">Working In</h3>
+          <select
+            className="px-4 py-1 rounded-full border border-gray-300 bg-[#A100FF] text-white text-sm hover:bg-[#8800cc] transition"
+            value={status}
+            onChange={(e) => {
+              setPendingStatus(e.target.value);
+              setShowConfirmModal(true);
+            }}
+          >
+            <option value="Ready" className="text-black">Ready</option>
+            <option value="Ongoing" className="text-black">Ongoing</option>
+            <option value="Finished" className="text-black">Finished</option>
+          </select>
+
+        </div>
+
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
@@ -341,6 +361,35 @@ export const Projects = () => {
               className="mt-4 w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90">
               Save Feedback
             </button>
+          </div>
+        </div>
+      )}
+      {showConfirmModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl text-center">
+            <h2 className="text-lg font-bold text-[#A100FF] mb-4">Confirm Status Change</h2>
+            <p className="text-gray-700 mb-6">Are you sure you want to change the status to <strong>{pendingStatus}</strong>?</p>
+            <div className="flex justify-center gap-4">
+              <button
+                className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90"
+                onClick={() => {
+                  setStatus(pendingStatus);
+                  setPendingStatus(null);
+                  setShowConfirmModal(false);
+                }}
+              >
+                Yes
+              </button>
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-full hover:bg-gray-300"
+                onClick={() => {
+                  setPendingStatus(null);
+                  setShowConfirmModal(false);
+                }}
+              >
+                No
+              </button>
+            </div>
           </div>
         </div>
       )}
