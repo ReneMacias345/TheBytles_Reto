@@ -1,4 +1,4 @@
-export const cosineSimilarityPercent = (vec1, vec2) => {
+export const cosineSimilarity = (vec1, vec2) => {
   if (!Array.isArray(vec1) || !Array.isArray(vec2) || vec1.length !== vec2.length) {
     console.warn('Invalid vectors passed to cosineSimilarity:', vec1, vec2);
     return 0;
