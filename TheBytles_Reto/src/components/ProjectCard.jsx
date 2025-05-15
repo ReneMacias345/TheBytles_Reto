@@ -90,7 +90,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     const similarityPercent = cosineSimilarity(
       role.embedding_vector,
       fusedVec,
-      0.7
+      0.8
     );
     return {
       ...user,
