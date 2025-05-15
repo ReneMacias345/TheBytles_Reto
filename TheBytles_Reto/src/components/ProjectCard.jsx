@@ -84,7 +84,7 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     const candidateVec = user.embedding;
 
     const fusedVec = candidateVec.map((c, i) =>
-      0.3 * c + 0.7 * role.embedding_vector[i]
+      0.2 * c + 0.8 * role.embedding_vector[i]
     );
 
     const similarityPercent = cosineSimilarity(
