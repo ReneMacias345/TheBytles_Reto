@@ -4,7 +4,8 @@ import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
 
 export const Employees = () => {
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTermStaffed, setSearchTermStaffed] = useState('');
+  const [searchTermBenched, setSearchTermBenched] = useState('');
   const [searchProjectTerm, setSearchProjectTerm] = useState('');
   const [assignedEmpTotal, setAssignedEmpTotal] = useState(0);
   const [staffedTotal, setStaffedTotal] = useState(0);
@@ -12,6 +13,8 @@ export const Employees = () => {
   const [employees, setEmployees] = useState([]);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+  const staffedEmployees = employees.filter(e => e.Status?.toLowerCase() === "staffed");
+  const benchedEmployees = employees.filter(e => e.Status?.toLowerCase() === "benched");
 
   const extractHighlightedText = (text) => {
     const matches = text?.match(/\*\*(.*?)\*\*/g); // busca todas las ocurrencias **...**
@@ -196,70 +199,90 @@ export const Employees = () => {
         </div>
       </InfoCard>
 
-
-
-
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
-          <div>
-            <h3 className="font-semibold text-lg text-gray-800">All Employees</h3>
-            <p className="text-sm text-[#38B2AC]">{userData?.atc || ''}</p>
-          </div>
-
+          <h3 className="font-semibold text-lg text-gray-800">All Employees - Staffed</h3>
           <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
             </svg>
             <input
               type="text"
-              placeholder="Search"
+              placeholder="Search employee..."
               className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
+              value={searchTermStaffed}
+              onChange={(e) => setSearchTermStaffed(e.target.value)}
             />
           </div>
         </div>
-
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
-              <th className="py-2">Employee Name</th>
-              <th>Email</th>
-              <th>ATC</th>
-              <th>Level</th>
-              <th>Project</th>
-              <th>Role</th>
-              <th>Status</th>
+              <th>Employee Name</th><th>Email</th><th>ATC</th><th>Level</th><th>Project</th><th>Role</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
-            {employees
-              .filter(emp =>
-                `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                emp.email?.toLowerCase().includes(searchTerm.toLowerCase())
-              )
-              .map((emp, idx) => (
-                <tr key={idx} className="border-t">
-                  <td className="py-2">{emp.firstName} {emp.lastName}</td>
-                  <td>{emp.email}</td>
-                  <td>{emp.atc}</td>
-                  <td>{emp.careerLevel}</td>
-                  <td>{emp.project_name}</td>
-                  <td>{emp.role_description}</td>
-                  <td>
-                    <span className={`px-3 py-1 text-xs font-medium rounded-full ${
-                      emp.Status?.toLowerCase() === 'staffed'
-                        ? 'bg-green-100 text-green-700'
-                        : 'bg-red-100 text-red-700'
-                    }`}>
-                      {emp.Status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+            {staffedEmployees.filter(emp =>
+              `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermStaffed.toLowerCase()) ||
+              emp.email?.toLowerCase().includes(searchTermStaffed.toLowerCase())
+            ).map((emp, idx) => (
+              <tr key={idx} className="border-t">
+                <td className="py-2">{emp.firstName} {emp.lastName}</td>
+                <td>{emp.email}</td>
+                <td>{emp.atc}</td>
+                <td>{emp.careerLevel}</td>
+                <td>{emp.project_name}</td>
+                <td>{emp.role_description}</td>
+              </tr>
+            ))}
           </tbody>
         </table>
       </InfoCard>
+
+
+      <InfoCard>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="font-semibold text-lg text-gray-800">All Employees - Benched</h3>
+          <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search employee..."
+              className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
+              value={searchTermBenched}
+              onChange={(e) => setSearchTermBenched(e.target.value)}
+            />
+          </div>
+        </div>
+        <table className="w-full text-sm">
+          <thead className="text-gray-500 text-left">
+            <tr>
+              <th>Employee Name</th>
+              <th>Email</th>
+              <th>ATC</th>
+              <th>Level</th>
+              <th>Project Recomended</th>
+              <th>Percentage %</th>
+            </tr>
+          </thead>
+          <tbody className="text-gray-700 font-medium">
+            {benchedEmployees.filter(emp =>
+              `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermBenched.toLowerCase()) ||
+              emp.email?.toLowerCase().includes(searchTermBenched.toLowerCase())
+            ).map((emp, idx) => (
+              <tr key={idx} className="border-t">
+                <td className="py-2">{emp.firstName} {emp.lastName}</td>
+                <td>{emp.email}</td>
+                <td>{emp.atc}</td>
+                <td>{emp.careerLevel}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </InfoCard>
+
 
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
