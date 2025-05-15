@@ -263,6 +263,7 @@ export const Employees = () => {
               <th>ATC</th>
               <th>Level</th>
               <th>Project Recomended</th>
+              <th>Rol Recomended</th>
               <th>Percentage %</th>
             </tr>
           </thead>
