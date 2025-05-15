@@ -81,20 +81,10 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
   const scoredUsers = users
   .filter(u => u.embedding)
   .map(user => {
-    const candidateVec = user.embedding;
-
-    const fusedVec = candidateVec.map((c, i) =>
-      0.5 * c + 0.5 * role.embedding_vector[i]
-    );
-
-    const similarityPercent = cosineSimilarity(
-      role.embedding_vector,
-      fusedVec,
-      0.8
-    );
+    const raw = cosineSimilarity(role.embedding_vector, user.embedding);
     return {
       ...user,
-      similarityPercent,
+      similarityPercent:raw,
     };
   });
 
