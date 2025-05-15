@@ -14,9 +14,8 @@ export const Employees = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const extractHighlightedText = (text) => {
-    const matches = text?.match(/\*\*(.*?)\*\*/g); // busca todas las ocurrencias **...**
-    if (!matches) return 'N/A';
-    return matches.map(match => match.replace(/\*\*/g, '')).join(', '); // limpia los **
+    const match = text?.match(/Role:\s*(.*?)\s*·/);
+    return match ? match[1].trim() : 'N/A';
   };
 
   useEffect(() => {

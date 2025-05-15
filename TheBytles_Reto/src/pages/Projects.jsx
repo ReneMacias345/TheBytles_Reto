@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'; 
+import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
@@ -9,16 +9,93 @@ export const Projects = () => {
   const [userData, setUserData] = useState(null);
   const [historyProjects, setHistoryProjects] = useState([]);
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
-  const [feedbackInput, setFeedbackInput] = useState(''); 
+  const [feedbackInput, setFeedbackInput] = useState('');
   const [status, setStatus] = useState("Ready");
-  const [pendingStatus, setPendingStatus] = useState(null); 
-  const [showConfirmModal, setShowConfirmModal] = useState(false)
-
+  const [pendingStatus, setPendingStatus] = useState(null);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [workingIn, setWorkingIn] = useState({
+    projectName: "N/A",
+    projectDescription: "N/A",
+    role: "N/A",
+    startDate: "N/A",
+    endDate: "N/A",
+  });
+  const [employeesAssociated, setEmployeesAssociated] = useState([]);
+  
 
   const extractHighlightedText = (text) => {
-    const matches = text?.match(/\*\*(.*?)\*\*/g); // busca **...**
-    if (!matches) return 'N/A';
-    return matches.map(match => match.replace(/\*\*/g, '')).join(', ');
+    const match = text?.match(/Role:\s*(.*?)\s*·/);
+    return match ? match[1].trim() : 'N/A';
+  };
+
+  const extractHighlightedText2 = (text) => {
+    const match = text?.match(/Role:\s*(.*)/);
+    return match ? match[1].trim() : 'N/A';
+  };
+  const fetchEmployeesAssociated = async (projectId) => {
+    // Obtener el ID del usuario actual
+    const { data: { session } } = await supabase.auth.getSession();
+    const currentUserId = session?.user?.id;
+
+    if (!currentUserId) {
+      console.error("User not logged in.");
+      return;
+    }
+
+    // Paso 1: Obtener todos los roles del proyecto actual
+    const { data: roles, error: roleError } = await supabase
+      .from("Role")
+      .select("id_role, role_description")
+      .eq("project_id", projectId);
+
+    if (roleError || !roles) {
+      console.error("Error fetching roles by project:", roleError);
+      return;
+    }
+
+    const roleIds = roles.map(r => r.id_role);
+
+    // Paso 2: Obtener los usuarios asignados a esos roles
+    const { data: userRols, error: userRolError } = await supabase
+      .from("User_Rol")
+      .select("id_user, id_rol")
+      .in("id_rol", roleIds);
+
+    if (userRolError || !userRols) {
+      console.error("Error fetching users from User_Rol:", userRolError);
+      return;
+    }
+
+    // Excluir al usuario actual
+    const filteredUserRols = userRols.filter(ur => ur.id_user !== currentUserId);
+    const userIds = filteredUserRols.map(ur => ur.id_user);
+
+    // Paso 3: Obtener la información de los usuarios
+    const { data: users, error: usersError } = await supabase
+      .from("User")
+      .select("userId, firstName, lastName, email")
+      .in("userId", userIds);
+
+    if (usersError || !users) {
+      console.error("Error fetching user info:", usersError);
+      return;
+    }
+
+    // Paso 4: Combinar usuarios con sus roles
+    const formatted = filteredUserRols.map(userRol => {
+      const user = users.find(u => u.userId === userRol.id_user);
+      const role = roles.find(r => r.id_role === userRol.id_rol);
+      return {
+        id: userRol.id_user,
+        firstName: user?.firstName || "N/A",
+        lastName: user?.lastName || "N/A",
+        email: user?.email || "N/A",
+        role: extractHighlightedText(role?.role_description),
+        feedback: "",
+      };
+    });
+
+    setEmployeesAssociated(formatted);
   };
 
   useEffect(() => {
@@ -86,7 +163,6 @@ export const Projects = () => {
         return;
       }
 
-      // Emparejar historial con descripción de rol desde tabla Role
       const historyWithRoles = historyData.map((history) => {
         const matchingRole = rolesData.find(role =>
           role.project_id === history.project_element_id
@@ -142,28 +218,17 @@ export const Projects = () => {
       setWorkingIn({
         projectName: projectData.Project_Name,
         projectDescription: projectData.description,
-        role: roleInfo.role_description,
+        role: extractHighlightedText2(roleInfo.role_description),
         startDate: projectData.StartDate,
         endDate: projectData.EndDate,
       });
+
+      await fetchEmployeesAssociated(roleInfo.project_id);
     };
 
     fetchData();
   }, []);
 
-
-  const [workingIn, setWorkingIn] = useState({
-    projectName: "Loading...",
-    projectDescription: "Loading...",
-    role: "Loading...",
-    startDate: "Loading...",
-    endDate: "Loading...",
-  });
-  const [employeesAssociated, setEmployeesAssociated] = useState([
-    { id:1, firstName: "Ana", lastName: "Aramoni", email:"ana@k2k2",role: "Backend Dev", feedback: "" },
-    { id:2, firstName: "Max", lastName: "Palafox",email:"Max@k2k2", role: "Frontend Dev", feedback: "" },
-    { id:3, firstName: "Yuting", lastName: "Lin", email:"Yuting@k2k2", role: "QA Tester", feedback: "" },
-  ]);
   const handleSaveFeedback = () => {
     setEmployeesAssociated(prev =>
       prev.map(emp =>
@@ -173,7 +238,7 @@ export const Projects = () => {
     setActiveFeedbackTarget(null);
     setFeedbackInput('');
   };
- 
+
   return (
     <ScreenLayout>
       <div className="mb-8">
@@ -197,7 +262,6 @@ export const Projects = () => {
             <option value="Ongoing" className="text-black">Ongoing</option>
             <option value="Finished" className="text-black">Finished</option>
           </select>
-
         </div>
 
         <table className="w-full text-sm">
@@ -223,7 +287,9 @@ export const Projects = () => {
       </InfoCard>
 
       <InfoCard>
-        <h3 className="font-semibold text-lg text-gray-800 mb-2">Employees Associated to projectName</h3>
+        <h3 className="font-semibold text-lg text-gray-800 mb-2">
+          Employees Associated to {workingIn.projectName}
+        </h3>
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
