@@ -72,104 +72,122 @@ export const Perfil = () => {
 
 
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-  
-      if (!userId) {
-        console.error("User not logged in.");
-        return;
-      }
-  
-      const { data: goalsData, error: goalsError } = await supabase
-        .from("Goal")
-        .select("*")
-        .eq("goalUserId", userId);
-  
-      if (goalsError) {
-        console.error("Error fetching goals:", goalsError);
-      } else {
-        setGoals(goalsData);
-      }
-  
-      const { data: userInfoData, error: userError } = await supabase
-        .from("User")
-        .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url, profilePic_url")
-        .eq("userId", userId)
-        .single();
-  
-      if (userError) {
-        console.error("Error fetching user info:", userError);
-      } else {
-        setUserData(userInfoData);
-      }
-      
-      const { data: skillsData, error: skillsError } = await supabase
-        .from("Skills")
-        .select("SkillID, SkillName, Type");
-        
-      if (skillsError) {
-        console.error("Error fetching skills:", skillsError);
-      } else {
-        const allSkills = skillsData.map(skill => skill.SkillName);
-        setAvailableSkills(allSkills);
-        
-        const softSkillsList = skillsData
-          .filter(skill => skill.Type === "Soft")
-          .map(skill => skill.SkillName);
-        setSoftSkills(softSkillsList);
-        
-        // Crear un mapa de nombres de habilidades a sus IDs para uso posterior
-        const skillNameToIdMap = {};
-        skillsData.forEach(skill => {
-          skillNameToIdMap[skill.SkillName] = skill.SkillID;
-        });
-        setSkillNameToIdMap(skillNameToIdMap);
-      }
-      
-      const { data: userSkillsData, error: userSkillsError } = await supabase
-        .from("User_Skills")
-        .select(`
-          skillid,
-          Skills (SkillID, SkillName, Type)
-        `)
-        .eq("userid", userId);
-        
-      if (userSkillsError) {
-        console.error("Error fetching user skills:", userSkillsError);
-      } else {
-        const technicalSkills = [];
-        const softSkills = [];
-        
-        userSkillsData.forEach(item => {
-          if (item.Skills.Type === "Soft") {
-            softSkills.push(item.Skills.SkillName);
-          } else {
-            technicalSkills.push(item.Skills.SkillName);
-          }
-        });
-        
-        setSkills({
-          technical: technicalSkills,
-          soft: softSkills
-        });
-      }
+useEffect(() => {
+  const fetchData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
 
-      const { data: certsData, error: certsError } = await supabase
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+
+    const { data: goalsData, error: goalsError } = await supabase
+      .from("Goal")
+      .select("*")
+      .eq("goalUserId", userId);
+
+    if (goalsError) {
+      console.error("Error fetching goals:", goalsError);
+    } else {
+      setGoals(goalsData);
+    }
+
+    const { data: userInfoData, error: userError } = await supabase
+      .from("User")
+      .select("firstName, lastName, capability, atc, careerLevel, bio, cv_url, profilePic_url")
+      .eq("userId", userId)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user info:", userError);
+    } else {
+      setUserData(userInfoData);
+    }
+
+    const { data: skillsData, error: skillsError } = await supabase
+      .from("Skills")
+      .select("SkillID, SkillName, Type");
+
+    if (skillsError) {
+      console.error("Error fetching skills:", skillsError);
+    } else {
+      const allSkills = skillsData.map(skill => skill.SkillName);
+      setAvailableSkills(allSkills);
+
+      const softSkillsList = skillsData
+        .filter(skill => skill.Type === "Soft")
+        .map(skill => skill.SkillName);
+      setSoftSkills(softSkillsList);
+
+      const skillNameToIdMap = {};
+      skillsData.forEach(skill => {
+        skillNameToIdMap[skill.SkillName] = skill.SkillID;
+      });
+      setSkillNameToIdMap(skillNameToIdMap);
+    }
+
+    const { data: userSkillsData, error: userSkillsError } = await supabase
+      .from("User_Skills")
+      .select(`
+        skillid,
+        Skills (SkillID, SkillName, Type)
+      `)
+      .eq("userid", userId);
+
+    if (userSkillsError) {
+      console.error("Error fetching user skills:", userSkillsError);
+    } else {
+      const technicalSkills = [];
+      const softSkills = [];
+
+      userSkillsData.forEach(item => {
+        if (item.Skills.Type === "Soft") {
+          softSkills.push(item.Skills.SkillName);
+        } else {
+          technicalSkills.push(item.Skills.SkillName);
+        }
+      });
+
+      setSkills({
+        technical: technicalSkills,
+        soft: softSkills
+      });
+    }
+
+    const { data: certsData, error: certsError } = await supabase
       .from("Certificates")
       .select("*")
       .eq("userCertId", userId);
-  
-      if (certsError) {
-        console.error("Error fetching certifications:", certsError);
-      } else {
-        setCertifications(certsData);
-      }
-    };
-  
-    fetchData();
-  }, []);
+
+    if (certsError) {
+      console.error("Error fetching certifications:", certsError);
+    } else {
+      setCertifications(certsData);
+    }
+
+    // NUEVO BLOQUE PARA CURSOS
+    const { data: coursesData, error: coursesError } = await supabase
+      .from("Courses")
+      .select("*")
+      .eq("created_by", userId);
+
+    if (coursesError) {
+      console.error("Error fetching courses:", coursesError);
+    } else {
+      const formattedCourses = coursesData.map((course) => ({
+        title: course.Course_Name,
+        description: course.Description,
+        date: course.Started,
+        finished: course.Completed
+      }));
+      setCourses(formattedCourses);
+    }
+  };
+
+  fetchData();
+}, []);
+
 
   const handleCompleteGoal = async (goalId) => {
     const { data, error } = await supabase
@@ -667,15 +685,46 @@ export const Perfil = () => {
       alert('Please upload a PDF file.');
     }
   };
-  const handleSaveCourse = (e) => {
+
+  const handleSaveCourse = async (e) => {
     e.preventDefault();
+  
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      alert("You must be logged in to save a course.");
+      return;
+    }
+  
     const newCourse = {
-      title: courseTitle,
-      description: courseDesc,
-      date: courseDate,
-      finished:courseFinished
+      Course_Name: courseTitle,
+      Started: courseDate,
+      Completed: courseFinished,
+      Description: courseDesc,
+      created_by: userId
     };
-    setCourses(prev => [...prev, newCourse]);
+  
+    const { data, error } = await supabase
+      .from("Courses")
+      .insert([newCourse])
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error saving course:", error);
+      alert("Failed to save course.");
+      return;
+    }
+  
+    setCourses(prev => [...prev, {
+      title: data.Course_Name,
+      description: data.Description,
+      date: data.Started,
+      finished: data.Completed
+    }]);
+  
     setCourseTitle('');
     setCourseDesc('');
     setCourseDate('');
