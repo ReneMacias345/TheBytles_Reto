@@ -264,27 +264,34 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
 
       {showProfiles && (
         <div className="grid grid-cols-4 gap-4 mt-6">
-          {profiles.map((user, index) => (
-            <ProfileCard
+          {profiles.map((user, index) => {
+            let colorClass = 'text-red-500';
+            if (user.similarityPercent > 80) colorClass = 'text-green-500';
+            else if (user.similarityPercent >= 70) colorClass = 'text-yellow-500';
 
-            key={index}
-            userId={user.userId} // 👈 pass ID
-            isSelected={selectedUserIds.includes(user.userId)}
-            onToggleSelect={(id) => {
-              setSelectedUserIds((prev) =>
-                prev.includes(id)
-                  ? prev.filter((uid) => uid !== id)
-                  : [...prev, id]
-              );
-            }}
-            firstName={user.firstName}
-            lastName={user.lastName}
-            capability={user.capability}
-            assignmentPercentage={user.assignmentPercentage}
-            similarityPercent={user.similarityPercent}
-            profilePic={user.profilePic_url} 
-          />
-          ))}
+            return (
+              <ProfileCard
+                key={index}
+                userId={user.userId}
+                isSelected={selectedUserIds.includes(user.userId)}
+                onToggleSelect={(id) => {
+                  setSelectedUserIds((prev) =>
+                    prev.includes(id)// 👈 pass ID
+                      ? prev.filter((uid) => uid !== id)
+                      : [...prev, id]
+                  );
+                }}
+                firstName={user.firstName}
+                lastName={user.lastName}
+                capability={user.capability}
+                assignmentPercentage={user.assignmentPercentage}
+                similarityPercent={user.similarityPercent}
+                profilePic={user.profilePic_url}
+                similarityColor={colorClass} 
+              />
+            );
+          })}
+
           <div className="col-span-4 flex justify-center mt-4">
             <button 
               onClick={() => setShowConfirm(true)}
