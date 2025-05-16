@@ -265,9 +265,9 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       {showProfiles && (
         <div className="grid grid-cols-4 gap-4 mt-6">
           {profiles.map((user, index) => {
-            let colorClass = 'text-red-500';
-            if (user.similarityPercent > 80) colorClass = 'text-green-500';
-            else if (user.similarityPercent >= 70) colorClass = 'text-yellow-500';
+            let colorClass = 'text-[#ef4444]';
+            if (user.similarityPercent > 80) colorClass = 'text-[#38B2AC]';
+            else if (user.similarityPercent >= 70) colorClass = 'text-orange-400';
 
             return (
               <ProfileCard
