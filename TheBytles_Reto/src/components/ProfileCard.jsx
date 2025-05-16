@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-export const ProfileCard = ({ userId, profilePic, firstName, lastName, capability, assignmentPercentage, similarityPercent, isSelected, onToggleSelect }) => {
+export const ProfileCard = ({ userId, profilePic, firstName, lastName, capability, assignmentPercentage, similarityPercent, isSelected, onToggleSelect,similarityColor, }) => {
   return (
     <div
       onClick={() => onToggleSelect(userId)}
@@ -10,7 +10,7 @@ export const ProfileCard = ({ userId, profilePic, firstName, lastName, capabilit
           : 'border-gray-200 hover:shadow'
       }`}
     >
-      <div className="absolute top-2 right-3 text-xs font-semibold text-[#A100FF]">
+      <div className={`absolute top-2 right-3 text-xs font-semibold ${similarityColor}`}>
       {similarityPercent != null
   ? `${similarityPercent.toFixed(1)}%`
   : '0%'}
