@@ -4,7 +4,7 @@ export const SkillCard = ({ name, type, onRemove }) => {
   const isSoft = type === 'soft';
 
   return (
-    <div className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm group relative">
+    <div name = 'SkillCard' className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm group relative">
       {isSoft ? (
         <svg
           xmlns="http://www.w3.org/2000/svg"
@@ -42,6 +42,7 @@ export const SkillCard = ({ name, type, onRemove }) => {
       {onRemove && (
         <button
           onClick={() => onRemove(name, type)}
+          name = {name}
           className="absolute top-[-6px] right-[-6px] opacity-0 group-hover:opacity-100 transition-opacity bg-white text-red-500 rounded-full w-4 h-4 flex items-center justify-center text-xs border border-red-300 shadow hover:bg-red-500 hover:text-white"
           title="Remove skill"
         >

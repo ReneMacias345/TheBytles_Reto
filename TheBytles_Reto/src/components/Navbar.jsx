@@ -59,7 +59,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div className="flex items-center space-x-2">
+            <div name = "Profile" className="flex items-center space-x-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -167,7 +167,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div className="flex items-center space-x-2">
+            <div name = "Assignments" className="flex items-center space-x-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -230,6 +230,7 @@ export const Navbar = () => {
           </div>
         </div>
         <button
+          name="logout"
           onClick={signOut}
           className="mt-3 px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
         >

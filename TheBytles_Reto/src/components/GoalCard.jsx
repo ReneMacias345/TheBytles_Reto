@@ -17,7 +17,7 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
   };
 
   return (
-    <div className="bg-gray-50 p-4 rounded-xl shadow-sm mb-4 relative">
+    <div name="GoalsCards" className="bg-gray-50 p-4 rounded-xl shadow-sm mb-4 relative">
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
         <span className="text-sm text-gray-500">Target date: {targetDate}</span>
@@ -32,12 +32,14 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
 
       <div className="flex justify-end space-x-2 mt-4">
         <button
+          title = "editGoal"
           onClick={() => {
             setEditTitle(title);
             setEditTargetDate(targetDate);
             setEditDescription(description);
             setShowEditModal(true);
           }}
+          name = {title}
           className="flex items-center px-4 py-2 bg-gray-200 text-gray-800 rounded-full hover:opacity-90 transition"
         >
           <svg
@@ -128,6 +130,7 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
               </div>
               <div className="flex justify-between mt-6 space-x-4">
                 <button
+                  name = "deleteGoal"
                   type="button"
                   onClick={() => {
                     onDeleteStatus(id);
