@@ -795,6 +795,7 @@ useEffect(() => {
               </p>
               {userData?.cv_url && (
                 <a
+                  name = "viewCV"
                   href={`${userData.cv_url}?t=${Date.now()}`} // 💡 evita caché
                   target="_blank"
                   rel="noopener noreferrer"
@@ -822,6 +823,7 @@ useEffect(() => {
           </div>
           
           <button
+            name = "uploadCV"
             onClick={() => cvInputRef.current.click()}
             className="flex items-center border border-gray-300 px-4 py-2 rounded-full text-white bg-[#A100FF] hover:bg-[#A100FF] transition-colors"
           >
@@ -851,6 +853,7 @@ useEffect(() => {
         </p>      
         <div className="mt-4">
           <button
+            name = "Bio"
             onClick={handleOpenBioForm}
             className="border border-gray-300 px-4 py-2 rounded-full text-white bg-[#A100FF] hover:bg-[#A100FF] transition-colors"
           >
@@ -867,9 +870,10 @@ useEffect(() => {
       </InfoCard>
 
       <InfoCard>
-        <div className="flex items-center justify-between">
+        <div name = "ProfessionalGoals" className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-800">Professional Goals</h2>
           <button
+            name = "addGoal"
             onClick={handleAddGoal}
             className="flex items-center px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"
           >
@@ -908,6 +912,7 @@ useEffect(() => {
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Skills</h3>
           <button
+            name = 'addSkill'
             onClick={() => {
               setNewSkill('');
               setShowSkillForm(true);
@@ -1055,6 +1060,7 @@ useEffect(() => {
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Title</label>
                 <input
+                  name = "goalTitle"
                   type="text"
                   minLength={"10"}
                   maxLength={"50"}
@@ -1067,6 +1073,7 @@ useEffect(() => {
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Target Date</label>
                 <input
+                  name = "goalDate"
                   type="date"
                   min={today}
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
@@ -1078,6 +1085,7 @@ useEffect(() => {
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">Description</label>
                 <textarea
+                  name = "goalDescription"
                   className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                   rows="3"
                   minLength={"50"}
@@ -1110,12 +1118,14 @@ useEffect(() => {
             <div className="space-y-4">
               <label className="block mb-1 text-sm font-large text-gray-700">Tell us about your strength, experiences and skills :</label>
               <textarea
+                name = "BioInput"
                 className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
                 rows="3"
                 value={newBio}
                 onChange={(e) => setNewBio(e.target.value)}
               />
               <button
+                name = "saveBio"
                 onClick={handleSaveBio}
                 className="w-full mt-3 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
               >
@@ -1146,7 +1156,7 @@ useEffect(() => {
             />
 
             {skillSuggestions.length > 0 && (
-              <ul className="border mb-3 rounded-lg bg-white shadow max-h-40 overflow-y-auto z-50">
+              <ul name = 'skillSuggestions' className="border mb-3 rounded-lg bg-white shadow max-h-40 overflow-y-auto z-50">
                 {skillSuggestions.map((skill, index) => (
                   <li
                     key={index}
@@ -1160,6 +1170,7 @@ useEffect(() => {
                 ))}
               </ul>)}
             <button
+              name = 'saveSkill'
               onClick={handleAddSkill}
               className="w-full py-2 bg-[#A100FF] text-white rounded-full"
             >
