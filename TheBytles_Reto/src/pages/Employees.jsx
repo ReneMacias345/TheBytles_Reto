@@ -22,89 +22,77 @@ export const Employees = () => {
   };
 
   useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      const userId = session?.user?.id;
-
-      if (!userId) {
-        console.error("User not logged in.");
-        return;
-      }
-
-      const { data: userInfoData, error: userError } = await supabase
-        .from("User")
-        .select("firstName, lastName, atc")
-        .eq("userId", userId)
-        .single();
-
-      if (!userError) {
-        setUserData(userInfoData);
-      } else {
-        console.error("Error fetching user info:", userError);
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  useEffect(() => {
     const fetchEnrichedEmployees = async () => {
       setIsLoading(true);
-      
       try {
         const { data: users, error: userError } = await supabase
           .from("User")
-          .select("userId, firstName, lastName, email, atc, careerLevel, Status");
-
+          .select("userId, firstName, lastName, email, atc, careerLevel, Status, embedding");
         if (userError) throw userError;
 
-        const { data: userRoles, error: userRolError } = await supabase
-          .from("User_Rol")
-          .select("id_user_rol, id_user, id_rol");
-
-        if (userRolError) throw userRolError;
-
-        const { data: roles, error: roleError } = await supabase
-          .from("Role")
-          .select("id_role, role_description, project_id");
-
+        const [{ data: roles, error: roleError },
+              { data: projects, error: projectError }] = await Promise.all([
+          supabase.from("Role").select("id_role, role_description, project_id"),
+          supabase.from("Project").select("Project_ID, Project_Name")
+        ]);
         if (roleError) throw roleError;
-
-        const { data: projects, error: projectError } = await supabase
-          .from("Project")
-          .select("Project_ID, Project_Name");
-
         if (projectError) throw projectError;
 
-        const enrichedUsers = users.map(user => {
-          const userStatus = user.Status?.toLowerCase();
-          if (userStatus === "staffed") {
-            const rolesOfUser = userRoles.filter(r => r.id_user === user.userId);
-            const lastUserRole = rolesOfUser[rolesOfUser.length - 1];
-            const role = roles.find(r => r.id_role === lastUserRole?.id_rol);
-            const project = role ? projects.find(p => p.Project_ID === role.project_id) : null;
+        const enrichedUsers = await Promise.all(
+          users.map(async user => {
+            const status = user.Status?.toLowerCase();
+            if (status === "staffed") {
+              const userRoles = await supabase
+                .from("User_Rol")
+                .select("id_rol")
+                .eq("id_user", user.userId);
+              const lastRole = userRoles.data[userRoles.data.length - 1];
+              const roleObj = roles.find(r => r.id_role === lastRole?.id_rol);
+              const projObj = projects.find(p => p.Project_ID === roleObj?.project_id);
+
+              return {
+                ...user,
+                role_description: extractHighlightedText(roleObj?.role_description),
+                project_name: projObj?.Project_Name || "N/A",
+              };
+            }
+
+            const { data: [match], error: rpcError } = await supabase
+              .rpc("match_role_to_user", { user_vec: user.embedding });
+            if (rpcError || !match) {
+              console.error("RPC error:", rpcError);
+              return {
+                ...user,
+                recommendedRole: "N/A",
+                recommendedProject: "N/A",
+                matchPercent: 0,
+              };
+            }
+
+            const matchedRole = roles.find(r => r.id_role === match.id_role);
+            const matchedProj = projects.find(p => p.Project_ID === matchedRole.project_id);
+
+            const matchPercent = Math.round((match.similarity * 1000)/ 0.65) / 10;
 
             return {
               ...user,
-              role_description: extractHighlightedText(role?.role_description),
-              project_name: project?.Project_Name || 'N/A',
+              recommendedRole: extractHighlightedText(matchedRole.role_description),
+              recommendedProject: matchedProj?.Project_Name || "N/A",
+              matchPercent,
             };
-          }
-
-          return {
-            ...user,
-            role_description: 'N/A',
-            project_name: 'N/A',
-          };
-        });
+          })
+        );
 
         setEmployees(enrichedUsers);
-        setAssignedEmpTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "benched").length);
-        setStaffedTotal(enrichedUsers.filter(u => u.Status?.toLowerCase() === "staffed").length);
-      } catch (error) {
-        console.error("Error fetching enriched employee data:", error);
+        setAssignedEmpTotal(
+          enrichedUsers.filter(u => u.Status.toLowerCase() === "benched").length
+        );
+        setStaffedTotal(
+          enrichedUsers.filter(u => u.Status.toLowerCase() === "staffed").length
+        );
+      } catch (err) {
+        console.error("Error fetching enriched employees:", err);
       }
-
       setIsLoading(false);
     };
 
@@ -262,8 +250,8 @@ export const Employees = () => {
               <th>Email</th>
               <th>ATC</th>
               <th>Level</th>
-              <th>Project Recomended</th>
-              <th>Rol Recomended</th>
+              <th>Recommended Project</th>
+              <th>Recommended Role</th>
               <th>Percentage %</th>
             </tr>
           </thead>
@@ -277,6 +265,13 @@ export const Employees = () => {
                 <td>{emp.email}</td>
                 <td>{emp.atc}</td>
                 <td>{emp.careerLevel}</td>
+                <td>{emp.recommendedProject}</td>
+                <td>{emp.recommendedRole}</td>
+                <td>
+                  {emp.matchPercent != null
+                    ? `${emp.matchPercent.toFixed(1)}%`
+                    : '0%'}
+                </td>
               </tr>
             ))}
           </tbody>
