@@ -117,7 +117,7 @@ export const Employees = () => {
       try {
         const { data: projects, error: projectError } = await supabase
           .from("Project")
-          .select("Project_ID, Project_Name, description, StartDate, EndDate");
+          .select("Project_ID, Project_Name, description, StartDate, EndDate,Status");
 
         if (projectError) throw projectError;
 
@@ -265,6 +265,7 @@ export const Employees = () => {
               <th>Project Recomended</th>
               <th>Rol Recomended</th>
               <th>Percentage %</th>
+              <th>Time Benched</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
@@ -313,6 +314,7 @@ export const Employees = () => {
               <th>Members</th>
               <th>Start Date</th>
               <th>End Date</th>
+              <th>Status</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
@@ -328,6 +330,23 @@ export const Employees = () => {
                   <td>{proj.Members}</td>
                   <td>{proj.StartDate}</td>
                   <td>{proj.EndDate}</td>
+                  <td>
+                    <span
+                      className={`px-3 py-1 text-xs font-medium rounded-full ${
+                        proj.Status?.toLowerCase() === 'ready'
+                          ? 'bg-green-100 text-green-700'
+                          : proj.Status?.toLowerCase() === 'ongoing'
+                          ? 'bg-blue-100 text-blue-700'
+                          : proj.Status?.toLowerCase() === 'finished'
+                          ? 'bg-gray-200 text-gray-600'
+                          : proj.Status?.toLowerCase() === 'recruiting'
+                          ? 'bg-yellow-100 text-yellow-700'
+                          : 'bg-red-100 text-red-700'
+                      }`}
+                    >
+                      {proj.Status}
+                    </span>
+                  </td>
                 </tr>
               ))}
           </tbody>
