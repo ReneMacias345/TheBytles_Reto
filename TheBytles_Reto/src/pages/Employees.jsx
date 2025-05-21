@@ -76,9 +76,14 @@ export const Employees = () => {
 
             return {
               ...user,
-              recommendedRole: extractHighlightedText(matchedRole.role_description),
-              recommendedProject: matchedProj?.Project_Name || "N/A",
-              matchPercent,
+
+              recommendedRole: matchPercent > 0
+              ? extractHighlightedText(matchedRole.role_description)
+              : 'N/A',
+              recommendedProject: matchPercent > 0
+                ? (matchedProj?.Project_Name || 'N/A')
+                : 'N/A',
+                          matchPercent,
             };
           })
         );
@@ -121,7 +126,6 @@ export const Employees = () => {
 
         if (userRolError) throw userRolError;
 
-        // Map project_id → count of users
         const roleUserCountMap = {};
 
         userRoles.forEach(({ id_rol }) => {
