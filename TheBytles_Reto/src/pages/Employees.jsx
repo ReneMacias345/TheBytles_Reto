@@ -154,6 +154,9 @@ export const Employees = () => {
     fetchProjects();
   }, []);
 
+  const handleRoleClick = (role) => {
+    console.log(`Role clicked: ${role}`);
+  };
 
   return (
     <ScreenLayout>
@@ -271,7 +274,14 @@ export const Employees = () => {
                 <td>{emp.atc}</td>
                 <td>{emp.careerLevel}</td>
                 <td>{emp.recommendedProject}</td>
-                <td>{emp.recommendedRole}</td>
+                <td>
+                  <button 
+                    onClick={() => handleRoleClick(emp.recommendedRole)}
+                    className="bg-transparent border-none p-0 m-0 font-medium text-gray-700 hover:text-[#A100FF] transition-colors duration-200 cursor-pointer focus:outline-none"
+                  >
+                    {emp.recommendedRole}
+                  </button>
+                </td>
                 <td>
                   {emp.matchPercent != null
                     ? `${emp.matchPercent.toFixed(1)}%`
