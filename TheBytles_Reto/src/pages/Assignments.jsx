@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { ProjectCard } from '../components/ProjectCard';
 import supabase from '../config/supabaseClient';
+import { useLocation } from 'react-router-dom';
 
 export const Assignments = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -22,6 +23,13 @@ export const Assignments = () => {
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
   const [showWait, setShowWait] = useState(false);
+
+
+  const location = useLocation();
+  const queryParams = new URLSearchParams(location.search);
+  const highlightedProjectId = queryParams.get('project');
+  const highlightedRoleId = queryParams.get('role');
+
 
   useEffect(() => {
     const fetchProjects = async () => {
@@ -235,22 +243,24 @@ export const Assignments = () => {
       </div>
 
       {projects
-      .filter(project =>
-        project.Project_Name.toLowerCase().includes(searchTerm.toLowerCase())
-      )
-      .map((project, index) => (
-        <ProjectCard
-          key={index}
-          projectId={project.Project_ID} 
-          projectName={project.Project_Name}
-          projectDescription={project.description}
-          staffingStage={project.StaffingStage}
-          startDate={project.StartDate}
-          endDate={project.EndDate}
-          projectPic={project.projectPic}
-          rfp_url={project.rfp_url}
-          roles={rolesMap[project.Project_ID] || []}
-        />
+        .filter(proj =>
+          proj.Project_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          proj.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          proj.Project_ID === highlightedProjectId // 👈 Asegura mostrar aunque no coincida con texto
+        )
+        .map((proj, idx) => (
+          <ProjectCard
+            key={idx}
+            projectId={proj.Project_ID}
+            projectName={proj.Project_Name}
+            projectDescription={proj.description}
+            staffingStage={proj.StaffingStage}
+            startDate={proj.StartDate}
+            endDate={proj.EndDate}
+            projectPic={proj.projectPic}
+            rfp_url={proj.rfp_url}
+            highlightedRoleId={proj.Project_ID === highlightedProjectId ? highlightedRoleId : null}
+          />
       ))}
 
       {showProjectForm && (

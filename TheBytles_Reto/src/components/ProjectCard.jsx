@@ -1,16 +1,17 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ProfileCard } from './ProfileCard';
 import supabase from '../config/supabaseClient';
 import { cosineSimilarity } from '../utilis/cosineSimilarity'
 
 
-export const ProjectCard = ({ projectId, projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url = [] }) => {
+export const ProjectCard = ({ projectId, projectName, projectDescription, staffingStage, startDate, endDate, projectPic, rfp_url = [], highlightedRoleId }) => {
   const [showProfiles, setShowProfiles] = useState(false);
   const [profiles, setProfiles] = useState([]);
   const [showConfirm, setShowConfirm] = useState(false);
   const [selectedRoleId, setSelectedRoleId] = useState(null);
   const [selectedUserIds, setSelectedUserIds] = useState([])
   const [roles, setRoles] = useState([]);
+  const roleRefs = useRef({});
 
   const fetchRoles = async () => {
     const { data, error } = await supabase
@@ -56,6 +57,16 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
   useEffect(() => {
     fetchRoles();
   }, [projectId]);
+
+  useEffect(() => {
+    if (highlightedRoleId && roleRefs.current[highlightedRoleId]) {
+      roleRefs.current[highlightedRoleId].scrollIntoView({ behavior: 'smooth', block: 'center' });
+      roleRefs.current[highlightedRoleId].classList.add('ring-2', 'ring-[#A100FF]');
+      setTimeout(() => {
+        roleRefs.current[highlightedRoleId]?.classList.remove('ring-2', 'ring-[#A100FF]');
+      }, 3000);
+    }
+  }, [roles, highlightedRoleId]);
 
 const handleRoleClick = async (role) => {
   setSelectedRoleId(role.id_role);
@@ -235,6 +246,7 @@ const usersWithPercent = topUsers.map(user => ({
         <div className="flex flex-col gap-2">
           {roles.map((role) => (
             <button
+              ref={el => roleRefs.current[role.id_role] = el}
               key={role.id_role}
               onClick={() =>
                   handleRoleClick(role)}

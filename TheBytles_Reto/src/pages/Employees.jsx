@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
+import { useNavigate } from 'react-router-dom';
 
 export const Employees = () => {
   const [searchTermStaffed, setSearchTermStaffed] = useState('');
@@ -15,6 +16,8 @@ export const Employees = () => {
   const [isLoading, setIsLoading] = useState(true);
   const staffedEmployees = employees.filter(e => e.Status?.toLowerCase() === "staffed");
   const benchedEmployees = employees.filter(e => e.Status?.toLowerCase() === "benched");
+
+  const navigate = useNavigate();
 
   const extractHighlightedText = (text) => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
@@ -83,6 +86,8 @@ export const Employees = () => {
               recommendedProject: matchPercent > 0
                 ? (matchedProj?.Project_Name || 'N/A')
                 : 'N/A',
+              recommendedProjectId: matchedProj?.Project_ID,
+              recommendedRoleId: matchedRole?.id_role, 
                           matchPercent,
             };
           })
@@ -276,7 +281,9 @@ export const Employees = () => {
                 <td>{emp.recommendedProject}</td>
                 <td>
                   <button 
-                    onClick={() => handleRoleClick(emp.recommendedRole)}
+                    onClick={() => {
+                      navigate(`/assignments?project=${emp.recommendedProjectId}&role=${emp.recommendedRoleId}`);
+                    }}
                     className="bg-transparent border-none p-0 m-0 font-medium text-gray-700 hover:text-[#A100FF] transition-colors duration-200 cursor-pointer focus:outline-none"
                   >
                     {emp.recommendedRole}
