@@ -57,47 +57,40 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
     fetchRoles();
   }, [projectId]);
 
-  const handleRoleClick = async (role) => {
-    setSelectedRoleId(role.id_role);
-    setShowProfiles(true);
+const handleRoleClick = async (role) => {
+  setSelectedRoleId(role.id_role);
+  setShowProfiles(true);
 
-    if (!role.embedding_vector) {
-      console.error("Role is missing an embedding vector.");
-      return;
-    }
+  // 1. Validate role vector exists
+  if (!role.embedding_vector) {
+    console.error("Role is missing an embedding vector.");
+    return;
+  }
 
-    const { data: users, error } = await supabase
-    .from('User')
-    .select('userId, firstName, lastName, capability, assignmentPercentage, embedding, Status,profilePic_url')
-    .eq('Status','benched');
-
-
-    if (error) {
-      console.error("Error fetching user embeddings:", error);
-      return;
-    }
-  
-    // se calcula similtiud con rol 
-  const scoredUsers = users
-  .filter(u => u.embedding)
-  .map(user => {
-    const percent = cosineSimilarity(
-      role.embedding_vector,
-      user.embedding,
-      0.6
-    );
-    return {
-      ...user,
-      similarityPercent: percent,
-    };
+  // 2. Call Supabase RPC that returns top matched users
+  const { data: topUsers, error } = await supabase.rpc('get_top8', {
+    role_vec: role.embedding_vector  // Make sure column in SQL matches this name
   });
 
-  const topMatches = scoredUsers
-    .sort((a, b) => b.similarityPercent - a.similarityPercent)
-    .slice(0, 8);
+  // 3. Handle error
+  if (error) {
+    console.error("Error fetching top users:", error);
+    return;
+  }
 
-  setProfiles(topMatches);
-  };
+  // 4. Process similarity % and set state
+const usersWithPercent = topUsers.map(user => ({
+  ...user,
+ similarityPercent: typeof user.similarity === 'number'
+    ? Math.min(
+        Math.round((user.similarity / 0.65) * 1000) / 10,
+        100
+      )
+    : 0.0,
+}));
+
+  setProfiles(usersWithPercent);
+};
 
   const handleRoleSubmission = async () => {
     try {
@@ -265,9 +258,10 @@ export const ProjectCard = ({ projectId, projectName, projectDescription, staffi
       {showProfiles && (
         <div className="grid grid-cols-4 gap-4 mt-6">
           {profiles.map((user, index) => {
+            const similarity = parseFloat(user.similarityPercent);
             let colorClass = 'text-[#ef4444]';
-            if (user.similarityPercent > 80) colorClass = 'text-[#38B2AC]';
-            else if (user.similarityPercent >= 70) colorClass = 'text-orange-400';
+            if (similarity > 80) colorClass = 'text-[#38B2AC]';
+            else if (similarity >= 70) colorClass = 'text-orange-400';
 
             return (
               <ProfileCard
