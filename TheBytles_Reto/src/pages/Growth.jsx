@@ -1,18 +1,79 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import { RecCert } from '../components/RecCert';
+import supabase from '../config/supabaseClient';
 
 export const Growth = () => {
-  const exampleGrowth = {
-    employeeName: "Max Palafox",
-    recommendations: [
-      "Improve time management by using daily planning tools.",
-      "Take the initiative in team discussions to build leadership presence.",
-      "Enroll in a cloud certification course to strengthen technical foundations.",
-      "Practice public speaking once a week to boost confidence in presentations."
-    ]
+const [userData, setUserData] = useState(null);
+const [exampleGrowth, setGrowData] = useState({ recommendations: [] });
+
+useEffect(() => {
+  const fetchData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+
+    const { data: userInfoData, error: userError } = await supabase
+      .from("User")
+      .select("firstName, lastName")
+      .eq("userId", userId)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user info:", userError);
+      return;
+    }
+
+    setUserData(userInfoData);
+
+    const { data: maxDateData, error: maxDateError } = await supabase
+      .from("Grow")
+      .select("Generated")
+      .eq("user_grow_id", userId)
+      .order("Generated", { ascending: false })
+      .limit(1);
+
+    if (maxDateError) {
+      console.error("Error fetching latest date:", maxDateError);
+      return;
+    }
+
+    const maxDateRaw = maxDateData?.[0]?.Generated;
+    if (!maxDateRaw) {
+      console.warn("No records found for user in Grow table.");
+      return;
+    }
+
+    const maxDateOnly = maxDateRaw.slice(0, 10); // "YYYY-MM-DD"
+    console.log("Filtrando por fecha:", maxDateOnly);
+
+    const { data: growData, error: growError } = await supabase
+      .from("Grow")
+      .select("Recomendation")
+      .eq("user_grow_id", userId)
+      .gte("Generated", `${maxDateOnly}T00:00:00`)
+      .lte("Generated", `${maxDateOnly}T23:59:59.999`);
+
+    if (growError) {
+      console.error("Error fetching filtered Grow info:", growError);
+      return;
+    }
+
+    console.log("growData:", growData);
+
+    const allRecommendations = growData.map((entry) => entry.Recomendation);
+    setGrowData({ recommendations: allRecommendations });
   };
+
+  fetchData();
+}, []);
+
+  console.log("Recomendaciones:", exampleGrowth.recommendations);
 
   return (
     <ScreenLayout>
@@ -20,16 +81,22 @@ export const Growth = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           <div>
             <h2 className="text-2xl font-bold text-gray-800 mb-1">Professional Growth</h2>
-            <p className="text-sm text-[#A100FF] font-semibold mb-4">Employee: {exampleGrowth.employeeName}</p>
+            <p className="text-sm text-[#A100FF] font-semibold mb-4">
+              Employee: {userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...'}
+            </p>
             <ul className="space-y-3 text-gray-700 text-sm">
-              {exampleGrowth.recommendations.map((rec, idx) => (
-                <li key={idx} className="flex items-start gap-3">
-                  <svg className="w-5 h-5 text-[#A100FF] mt-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                  {rec}
-                </li>
-              ))}
+              {exampleGrowth.recommendations.length > 0 ? (
+                exampleGrowth.recommendations.map((rec, idx) => (
+                  <li key={idx} className="flex items-start gap-3">
+                    <svg className="w-5 h-5 text-[#A100FF] mt-1" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                    {rec}
+                  </li>
+                ))
+              ) : (
+                <li className="text-gray-400 italic">No recommendations available.</li>
+              )}
             </ul>
           </div>
 
