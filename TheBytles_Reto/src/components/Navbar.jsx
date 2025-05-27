@@ -52,6 +52,41 @@ export const Navbar = () => {
 
         <nav className="mt-4 space-y-2 px-2">
           <Link
+            to="/dashboard"
+            className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
+              location.pathname === '/dashboard'
+                ? 'bg-[#A100FF] text-white'
+                : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
+            }`}
+          >
+            <div name = "Dashboard" className="flex items-center space-x-2">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth="1.5"
+                  stroke="currentColor"
+                  className="w-6 h-6 transition-colors group-hover:stroke-white"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0 0 20.25 18V6A2.25 2.25 0 0 0 18 3.75H6A2.25 2.25 0 0 0 3.75 6v12A2.25 2.25 0 0 0 6 20.25Z"
+                  />
+                </svg>
+              <span>Dashboard</span>
+            </div>
+              <svg
+                className="w-4 h-4 transition-colors group-hover:text-white"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+              </svg>
+          </Link>
+          <Link
             to="/perfil"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
               location.pathname === '/perfil'
