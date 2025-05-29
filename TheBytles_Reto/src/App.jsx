@@ -10,6 +10,7 @@ import { Assignments } from './pages/Assignments';
 import { PrivateRoute } from './components/PrivateRoute';
 import { AdminRoute } from './components/AdminRoute';
 import { Growth } from './pages/Growth';
+import { Dashboard } from './pages/Dashboard';
 
 export const App = () => {
   return (
@@ -23,6 +24,7 @@ export const App = () => {
         <Route path="/perfil" element={<PrivateRoute> <Perfil /> </PrivateRoute>} />
         <Route path="/projects" element={<PrivateRoute> <Projects /> </PrivateRoute>} />
         <Route path="/growth" element={<PrivateRoute> <Growth /> </PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute> <Dashboard/> </PrivateRoute>} />
 
         // rutas privadas (solo para admins)
         <Route path="/employees" element={<AdminRoute> <Employees /> </AdminRoute>} />
