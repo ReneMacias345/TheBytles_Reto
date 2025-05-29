@@ -30,7 +30,7 @@ export const Employees = () => {
       try {
         const { data: users, error: userError } = await supabase
           .from("User")
-          .select("userId, firstName, lastName, email, atc, careerLevel, Status, embedding");
+          .select("userId, firstName, lastName, email, atc, careerLevel, Status, StatusUpdateAt, embedding")
         if (userError) throw userError;
 
         const [{ data: roles, error: roleError },
@@ -44,6 +44,22 @@ export const Employees = () => {
         const enrichedUsers = await Promise.all(
           users.map(async user => {
             const status = user.Status?.toLowerCase();
+
+            let timeBenched = "-";
+            if (status === "benched" && user.StatusUpdateAt) {
+              const updateDate = new Date(user.StatusUpdateAt);
+              const today = new Date();
+              const diffTime = today.getTime() - updateDate.getTime();
+              const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+              timeBenched = `${diffDays} Day${diffDays === 1 ? '' : 's'}`;
+
+              return {
+                ...user,
+                timeBenched, 
+              };
+
+            }
+
             if (status === "staffed") {
               const userRoles = await supabase
                 .from("User_Rol")
@@ -161,6 +177,20 @@ export const Employees = () => {
 
   const handleRoleClick = (role) => {
     console.log(`Role clicked: ${role}`);
+  };
+
+  const getTimeBenchedColorClass = (timeBenched) => {
+    if (!timeBenched || timeBenched === "-") return 'bg-gray-100 text-gray-500';
+
+    const daysMatch = timeBenched.match(/^(\d+)/);
+    if (!daysMatch) return 'bg-gray-100 text-gray-500';
+
+    const days = parseInt(daysMatch[1]);
+
+    if (days <= 3) return 'bg-green-100 text-green-700';
+    if (days <= 6) return 'bg-yellow-100 text-yellow-700';
+    if (days <= 10) return 'bg-orange-100 text-orange-700';
+    return 'bg-red-100 text-red-700';
   };
 
   return (
@@ -293,6 +323,13 @@ export const Employees = () => {
                   {emp.matchPercent != null
                     ? `${emp.matchPercent.toFixed(1)}%`
                     : '0%'}
+                </td>
+                <td>
+                  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+                    getTimeBenchedColorClass(emp.timeBenched)
+                  }`}>
+                    {emp.timeBenched}
+                  </span>
                 </td>
               </tr>
             ))}
