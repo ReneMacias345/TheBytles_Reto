@@ -68,7 +68,9 @@ export const Growth = () => {
       const { data: growData, error: growError } = await supabase
         .from("Grow")
         .select("Recomendation")
-        .eq("user_grow_id", userId);
+        .eq("user_grow_id", userId)
+        .order("Generated", { ascending: false })
+        .limit(4);
 
       if (growError) {
         console.error("Error fetching Grow data:", growError);
