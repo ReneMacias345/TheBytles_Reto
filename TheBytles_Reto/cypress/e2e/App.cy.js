@@ -1,6 +1,6 @@
 Cypress.on('uncaught:exception', () => false)
 
-describe('Login Logout flow', () => {
+describe('Login Assignment flow', () => {
   beforeEach(() => {
     cy.visit('http://localhost:5173/');
   });

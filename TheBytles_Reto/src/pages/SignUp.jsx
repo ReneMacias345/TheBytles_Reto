@@ -135,6 +135,7 @@ export const SignUp = () => {
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                    name = "firstname"
                     type="text"
                     pattern="[A-Za-zÀ-ÿ\s]+"
                     title="Please enter only letters"
@@ -152,6 +153,7 @@ export const SignUp = () => {
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
+                  name = "lastname"
                   type="text"
                   pattern="[A-Za-zÀ-ÿ\s]+"
                   title="Please enter only letters"
@@ -168,6 +170,7 @@ export const SignUp = () => {
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
+                  name = "email"
                   type="email"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -182,6 +185,7 @@ export const SignUp = () => {
                   Capability <span className="text-red-500">*</span>
                 </label>
                 <select
+                  name = "capability"
                   className="w-full px-3 py-2 text-base text-gray-700
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -209,6 +213,7 @@ export const SignUp = () => {
                     Career Level <span className="text-red-500">*</span>
                   </label>
                   <select
+                  name = "carrerlevel"
                   className="w-full px-3 py-2 text-base text-gray-700
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -237,6 +242,7 @@ export const SignUp = () => {
                     ATC <span className="text-red-500">*</span>
                   </label>
                   <select
+                    name = "atc"
                     className="w-full px-3 py-2 text-base text-gray-700
                                bg-gray-100 border border-gray-200 rounded-full
                                focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -257,6 +263,7 @@ export const SignUp = () => {
                   Enter Password <span className="text-red-500">*</span>
                 </label>
                 <input
+                  name = "password"
                   type="password"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -272,6 +279,7 @@ export const SignUp = () => {
                   Repeat Password <span className="text-red-500">*</span>
                 </label>
                 <input
+                  name = "repeatpassword"
                   type="password"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -282,7 +290,7 @@ export const SignUp = () => {
                 />
               </div>
 
-              <Button type="submit" className="w-full mt-3 py-2">
+              <Button name = "signup" type="submit" className="w-full mt-3 py-2">
                 Sign Up
               </Button>
               { formError && (<p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>)}
@@ -291,6 +299,7 @@ export const SignUp = () => {
             <p className="mt-3 text-sm text-center text-gray-600">
               Already have an account?{' '}
               <button
+                name = "signin"
                 className="font-medium text-[#A100FF] hover:underline bg-transparent"
                 onClick={handleSignIn}
               >
