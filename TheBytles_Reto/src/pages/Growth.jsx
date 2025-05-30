@@ -31,9 +31,9 @@ export const Growth = () => {
         .limit(1);
 
       if (courseError) {
-        console.error("❌ Error al conectar con Course_Recomendation:", courseError);
+        console.error("Error al conectar con Course_Recomendation:", courseError);
       } else {
-        console.log("✅ Conexión exitosa. Course_Recomendation:", courseTest);
+        console.log("Conexion exitosa. Course_Recomendation:", courseTest);
       }
     };
 
@@ -75,32 +75,44 @@ export const Growth = () => {
       } else {
         const allRecommendations = growData.map((entry) => entry.Recomendation);
         setGrowData({ recommendations: allRecommendations });
-        console.log("📦 Recomendaciones desde Grow:", allRecommendations);
+        console.log("Recomendaciones desde Grow:", allRecommendations);
       }
 
 
-      const { data: certData, error: certError } = await supabase
-        .from("Cert_Recomendation")
-        .select("Cert_Name, Cert_Des, Capability, Cert_Link, Cert_Image");
+      const { data: userEmbeddingData, error: embeddingError } = await supabase
+        .from("User")
+        .select("embedding")
+        .eq("userId", userId)
+        .single();
 
-      if (certError) {
-        console.error("Error fetching Cert_Recomendation:", certError);
+      if (embeddingError || !userEmbeddingData?.embedding) {
+        console.error("Error fetching user embedding:", embeddingError);
       } else {
-        setCertRecs(certData);
-        console.log("📘 Certificaciones recomendadas:", certData);
+        const { data: topCourses, error: topCoursesError } = await supabase
+          .rpc("get_top5_courses", {
+            user_vec: userEmbeddingData.embedding
+          });
+
+        if (topCoursesError) {
+          console.error("Error fetching top courses:", topCoursesError);
+        } else {
+          console.log("Top 5 Course Matches:", topCourses);
+          setCourseRecs(topCourses);
+        }
+
+        const { data: topCerts, error: topCertsError } = await supabase
+          .rpc("get_top5_certificates", {
+            user_vec: userEmbeddingData.embedding
+          });
+
+        if (topCertsError) {
+          console.error("Error fetching top certificates:", topCertsError);
+        } else {
+          setCertRecs(topCerts);
+          console.log("Top 5 Cert Matches:", topCerts);
+        }
       }
 
-     
-      const { data: courseData, error: courseError } = await supabase
-        .from("Course_Recomendation")
-        .select("Course_Name, Course_Des, Capability, Course_Link, Course_Image");
-
-      if (courseError) {
-        console.error("Error fetching Course_Recomendation:", courseError);
-      } else {
-        setCourseRecs(courseData);
-        console.log("📗 Cursos recomendados:", courseData);
-      }
     };
 
     fetchData();
@@ -150,7 +162,7 @@ export const Growth = () => {
               <RecCert
                 key={idx}
                 title={rec.Cert_Name}
-                description={rec.Cert_Des}
+                description={<div className="text-sm text-gray-600 mb-4 break-words whitespace-pre-wrap">{rec.Cert_Des}</div>}
                 image={rec.Cert_Image}
                 link={rec.Cert_Link}
                 capability={rec.Capability}
@@ -170,7 +182,7 @@ export const Growth = () => {
               <RecCert
                 key={idx}
                 title={rec.Course_Name}
-                description={rec.Course_Des}
+                description={<div className="text-sm text-gray-600 mb-4 break-words whitespace-pre-wrap">{rec.Course_Des}</div>}
                 image={rec.Course_Image}
                 link={rec.Course_Link}
                 capability={rec.Capability}
