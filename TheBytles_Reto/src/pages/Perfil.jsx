@@ -459,12 +459,14 @@ useEffect(() => {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: { "Content-Type": "application/json" },
+      mode: "cors",
   });
 
     await fetch("https://thebytlesbackend-production.up.railway.app/generate-keypoints", {
       method: "POST",
       body: JSON.stringify({ user_id: userId }),
       headers: { "Content-Type": "application/json" },
+      mode: "cors",
     });
   };
   
