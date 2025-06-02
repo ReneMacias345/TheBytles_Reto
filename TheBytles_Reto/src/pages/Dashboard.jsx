@@ -28,7 +28,7 @@ ChartJS.register(
 );
 
 export const Dashboard = () => {
-  const [filter, setFilter] = useState('ATC');
+  const [filter, setFilter] = useState('Level');
 
   const projectStatusData = {
     labels: ['Staffing', 'Ongoing', 'Finished'],
@@ -42,11 +42,11 @@ export const Dashboard = () => {
   };
 
   const employeeStatusData = {
-    labels: ['Staffed', 'Benched'],
+    labels: ['Assigned', 'Benched'],
     datasets: [
       {
         data: [85, 35],
-        backgroundColor: ['#A100FF', '#FB7185'],
+        backgroundColor: ['#10B981', '#FB7185'],
         borderWidth: 0,
       },
     ],
@@ -111,41 +111,44 @@ export const Dashboard = () => {
 
   return (
     <ScreenLayout>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-3">
         <DashboardCard title="Total Employees" value="120" color="text-gray-800" />
         <DashboardCard title="Benched Employees" value="35" color="text-red-500" />
+        <DashboardCard title="Roles to be covered" value="43" color="text-orange-400" />
         <DashboardCard title="Active Projects" value="12" color="text-purple-600" />
       </div>
-
+    
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-        <div className="bg-white rounded-2xl shadow p-6 col-span-2">
-          <h2 className="text-md font-semibold text-gray-800 mb-3">Project Status Overview</h2>
-          <Bar data={projectStatusData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
-        </div>
-
         <div className="bg-white rounded-2xl shadow p-6">
           <h2 className="text-md font-semibold text-gray-800 mb-3">Employee Status Distribution</h2>
           <Doughnut data={employeeStatusData} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+        </div>
+
+        <div className="bg-white rounded-2xl shadow p-6 col-span-2">
+          <h2 className="text-md font-semibold text-gray-800 mb-3">Project Status Overview</h2>
+          <Bar data={projectStatusData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow p-6 mb-6">
         <div className="flex justify-between items-center mb-3">
-          <h2 className="text-md font-semibold text-gray-800">Time Benched vs Assigned</h2>
+          <h2 className="text-md font-semibold text-gray-800">Employees Benched vs Assigned</h2>
           <select
             className="text-sm px-2 py-1 rounded-md border border-gray-300 text-[#A100FF] bg-white"
             value={filter}
             onChange={(e) => setFilter(e.target.value)}
           >
-            <option value="ATC">By ATC</option>
-            <option value="Capability">By Capability</option>
             <option value="Level">By Level</option>
+            <option value="Capability">By Capability</option>
+            <option value="ATC">By ATC</option>
           </select>
         </div>
         <Bar
           data={timeDistributionData[filter]}
           options={timeDistributionOptions}
         />
+        
       </div>
     </ScreenLayout>
   );

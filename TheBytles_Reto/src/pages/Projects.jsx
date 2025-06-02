@@ -21,7 +21,7 @@ export const Projects = () => {
     endDate: "N/A",
   });
   const [employeesAssociated, setEmployeesAssociated] = useState([]);
-  
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const extractHighlightedText = (text) => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
@@ -110,7 +110,7 @@ export const Projects = () => {
 
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
-        .select("firstName, lastName, Status")
+        .select("firstName, lastName, Status,clearanceLevel")
         .eq("userId", userId)
         .single();
 
@@ -120,6 +120,7 @@ export const Projects = () => {
       }
 
       setUserData(userInfoData);
+      setIsAdmin(userInfoData.clearanceLevel === 2);
 
       const { data: historyData, error: historyError } = await supabase
         .from("User_History")
@@ -250,18 +251,20 @@ export const Projects = () => {
       <InfoCard>
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold text-lg text-gray-800">Working In</h3>
-          <select
-            className="px-4 py-1 rounded-full border border-gray-300 bg-[#A100FF] text-white text-sm hover:bg-[#8800cc] transition"
-            value={status}
-            onChange={(e) => {
-              setPendingStatus(e.target.value);
-              setShowConfirmModal(true);
-            }}
-          >
-            <option value="Ready" className="text-black">Ready</option>
-            <option value="Ongoing" className="text-black">Ongoing</option>
-            <option value="Finished" className="text-black">Finished</option>
-          </select>
+          {isAdmin && (
+            <select
+              className="px-4 py-1 rounded-full border border-gray-300 bg-[#A100FF] text-white text-sm hover:bg-[#8800cc] transition"
+              value={status}
+              onChange={(e) => {
+                setPendingStatus(e.target.value);
+                setShowConfirmModal(true);
+              }}
+            >
+              <option value="Ready" className="text-black">Ready</option>
+              <option value="Ongoing" className="text-black">Ongoing</option>
+              <option value="Finished" className="text-black">Finished</option>
+            </select>
+          )}
         </div>
 
         <table className="w-full text-sm">
@@ -286,7 +289,8 @@ export const Projects = () => {
         </table>
       </InfoCard>
 
-      <InfoCard>
+      {isAdmin && (
+        <InfoCard>
         <h3 className="font-semibold text-lg text-gray-800 mb-2">
           Employees Associated to {workingIn.projectName}
         </h3>
@@ -330,6 +334,7 @@ export const Projects = () => {
           </tbody>
         </table>
       </InfoCard>
+      )}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div>

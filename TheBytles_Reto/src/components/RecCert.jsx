@@ -5,7 +5,7 @@ export const RecCert = ({ title, description, image, link ,capability}) => {
       <img
         src={image}
         alt={title}
-        className="w-full h-[130px] object-contain rounded-t-2xl p-2"
+        className="w-full h-[100px] object-contain rounded-t-2xl p-2"
       />
       
 
