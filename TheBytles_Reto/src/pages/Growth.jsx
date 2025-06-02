@@ -125,7 +125,7 @@ export const Growth = () => {
       <InfoCard>
         <div className="grid gap-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-1">Professional Growth</h2>
+            <h2 className="text-2xl font-bold text-gray-800 mb-1">Recomendations for your Professional Growth</h2>
             <p className="text-sm text-[#A100FF] font-semibold mb-4">
               Employee: {userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...'}
             </p>
