@@ -2,6 +2,7 @@ import React, { useState , useEffect} from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import supabase from '../config/supabaseClient';
+import { AlertCard } from './AlertCard';
 
 
 export const Navbar = () => {
@@ -267,7 +268,9 @@ export const Navbar = () => {
           </Link>
           
         </nav>
+        <AlertCard></AlertCard>
       </div>
+
 
       <div className="p-4 flex flex-col items-center">
         <div className="flex items-center">
