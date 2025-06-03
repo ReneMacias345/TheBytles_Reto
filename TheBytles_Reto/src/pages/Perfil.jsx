@@ -7,8 +7,7 @@ import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
 import { CertCard } from '../components/CertCard';
 import { CourCard } from '../components/CourCard';
-import { useLocation } from 'react-router-dom';
-
+import { useLocation,useNavigate } from 'react-router-dom';
 
 
 
@@ -70,7 +69,6 @@ export const Perfil = () => {
     finished:"2025-12-12"
   }
 ]);
-
 
 
 useEffect(() => {
@@ -755,6 +753,7 @@ const location = useLocation();
       }
     }
   }, [location]);
+const navigate = useNavigate();
   
   return (
     <ScreenLayout>
@@ -984,7 +983,23 @@ const location = useLocation();
 
       <InfoCard>
         <div id="certifications" className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+            <button
+              onClick={() => navigate('/growth')}
+              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-1.5 rounded-full hover:opacity-90 transition">
+              See recommendations
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
+          </div>
           <button
             onClick={() => {
               setCertName('');
@@ -1027,7 +1042,23 @@ const location = useLocation();
 
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Courses</h3>
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+            <button
+              onClick={() => navigate('/growth')}
+              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-1.5 rounded-full hover:opacity-90 transition">
+              See recommendations
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
+          </div>
           <button
             onClick={() => {
               setCourseTitle('');

@@ -50,7 +50,7 @@ export const RecCert = ({ title, description, image, link ,capability}) => {
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50" >
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 rounded-2xl " >
           <div className="bg-white p-6 rounded-xl shadow-md w-72 text-center">
             <h2 className="text-md font-semibold mb-4 text-gray-800">Are you sure?</h2>
             <div className="flex justify-around">
