@@ -230,7 +230,7 @@ export const Employees = () => {
 
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold text-lg text-gray-800">All Employees - Staffed</h3>
+          <h3 className="font-semibold text-lg text-gray-800">All Employees - Assigned</h3>
           <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />

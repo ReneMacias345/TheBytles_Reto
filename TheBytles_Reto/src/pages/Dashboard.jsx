@@ -115,7 +115,7 @@ export const Dashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-3">
         <DashboardCard title="Total Employees" value="120" color="text-gray-800" />
         <DashboardCard title="Benched Employees" value="35" color="text-red-500" />
-        <DashboardCard title="Roles to be covered" value="43" color="text-orange-400" />
+        <DashboardCard title="Roles Available" value="43" color="text-orange-400" />
         <DashboardCard title="Active Projects" value="12" color="text-purple-600" />
       </div>
     
@@ -148,7 +148,6 @@ export const Dashboard = () => {
           data={timeDistributionData[filter]}
           options={timeDistributionOptions}
         />
-        
       </div>
     </ScreenLayout>
   );
