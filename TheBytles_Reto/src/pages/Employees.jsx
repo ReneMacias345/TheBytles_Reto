@@ -16,7 +16,9 @@ export const Employees = () => {
   const [isLoading, setIsLoading] = useState(true);
   const staffedEmployees = employees.filter(e => e.Status?.toLowerCase() === "staffed");
   const benchedEmployees = employees.filter(e => e.Status?.toLowerCase() === "benched");
-
+  const [filterATC, setFilterATC] = useState('');
+  const [filterLevel, setFilterLevel] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
   const navigate = useNavigate();
 
   const extractHighlightedText = (text) => {
@@ -231,19 +233,55 @@ export const Employees = () => {
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-lg text-gray-800">All Employees - Assigned</h3>
-          <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search employee..."
-              className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
-              value={searchTermStaffed}
-              onChange={(e) => setSearchTermStaffed(e.target.value)}
-            />
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search employee..."
+                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
+                value={searchTermStaffed}
+                onChange={(e) => setSearchTermStaffed(e.target.value)}
+              />
+            </div>
+            {/* Dropdown ATC */}
+              <select
+                className="px-3 py-1 rounded-md border border-[#A100FF] text-sm text-[#A100FF] bg-white hover:cursor-pointer"
+                value={filterATC}
+                onChange={(e) => setFilterATC(e.target.value)}
+              >
+                <option value="">All ATCs</option>
+                <option value="CDMX">CDMX</option>
+                <option value="MTY">MTY</option>
+                <option value="QRO">QRO</option>
+              </select>
+
+              {/* Dropdown Level */}
+              <select
+                className="px-3 py-1 rounded-md border border-[#A100FF] text-sm text-[#A100FF] bg-white hover:cursor-pointer"
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+              >
+                <option value="">All Levels</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+                <option value="7">Level 7</option>
+                <option value="8">Level 8</option>
+                <option value="9">Level 9</option>
+                <option value="10">Level 10</option>
+                <option value="11">Level 11</option>
+                <option value="12">Level 12</option>
+                <option value="13">Level 13</option>
+              </select>
+            </div>
           </div>
-        </div>
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
@@ -252,8 +290,12 @@ export const Employees = () => {
           </thead>
           <tbody className="text-gray-700 font-medium">
             {staffedEmployees.filter(emp =>
-              `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermStaffed.toLowerCase()) ||
-              emp.email?.toLowerCase().includes(searchTermStaffed.toLowerCase())
+              (`${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermStaffed.toLowerCase()) ||
+              emp.email?.toLowerCase().includes(searchTermStaffed.toLowerCase()))
+              &&
+              (filterATC ? emp.atc === filterATC : true)
+              &&
+              (filterLevel ? String(emp.careerLevel) === filterLevel : true)
             ).map((emp, idx) => (
               <tr key={idx} className="border-t">
                 <td className="py-2">{emp.firstName} {emp.lastName}</td>
@@ -272,19 +314,55 @@ export const Employees = () => {
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-lg text-gray-800">All Employees - Benched</h3>
-          <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search employee..."
-              className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
-              value={searchTermBenched}
-              onChange={(e) => setSearchTermBenched(e.target.value)}
-            />
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md ">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search employee..."
+                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
+                value={searchTermBenched}
+                onChange={(e) => setSearchTermBenched(e.target.value)}
+              />
+            </div>
+            {/* Dropdown ATC */}
+              <select
+                className="px-3 py-1 rounded-md border border-[#A100FF] text-sm text-[#A100FF] bg-white hover:cursor-pointer"
+                value={filterATC}
+                onChange={(e) => setFilterATC(e.target.value)}
+              >
+                <option value="">All ATCs</option>
+                <option value="CDMX">CDMX</option>
+                <option value="MTY">MTY</option>
+                <option value="QRO">QRO</option>
+              </select>
+
+              {/* Dropdown Level */}
+              <select
+                className="px-3 py-1 rounded-md border border-[#A100FF] text-sm text-[#A100FF] bg-white hover:cursor-pointer"
+                value={filterLevel}
+                onChange={(e) => setFilterLevel(e.target.value)}
+              >
+                <option value="">All Levels</option>
+                <option value="1">Level 1</option>
+                <option value="2">Level 2</option>
+                <option value="3">Level 3</option>
+                <option value="4">Level 4</option>
+                <option value="5">Level 5</option>
+                <option value="6">Level 6</option>
+                <option value="7">Level 7</option>
+                <option value="8">Level 8</option>
+                <option value="9">Level 9</option>
+                <option value="10">Level 10</option>
+                <option value="11">Level 11</option>
+                <option value="12">Level 12</option>
+                <option value="13">Level 13</option>
+              </select>
+            </div>
           </div>
-        </div>
         <table className="w-full text-sm">
           <thead className="text-gray-500 text-left">
             <tr>
@@ -300,8 +378,12 @@ export const Employees = () => {
           </thead>
           <tbody className="text-gray-700 font-medium">
             {benchedEmployees.filter(emp =>
-              `${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermBenched.toLowerCase()) ||
-              emp.email?.toLowerCase().includes(searchTermBenched.toLowerCase())
+              (`${emp.firstName} ${emp.lastName}`.toLowerCase().includes(searchTermBenched.toLowerCase()) ||
+              emp.email?.toLowerCase().includes(searchTermBenched.toLowerCase()))
+              &&
+              (filterATC ? emp.atc === filterATC : true)
+              &&
+              (filterLevel ? String(emp.careerLevel) === filterLevel : true)
             ).map((emp, idx) => (
               <tr key={idx} className="border-t">
                 <td className="py-2">{emp.firstName} {emp.lastName}</td>
@@ -342,20 +424,34 @@ export const Employees = () => {
         <div className="flex justify-between items-center mb-4">
           <div>
             <h3 className="font-semibold text-lg text-gray-800">All Projects</h3>
-            <p className="text-sm text-[#38B2AC]">{userData?.atc || ''}</p>
           </div>
 
-          <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
-            </svg>
-            <input
-              type="text"
-              placeholder="Search project..."
-              className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
-              value={searchProjectTerm}
-              onChange={(e) => setSearchProjectTerm(e.target.value)}
-            />
+          <div className="flex items-center gap-2">
+            {/* Search */}
+            <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md">
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-4.35-4.35M17.65 16.65A7.5 7.5 0 1010.5 3a7.5 7.5 0 007.15 13.65z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search project..."
+                className="flex-1 outline-none text-sm text-gray-700 placeholder-gray-400 bg-white"
+                value={searchProjectTerm}
+                onChange={(e) => setSearchProjectTerm(e.target.value)}
+              />
+            </div>
+            {/* Dropdown Status (nuevo) */}
+            <select
+              className="px-3 py-1 rounded-md border border-[#A100FF] text-sm text-[#A100FF] bg-white hover:cursor-pointer"
+              value={filterStatus} 
+              onChange={(e) => setFilterStatus(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="ready">Ready</option>
+              <option value="ongoing">Ongoing</option>
+              <option value="finished">Finished</option>
+              <option value="recruiting">Recruiting</option>
+            </select>
           </div>
         </div>
 
@@ -375,6 +471,9 @@ export const Employees = () => {
               .filter(proj =>
                 proj.Project_Name?.toLowerCase().includes(searchProjectTerm.toLowerCase()) ||
                 proj.description?.toLowerCase().includes(searchProjectTerm.toLowerCase())
+              )
+              .filter(proj => 
+                filterStatus ? proj.Status === filterStatus : true
               )
               .map((proj, idx) => (
                 <tr key={idx} className="border-t">
