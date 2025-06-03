@@ -54,6 +54,9 @@ export const Perfil = () => {
   const [courseDesc, setCourseDesc] = useState('');
   const [courseFinished, setCourseFinished] = useState('');
   const [courseDate, setCourseDate] = useState('');
+  const [editCourseIndex, setEditCourseIndex] = useState(null);
+  const [editingCourse, setEditingCourse] = useState(null);
+
 
   const [courses, setCourses] = useState([
     {
@@ -69,6 +72,7 @@ export const Perfil = () => {
     finished:"2025-12-12"
   }
 ]);
+
 
 
 
@@ -176,6 +180,7 @@ useEffect(() => {
       console.error("Error fetching courses:", coursesError);
     } else {
       const formattedCourses = coursesData.map((course) => ({
+        id_course: course.course_id,
         title: course.Course_Name,
         description: course.Description,
         date: course.Started,
@@ -696,9 +701,53 @@ useEffect(() => {
     }
   };
 
+  const handleEditCourse = async (updatedCourse) => {
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
+  
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
+  
+    const { data, error } = await supabase
+      .from("Courses")
+      .update({
+        Course_Name: updatedCourse.certName,
+        Started: updatedCourse.date,
+        Completed: updatedCourse.expiration,
+        Description: updatedCourse.description
+      })
+      .eq("course_id", updatedCourse.id) // ✅ correcta
+      .eq("created_by", userId)
+      .select()
+      .single();
+  
+    if (error) {
+      console.error("Error updating course:", error);
+      alert("Failed to update course.");
+      return;
+    }
+  
+    const updatedCourses = courses.map(course =>
+      course.id_course === updatedCourse.id
+        ? {
+            ...course,
+            title: data.Course_Name,
+            description: data.Description,
+            date: data.Started,
+            finished: data.Completed,
+            id_course: data.course_id
+          }
+        : course
+    );
+  
+    setCourses(updatedCourses);
+  };
+  
+
   const handleSaveCourse = async (e) => {
     e.preventDefault();
-  
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
   
@@ -707,6 +756,77 @@ useEffect(() => {
       alert("You must be logged in to save a course.");
       return;
     }
+  
+    // Si se está editando
+    if (editCourseIndex !== null && editingCourse?.id_course) {
+      const { data, error } = await supabase
+        .from("Courses")
+        .update({
+          Course_Name: courseTitle,
+          Started: courseDate,
+          Completed: courseFinished,
+          Description: courseDesc
+        })
+        .eq("id_course", editingCourse.id_course)
+        .eq("created_by", userId)
+        .select()
+        .single();
+  
+      if (error) {
+        console.error("Error updating course:", error);
+        alert("Failed to update course.");
+        return;
+      }
+  
+      const updatedCourses = [...courses];
+      updatedCourses[editCourseIndex] = {
+        id_course: data.id_course,
+        title: data.Course_Name,
+        description: data.Description,
+        date: data.Started,
+        finished: data.Completed
+      };
+  
+      setCourses(updatedCourses);
+    } else {
+      // Nuevo curso
+      const { data, error } = await supabase
+        .from("Courses")
+        .insert([{
+          Course_Name: courseTitle,
+          Started: courseDate,
+          Completed: courseFinished,
+          Description: courseDesc,
+          created_by: userId
+        }])
+        .select()
+        .single();
+  
+      if (error) {
+        console.error("Error saving course:", error);
+        alert("Failed to save course.");
+        return;
+      }
+  
+      setCourses(prev => [...prev, {
+        id_course: data.id_course,
+        title: data.Course_Name,
+        description: data.Description,
+        date: data.Started,
+        finished: data.Completed
+      }]);
+    }
+  
+    // Limpiar estado y cerrar modal
+    setCourseTitle('');
+    setCourseDesc('');
+    setCourseDate('');
+    setCourseFinished('');
+    setShowCourseForm(false);
+    setEditCourseIndex(null);
+    setEditingCourse(null);
+  
+  
   
     const newCourse = {
       Course_Name: courseTitle,
@@ -1044,10 +1164,12 @@ useEffect(() => {
           {courses.map((course, index) => (
             <CourCard
               key={index}
+              id_course={course.id_course}
               title={course.title}
               description={course.description}
               date={course.date}
               finished={course.finished}
+              onEdit={handleEditCourse}
             />
           ))}
         </div>
