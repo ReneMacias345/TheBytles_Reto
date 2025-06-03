@@ -7,6 +7,7 @@ import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
 import { CertCard } from '../components/CertCard';
 import { CourCard } from '../components/CourCard';
+import { useLocation } from 'react-router-dom';
 
 
 
@@ -741,8 +742,19 @@ useEffect(() => {
     setCourseFinished('');
     setShowCourseForm(false);
   };
-  
+const location = useLocation();
 
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.querySelector(location.hash);
+      if (element) {
+        // Delay para asegurar que el DOM esté completamente montado
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 835);
+      }
+    }
+  }, [location]);
   
   return (
     <ScreenLayout>
@@ -804,7 +816,7 @@ useEffect(() => {
               {userData?.cv_url && (
                 <a
                   name = "viewCV"
-                  href={`${userData.cv_url}?t=${Date.now()}`} // 💡 evita caché
+                  href={`${userData.cv_url}?t=${Date.now()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center text-sm text-[#A100FF] hover:underline"
@@ -971,7 +983,7 @@ useEffect(() => {
       </InfoCard>
 
       <InfoCard>
-        <div className="flex justify-between items-center mb-4">
+        <div id="certifications" className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
           <button
             onClick={() => {
