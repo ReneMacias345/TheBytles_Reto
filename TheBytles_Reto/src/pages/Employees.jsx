@@ -47,27 +47,59 @@ export const Employees = () => {
           users.map(async user => {
             const status = user.Status?.toLowerCase();
 
-            let timeBenched = "-";
-            if (status === "benched" && user.StatusUpdateAt) {
-              const updateDate = new Date(user.StatusUpdateAt);
-              const today = new Date();
-              const diffTime = today.getTime() - updateDate.getTime();
-              const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
-              timeBenched = `${diffDays} Day${diffDays === 1 ? '' : 's'}`;
+            // Si está en banco, calcular días y buscar recomendación
+            if (status === "benched") {
+              let timeBenched = "-";
+              if (user.StatusUpdateAt) {
+                const updateDate = new Date(user.StatusUpdateAt);
+                const today = new Date();
+                const diffTime = today.getTime() - updateDate.getTime();
+                const diffDays = Math.max(0, Math.floor(diffTime / (1000 * 60 * 60 * 24)));
+                timeBenched = `${diffDays} Day${diffDays === 1 ? '' : 's'}`;
+              }
+
+              // RPC: match_role_to_user
+              const { data: [match], error: rpcError } = await supabase
+                .rpc("match_role_to_user", { user_vec: user.embedding });
+
+              if (rpcError || !match) {
+                console.error("RPC error:", rpcError);
+                return {
+                  ...user,
+                  timeBenched,
+                  recommendedRole: "N/A",
+                  recommendedProject: "N/A",
+                  matchPercent: 0,
+                };
+              }
+
+              const matchedRole = roles.find(r => r.id_role === match.id_role);
+              const matchedProj = projects.find(p => p.Project_ID === matchedRole?.project_id);
+              const matchPercent = Math.round((match.similarity * 1000) / 0.65) / 10;
 
               return {
                 ...user,
-                timeBenched, 
+                timeBenched,
+                recommendedRole: matchPercent > 0
+                  ? extractHighlightedText(matchedRole.role_description)
+                  : 'N/A',
+                recommendedProject: matchPercent > 0
+                  ? (matchedProj?.Project_Name || 'N/A')
+                  : 'N/A',
+                recommendedProjectId: matchedProj?.Project_ID,
+                recommendedRoleId: matchedRole?.id_role,
+                matchPercent,
               };
-
             }
 
+            // Si está staffeado, buscar su rol actual
             if (status === "staffed") {
               const userRoles = await supabase
                 .from("User_Rol")
                 .select("id_rol")
                 .eq("id_user", user.userId);
-              const lastRole = userRoles.data[userRoles.data.length - 1];
+
+              const lastRole = userRoles?.data?.length ? userRoles.data[userRoles.data.length - 1] : null;
               const roleObj = roles.find(r => r.id_role === lastRole?.id_rol);
               const projObj = projects.find(p => p.Project_ID === roleObj?.project_id);
 
@@ -78,38 +110,13 @@ export const Employees = () => {
               };
             }
 
-            const { data: [match], error: rpcError } = await supabase
-              .rpc("match_role_to_user", { user_vec: user.embedding });
-            if (rpcError || !match) {
-              console.error("RPC error:", rpcError);
-              return {
-                ...user,
-                recommendedRole: "N/A",
-                recommendedProject: "N/A",
-                matchPercent: 0,
-              };
-            }
-
-            const matchedRole = roles.find(r => r.id_role === match.id_role);
-            const matchedProj = projects.find(p => p.Project_ID === matchedRole.project_id);
-
-            const matchPercent = Math.round((match.similarity * 1000)/ 0.65) / 10;
-
+            // Para todos los demás (por ejemplo, nuevos empleados no clasificados)
             return {
               ...user,
-
-              recommendedRole: matchPercent > 0
-              ? extractHighlightedText(matchedRole.role_description)
-              : 'N/A',
-              recommendedProject: matchPercent > 0
-                ? (matchedProj?.Project_Name || 'N/A')
-                : 'N/A',
-              recommendedProjectId: matchedProj?.Project_ID,
-              recommendedRoleId: matchedRole?.id_role, 
-                          matchPercent,
             };
           })
         );
+
 
         setEmployees(enrichedUsers);
         setAssignedEmpTotal(
