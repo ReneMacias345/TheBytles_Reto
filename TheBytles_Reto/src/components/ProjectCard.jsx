@@ -109,12 +109,74 @@ const usersWithPercent = topUsers.map(user => ({
         alert("No users selected.");
         return;
       }
-  
+
+      // Slo los usuarios seleccionados
+      const { data: usersToUpdate, error: fetchError } = await supabase
+        .from("User")
+        .select("userId, StatusUpdateAt, AccumulatedBenchDays")
+        .in("userId", selectedUserIds);
+
+      if (fetchError) {
+        console.error("Error fetching selected users:", fetchError);
+        return;
+      }
+      if (!usersToUpdate || usersToUpdate.length === 0) {
+        console.warn("No matching users found in DB.");
+        return;
+      }
+
+      const today = new Date();
+      const currentYear = today.getFullYear();
+      const startOfYear = new Date(currentYear, 0, 1); // 1 de enero, 00:00
+
+      const updates = usersToUpdate.map((u) => {
+        const oldAccumulated = u.AccumulatedBenchDays || 0;
+        let newAccumulated = oldAccumulated;
+
+        if (u.StatusUpdateAt) {
+          const lastBenchDate = new Date(u.StatusUpdateAt);
+
+          // Si entró a banca antes de este año y sigue hasta hoy
+          // 1/ene hasta hoy.
+          if (lastBenchDate < startOfYear) {
+            const diffMs = today.getTime() - startOfYear.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            newAccumulated += diffDays;
+          }
+          // Si entró a banca en este año, ultima StatusUpdateAt hasta hoy
+          else if (lastBenchDate.getFullYear() === currentYear) {
+            const diffMs = today.getTime() - lastBenchDate.getTime();
+            const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+            newAccumulated += diffDays;
+          }
+        }
+
+        return {
+          userId: u.userId,
+          AccumulatedBenchDays: newAccumulated,
+        };
+      });
+
+      // actualizaciones de benched
+      const BenchedUpdate = updates.map(({ userId, AccumulatedBenchDays, StatusUpdateAt }) =>
+        supabase
+          .from("User")
+          .update({ AccumulatedBenchDays, StatusUpdateAt })
+          .eq("userId", userId)
+          .then(({ error: updateError }) => {
+            if (updateError) {
+              console.error(`Error updating AccumulatedBenchDays/StatusUpdateAt for ${userId}:`, updateError);
+            }
+          })
+      );
+      await Promise.all(BenchedUpdate);
+
       const { error: updateError } = await supabase
         .from('User')
         .update({ Status: 'staffed' })
         .in('userId', selectedUserIds);
-  
+
+      
       if (updateError) {
         console.error("Error updating statuses:", updateError);
         alert("Failed to update user statuses.");

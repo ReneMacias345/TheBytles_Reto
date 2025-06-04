@@ -14,14 +14,14 @@ export const SignUp = () => {
   const [atc, setAtc] = useState('');
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
+  const [since, setSince] = useState('');
   const navigate = useNavigate();
   const [formError, setFormError] = useState(null);
-
 
   const handleSubmit = async (e) => {
     e.preventDefault();
   
-    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !capability) {
+    if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !capability || !since ) {
       setFormError("Please fill in all the required fields");
       return;
     }
@@ -79,6 +79,7 @@ export const SignUp = () => {
           careerLevel: parseInt(careerLevel),
           atc,
           //password, // PLS PLS PLS quitar en produccion, supabase ya lo guarda seguramente :D
+          Since: since
         },
       ]);
   
@@ -237,6 +238,7 @@ export const SignUp = () => {
                   <option value="13">13</option>
                 </select>
                 </div>
+
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
                     ATC <span className="text-red-500">*</span>
@@ -256,6 +258,22 @@ export const SignUp = () => {
                     <option value="QRO">QRO</option>
                   </select>
                 </div>
+              </div>
+
+              <div>
+                <label className="block mb-1 text-sm font-medium text-gray-700">
+                  Start working in Accenture at <span className="text-red-500">*</span>
+                </label>
+                <input
+                  name = "since"
+                  type= "date"
+                  className="w-full px-3 py-2 text-base text-gray-700 
+                             bg-gray-100 border border-gray-200 rounded-full
+                             focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  value={since}
+                  onChange={(e) => setSince(e.target.value)}
+                  required
+                />
               </div>
 
               <div>
