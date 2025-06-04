@@ -27,10 +27,10 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
 
       <div className="mt-4">
         <p className="text-sm font-bold text-gray-800">Description:</p>
-        <p className="mt-1 text-gray-700 leading-relaxed">{description}</p>
+        <p className=" text-md mt-1 text-gray-700 leading-relaxed">{description}</p>
       </div>
 
-      <div className="flex justify-end space-x-2 mt-4">
+      <div className="flex justify-end space-x-2">
         <button
           title = "editGoal"
           onClick={() => {
@@ -68,7 +68,7 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
 
       {showConfirm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-md relative">
             <p className="text-gray-800 font-semibold mb-4"> Are you sure you want to mark this goal as completed?</p>
             <p className="text-gray-800 font-bold mb-6 text-center "> {title} </p>
             <div className="flex justify-center space-x-4">
@@ -92,7 +92,7 @@ export const GoalCard = ({ id,title, targetDate, description, onComplete, onUpda
 
       {showEditModal && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
               onClick={() => setShowEditModal(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"

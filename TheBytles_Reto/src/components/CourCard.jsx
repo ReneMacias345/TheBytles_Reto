@@ -11,7 +11,8 @@ export const CourCard = ({ title, description, date , finished}) => {
     <div className="bg-gray-100 p-6 rounded-3xl shadow-md flex flex-col justify-between">
       <div>
         <h3 className="text-lg font-bold text-gray-800 mb-2">{title}</h3>
-        <p className="text-sm text-gray-600 mb-4">{description}</p>
+        <div className="h-1 bg-[#A100FF] rounded"></div>
+        <p className="text-sm text-gray-600 mb-2 mt-2">{description}</p>
         
       </div>
       <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
@@ -46,7 +47,7 @@ export const CourCard = ({ title, description, date , finished}) => {
         
         {showEditModal && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
               onClick={() => setShowEditModal(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"

@@ -7,7 +7,7 @@ import supabase from '../config/supabaseClient';
 import { useEffect } from 'react';
 import { CertCard } from '../components/CertCard';
 import { CourCard } from '../components/CourCard';
-
+import { useLocation,useNavigate } from 'react-router-dom';
 
 
 
@@ -69,7 +69,6 @@ export const Perfil = () => {
     finished:"2025-12-12"
   }
 ]);
-
 
 
 useEffect(() => {
@@ -741,8 +740,20 @@ useEffect(() => {
     setCourseFinished('');
     setShowCourseForm(false);
   };
-  
+const location = useLocation();
 
+  useEffect(() => {
+    if (location.hash) {
+      const element = document.querySelector(location.hash);
+      if (element) {
+        // Delay para asegurar que el DOM esté completamente montado
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 835);
+      }
+    }
+  }, [location]);
+const navigate = useNavigate();
   
   return (
     <ScreenLayout>
@@ -804,7 +815,7 @@ useEffect(() => {
               {userData?.cv_url && (
                 <a
                   name = "viewCV"
-                  href={`${userData.cv_url}?t=${Date.now()}`} // 💡 evita caché
+                  href={`${userData.cv_url}?t=${Date.now()}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-2 inline-flex items-center text-sm text-[#A100FF] hover:underline"
@@ -861,13 +872,29 @@ useEffect(() => {
         </p>      
         <div className="mt-4">
           <button
-            name = "Bio"
+            name="Bio"
             onClick={handleOpenBioForm}
             className="border border-gray-300 px-4 py-2 rounded-full text-white bg-[#A100FF] hover:bg-[#A100FF] transition-colors"
           >
-            Bio
+            <div className="flex items-center gap-2">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5 mr-1"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.832 19.82a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125"
+                />
+              </svg>
+              About Me 
+            </div>
           </button>
-        </div>
+          </div>
         <input
           type="file"
           ref={profilePicInputRef}
@@ -971,8 +998,24 @@ useEffect(() => {
       </InfoCard>
 
       <InfoCard>
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+        <div id="certifications" className="flex justify-between items-center mb-4">
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+            <button
+              onClick={() => navigate('/growth')}
+              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-1.5 rounded-full hover:opacity-90 transition">
+              See recommendations
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
+          </div>
           <button
             onClick={() => {
               setCertName('');
@@ -1015,7 +1058,23 @@ useEffect(() => {
 
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-xl font-bold text-gray-800">Courses</h3>
+          <div className="flex items-center space-x-4">
+            <h3 className="text-xl font-bold text-gray-800">Courses</h3>
+            <button
+              onClick={() => navigate('/growth')}
+              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-1.5 rounded-full hover:opacity-90 transition">
+              See recommendations
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                fill="none"
+                viewBox="0 0 24 24"
+                strokeWidth="1.5"
+                stroke="currentColor"
+                className="w-5 h-5">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m12.75 15 3-3m0 0-3-3m3 3h-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
+          </div>
           <button
             onClick={() => {
               setCourseTitle('');
@@ -1056,7 +1115,7 @@ useEffect(() => {
 
       {showGoalForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
               onClick={handleCloseForm}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1115,7 +1174,7 @@ useEffect(() => {
       )}
      {showBioForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-5 rounded-xl shadow-md relative">
             <button
               onClick={() => setShowBioForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1124,11 +1183,11 @@ useEffect(() => {
             </button>
             <h2 className="text-xl font-bold text-center mb-4">Edit Bio</h2>
             <div className="space-y-4">
-              <label className="block mb-1 text-sm font-large text-gray-700">Tell us about your strength, experiences and skills :</label>
+              <label className="block mb-2 text-lg font-medium text-gray-700">Tell us about your strength, experiences and skills :</label>
               <textarea
                 name = "BioInput"
-                className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
-                rows="3"
+                className="w-full px-2 py-1 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
+                rows="8"
                 value={newBio}
                 onChange={(e) => setNewBio(e.target.value)}
               />
@@ -1189,7 +1248,7 @@ useEffect(() => {
       )}
       {showCertForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">
             <button
               onClick={() => setShowCertForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1277,7 +1336,7 @@ useEffect(() => {
 
       {showCourseForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">
             <button
               onClick={() => setShowCourseForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
