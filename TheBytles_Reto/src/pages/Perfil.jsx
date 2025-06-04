@@ -101,8 +101,8 @@ useEffect(() => {
       const sinceDate = new Date(user.Since);    // “YYYY-MM-DD” → Date
       const diffMs = today - sinceDate;
       const totaldays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      const year = Math.floor(totaldays / 365)
-      const newdays = totaldays - year * 365
+      const year = Math.floor(totaldays / 365) // calcular years
+      const newdays = totaldays - year * 365  // calcular days
       const seniorityDays = `${year > 0 
                 ? `${year} ${year === 1 ? "year" : "years"} ` 
                 : ""}${newdays} ${newdays === 1 ? "day" : "days"}`;
