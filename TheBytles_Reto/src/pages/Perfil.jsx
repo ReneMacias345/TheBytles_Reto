@@ -106,6 +106,8 @@ useEffect(() => {
       const seniorityDays = year > 0
           ? `${year} ${year === 1 ? "year" : "years"}`
           : `${newdays} ${newdays === 1 ? "day" : "days"}`;
+          // ? ${year} ${year === 1 ? "year" : "years"}  
+          // : ""}${newdays} ${newdays === 1 ? "day" : "days"};
       setSeniority(seniorityDays)
     } else {
       setSeniority(null);
