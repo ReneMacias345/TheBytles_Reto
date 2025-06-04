@@ -9,9 +9,10 @@ import { CertCard } from '../components/CertCard';
 import { CourCard } from '../components/CourCard';
 import { useLocation,useNavigate } from 'react-router-dom';
 
-
-
 export const Perfil = () => {
+  const [seniority, setSeniority] = useState(null);
+  const [assignP, setAssignP] = useState(null);
+  
   const [showGoalForm, setShowGoalForm] = useState(false);
   const [title, setTitle] = useState('');
   const [targetDate, setTargetDate] = useState('');
@@ -79,6 +80,51 @@ useEffect(() => {
     if (!userId) {
       console.error("User not logged in.");
       return;
+    }
+
+    const { data: user, error } = await supabase
+      .from("User")
+      .select("Since, Assign_P, StatusUpdateAt, Status, AccumulatedBenchDays")
+      .eq("userId", userId)
+      .single();
+    if (error) {
+      console.error("Error fetching userData:", error);
+      return;
+    }
+    setUserData(user);
+
+    const today = new Date();
+
+    // calcular antigüedad en dias y guardar
+    if (user.Since) {
+      const sinceDate = new Date(user.Since);    // “YYYY-MM-DD” → Date
+      const diffMs = today - sinceDate;
+      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      setSeniority(days);
+    } else {
+      setSeniority(null);
+    }
+
+    // Calcular porcentaje de asignación ajustado
+    const accumulatedBD = user.AccumulatedBenchDays
+
+    if (user.Assign_P !== null && user.Assign_P !== undefined) {
+      const assignDayP = user.Assign_P / 253; // 253 días hábiles
+      const assignAdjusted = 100 - accumulatedBD * assignDayP;
+      setAssignP(assignAdjusted);
+
+      const { error: updateAssignPError } = await supabase
+        .from("User")
+        .update({
+          Assign_P: assignAdjusted
+        })
+        .eq("userId", userId);
+
+      if (updateAssignPError) {
+        console.error("Error actualizando Assign_P:", updateAssignPError);
+      }
+    } else {
+      setAssignP(null);
     }
 
     const { data: goalsData, error: goalsError } = await supabase
@@ -810,7 +856,7 @@ const navigate = useNavigate();
                 {userData?.firstName} {userData?.lastName}
               </h2>
               <p className="text-sm text-gray-500">
-                {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel}
+                {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel} | Seniority: {seniority !== null ? `${seniority}` : "–"} | Assign Percentage: {assignP !== null ? `${assignP.toFixed(2)}%` : "–"}
               </p>
               {userData?.cv_url && (
                 <a
