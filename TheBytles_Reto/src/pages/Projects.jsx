@@ -207,10 +207,9 @@ export const Projects = () => {
 
       const { data: projectData, error: projectError } = await supabase
         .from("Project")
-        .select("Project_Name, description, StartDate, EndDate")
+        .select("Project_Name, description, StartDate, EndDate, Status")
         .eq("Project_ID", roleInfo.project_id)
         .single();
-
       if (projectError || !projectData) {
         console.error("Error fetching project for workingIn:", projectError);
         return;
@@ -223,6 +222,7 @@ export const Projects = () => {
         startDate: projectData.StartDate,
         endDate: projectData.EndDate,
       });
+      setStatus(projectData.Status || "ready");
 
       await fetchEmployeesAssociated(roleInfo.project_id);
     };
@@ -240,6 +240,46 @@ export const Projects = () => {
     setFeedbackInput('');
   };
 
+  const updateProjectStatus = async (newStatus) => {
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
+
+  if (!userId) {
+    console.error("User not logged in.");
+    return;
+  }
+
+  const { data: userRoles } = await supabase
+    .from("User_Rol")
+    .select("id_rol")
+    .eq("id_user", userId);
+
+  const roleIds = userRoles.map(r => r.id_rol);
+
+  const { data: roles } = await supabase
+    .from("Role")
+    .select("project_id")
+    .in("id_role", roleIds)
+    .maybeSingle();
+
+  if (!roles) return;
+
+  const projectId = roles.project_id;
+
+  const { error } = await supabase
+    .from("Project")
+    .update({ Status: newStatus })
+    .eq("Project_ID", projectId);
+
+  if (error) {
+    console.error("Error updating project status:", error);
+  } else {
+    console.log("Project status updated to:", newStatus);
+    setStatus(newStatus);
+  }
+};
+
+
   return (
     <ScreenLayout>
       <div className="mb-8">
@@ -256,13 +296,15 @@ export const Projects = () => {
               className="px-4 py-1 rounded-full border border-gray-300 bg-[#A100FF] text-white text-sm hover:bg-[#8800cc] transition"
               value={status}
               onChange={(e) => {
-                setPendingStatus(e.target.value);
-                setShowConfirmModal(true);
+                const newStatus = e.target.value;
+                setPendingStatus(newStatus);      
+                setShowConfirmModal(true);        
               }}
             >
-              <option value="Ready" className="text-black">Ready</option>
-              <option value="Ongoing" className="text-black">Ongoing</option>
-              <option value="Finished" className="text-black">Finished</option>
+              <option value="recruiting" className="text-black">Recruiting</option>
+              <option value="ready" className="text-black">Ready</option>
+              <option value="ongoing" className="text-black">Ongoing</option>
+              <option value="finished" className="text-black">Finished</option>
             </select>
           )}
         </div>
@@ -444,7 +486,7 @@ export const Projects = () => {
               <button
                 className="px-4 py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90"
                 onClick={() => {
-                  setStatus(pendingStatus);
+                  updateProjectStatus(pendingStatus);
                   setPendingStatus(null);
                   setShowConfirmModal(false);
                 }}
