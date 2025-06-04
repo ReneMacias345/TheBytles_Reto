@@ -24,6 +24,7 @@ export const Login = () => {
 
     if (!error) {
       alert("Logged in succesfully!");
+      sessionStorage.removeItem('certReminderDismissed');
       navigate("/perfil");
       return;
     } else if (error.message === "Email not confirmed") {

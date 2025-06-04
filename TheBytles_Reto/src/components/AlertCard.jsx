@@ -1,23 +1,56 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom'; 
+import supabase from '../config/supabaseClient';
 
 export const AlertCard = () => {
-  const [visible, setVisible] = useState(true);
-  const navigate = useNavigate(); 
+  const [visible, setVisible] = useState(false);
+  const [certifications, setCertifications] = useState([]);
+  const navigate = useNavigate();
 
-  const certifications = [
-    "AWS Cloud Practitioner",
-    "Scrum Master Certification",
-    "Google Data Analytics",
-    "Google Data Analytics",
-  ];
+  useEffect(() => {
+    const alreadyDismissed = sessionStorage.getItem('certReminderDismissed');
+    if (alreadyDismissed) return;
+
+    const fetchExpiringCerts = async () => {
+      const today = new Date();
+      const limitDate = new Date();
+      limitDate.setDate(today.getDate() + 30);
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+
+      if (!userId) return;
+
+      const { data, error } = await supabase
+        .from('Certificates')
+        .select('*')
+        .eq('userCertId', userId) 
+        .lte('Expiration_Date', limitDate.toISOString());
+
+      if (error) {
+        console.error('Error fetching certs', error);
+        return;
+      }
+
+      if (data && data.length > 0) {
+        setCertifications(data.map(cert => cert.Cert_Name || 'Unnamed Certification'));
+        setVisible(true);
+      }
+    };
+
+    fetchExpiringCerts();
+  }, []);
+
+  const handleDismiss = () => {
+    sessionStorage.setItem('certReminderDismissed', 'true');
+    setVisible(false);
+  };
 
   if (!visible) return null;
 
   return (
     <div className="bg-[#A100FF] text-white p-4 rounded-2xl shadow-lg w-[240px] relative mt-28 mx-auto">
       <button
-        onClick={() => setVisible(false)}
+        onClick={handleDismiss}
         className="absolute top-1 right-1 hover:text-gray-200 transition"
         aria-label="Close alert"
         style={{ background: 'transparent', right: '3px' }}
