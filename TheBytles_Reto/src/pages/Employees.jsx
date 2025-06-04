@@ -184,6 +184,14 @@ export const Employees = () => {
     fetchProjects();
   }, []);
 
+  const statusLabels = {
+    ready: 'Ready',
+    ongoing: 'Ongoing',
+    finished: 'Finished',
+    recruiting: 'Recruiting',
+    default: 'Unknown status'
+  };
+
   const handleRoleClick = (role) => {
     console.log(`Role clicked: ${role}`);
   };
@@ -503,7 +511,7 @@ export const Employees = () => {
                           : 'bg-red-100 text-red-700'
                       }`}
                     >
-                      {proj.Status}
+                      {statusLabels[proj.Status?.toLowerCase()] || statusLabels.default}
                     </span>
                   </td>
                 </tr>
