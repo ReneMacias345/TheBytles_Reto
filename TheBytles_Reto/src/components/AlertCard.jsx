@@ -9,6 +9,7 @@ export const AlertCard = () => {
     "AWS Cloud Practitioner",
     "Scrum Master Certification",
     "Google Data Analytics",
+    "Google Data Analytics",
   ];
 
   if (!visible) return null;
@@ -56,7 +57,7 @@ export const AlertCard = () => {
           onClick={() => navigate('/perfil#certifications')} 
           className="bg-white text-[#A100FF] text-sm font-semibold px-4 py-1 rounded-full hover:bg-gray-100 transition"
         >
-          See more
+          View
         </button>
       </div>
     </div>

@@ -265,7 +265,7 @@ export const Assignments = () => {
 
       {showProjectForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-5xl p-10 rounded-3xl shadow-md relative">
+          <div className="bg-white w-full max-w-4xl p-10 rounded-3xl shadow-md relative">
             <button
               onClick={handleCloseForm}
               className="absolute top-4 right-4 bg-gray-500 text-white rounded-full w-7 h-7 flex items-center justify-center"
@@ -330,7 +330,7 @@ export const Assignments = () => {
                   <div className="col-span-2">
                     <label className="text-sm font-medium text-gray-700">Project Description</label>
                     <textarea
-                      rows="3"
+                      rows="1"
                       minLength={"10"}
                       maxLength={"50"}
                       className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl"

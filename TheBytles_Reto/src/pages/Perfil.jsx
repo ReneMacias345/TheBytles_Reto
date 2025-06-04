@@ -1059,7 +1059,7 @@ const navigate = useNavigate();
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
-            <h3 className="text-xl font-bold text-gray-800">Certifications</h3>
+            <h3 className="text-xl font-bold text-gray-800">Courses</h3>
             <button
               onClick={() => navigate('/growth')}
               className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-1.5 rounded-full hover:opacity-90 transition">
@@ -1115,7 +1115,7 @@ const navigate = useNavigate();
 
       {showGoalForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-lg p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
               onClick={handleCloseForm}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1174,7 +1174,7 @@ const navigate = useNavigate();
       )}
      {showBioForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md relative">
+          <div className="bg-white w-full max-w-xl p-5 rounded-xl shadow-md relative">
             <button
               onClick={() => setShowBioForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1183,11 +1183,11 @@ const navigate = useNavigate();
             </button>
             <h2 className="text-xl font-bold text-center mb-4">Edit Bio</h2>
             <div className="space-y-4">
-              <label className="block mb-1 text-sm font-large text-gray-700">Tell us about your strength, experiences and skills :</label>
+              <label className="block mb-2 text-lg font-medium text-gray-700">Tell us about your strength, experiences and skills :</label>
               <textarea
                 name = "BioInput"
-                className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
-                rows="3"
+                className="w-full px-2 py-1 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-[#A100FF]"
+                rows="8"
                 value={newBio}
                 onChange={(e) => setNewBio(e.target.value)}
               />
@@ -1248,7 +1248,7 @@ const navigate = useNavigate();
       )}
       {showCertForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">
             <button
               onClick={() => setShowCertForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
@@ -1336,7 +1336,7 @@ const navigate = useNavigate();
 
       {showCourseForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
+          <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">
             <button
               onClick={() => setShowCourseForm(false)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
