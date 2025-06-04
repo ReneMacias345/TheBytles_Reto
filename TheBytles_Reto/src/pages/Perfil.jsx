@@ -100,8 +100,13 @@ useEffect(() => {
     if (user.Since) {
       const sinceDate = new Date(user.Since);    // “YYYY-MM-DD” → Date
       const diffMs = today - sinceDate;
-      const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-      setSeniority(days);
+      const totaldays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+      const year = Math.floor(totaldays / 365)
+      const newdays = totaldays - year * 365
+      const seniorityDays = `${year > 0 
+                ? `${year} ${year === 1 ? "year" : "years"} ` 
+                : ""}${newdays} ${newdays === 1 ? "day" : "days"}`;
+      setSeniority(seniorityDays)
     } else {
       setSeniority(null);
     }
@@ -845,7 +850,7 @@ useEffect(() => {
                 {userData?.firstName} {userData?.lastName}
               </h2>
               <p className="text-sm text-gray-500">
-                {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel} | Seniority: {seniority !== null ? `${seniority}` : "–"} | Assign Percentage: {assignP !== null ? `${assignP.toFixed(2)}%` : "–"}
+                {userData?.capability} | {userData?.atc} | Career Level: {userData?.careerLevel} | Seniority: {seniority} | Assign Percentage: {assignP !== null ? `${assignP.toFixed(2)}%` : "–"}
               </p>
               {userData?.cv_url && (
                 <a
