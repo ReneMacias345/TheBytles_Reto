@@ -546,8 +546,15 @@ export const Projects = () => {
       )}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
-          <div>
+          <div className="flex items-center space-x-4">
             <h3 className="font-semibold text-lg text-gray-800">My Project History</h3>
+            <button
+              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-0.5 rounded-full hover:opacity-90 transition">
+              Download
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+              </svg>
+            </button>
           </div>
 
           <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">

@@ -39,7 +39,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
   return (
     <div className="bg-gray-100 p-6 rounded-3xl shadow-md flex flex-col justify-between">
       <div>
-        <h3 className="text-lg font-bold text-gray-800 mb-2">{certName}</h3>
+        <h3 className="text-lg font-bold text-gray-800 mb-1">{certName}</h3>
         <div className="h-1 bg-[#A100FF] rounded"></div>
         <p className="text-sm text-gray-600 mb-4 mt-2">{description}</p>
       </div>
