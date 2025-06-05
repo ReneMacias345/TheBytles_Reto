@@ -1,16 +1,46 @@
 import { useState } from 'react';
+import supabase from '../config/supabaseClient'; // Asegúrate de que el path es correcto
 
-export const RecCert = ({ title, description, image, link ,capability}) => {
+export const RecCert = ({ title, description, image, link, capability, recId, recType }) => {
   const [showModal, setShowModal] = useState(false);
+  const [completed, setCompleted] = useState(false);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     setShowModal(false);
-    alert('You completed this recommendation');
+
+    try {
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+
+      if (sessionError || !userId) {
+        console.error("Error retrieving session:", sessionError);
+        alert("Error: User not authenticated.");
+        return;
+      }
+
+      const { error: insertError } = await supabase
+        .from("Course_Cert_Completed")
+        .insert({
+          user_cc_id: userId,
+          cert_course_id: recId,
+          type: recType
+        });
+
+      if (insertError) {
+        console.error("Error inserting completion:", insertError);
+        alert("Something went wrong saving your completion.");
+      } else {
+        setCompleted(true);
+        alert("🎉 Saved! You completed this recommendation.");
+      }
+    } catch (error) {
+      console.error("Unexpected error:", error);
+      alert("An unexpected error occurred.");
+    }
   };
 
   return (
     <div className="w-[300px] h-[350px] bg-white rounded-2xl shadow-lg transition-transform transform hover:-translate-y-2 hover:shadow-2xl flex flex-col flex-shrink-0">
-
       <img
         src={image}
         alt={title}
@@ -18,13 +48,10 @@ export const RecCert = ({ title, description, image, link ,capability}) => {
       />
 
       <div className="p-4 flex flex-col h-full">
-        <h3 className="text-md font-semibold text-[#A100FF] mb-2 break-words whitespace-normal leading-snug">
-          {title}</h3>
+        <h3 className="text-md font-semibold text-[#A100FF] mb-2 break-words whitespace-normal leading-snug">{title}</h3>
 
         <div className="flex-grow overflow-hidden">
-          <p className="text-xs text-black break-words whitespace-normal text-justify">
-            {description}
-          </p>
+          <p className="text-xs text-black break-words whitespace-normal text-justify">{description}</p>
         </div>
 
         <h4 className="text-xs font-semibold text-[#A100FF] break-words whitespace-normal leading-snug mb-2">
@@ -43,14 +70,15 @@ export const RecCert = ({ title, description, image, link ,capability}) => {
           <button
             onClick={() => setShowModal(true)}
             className="flex-1 text-center bg-[#A100FF] text-white text-xs px-2 py-2 rounded-full hover:opacity-90 transition"
+            disabled={completed}
           >
-            Completed
+            {completed ? "✔ Done" : "Completed"}
           </button>
         </div>
       </div>
 
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 rounded-2xl " >
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex justify-center items-center z-50 rounded-2xl">
           <div className="bg-white p-6 rounded-xl shadow-md w-72 text-center">
             <h2 className="text-md font-semibold mb-4 text-gray-800">Are you sure?</h2>
             <div className="flex justify-around">

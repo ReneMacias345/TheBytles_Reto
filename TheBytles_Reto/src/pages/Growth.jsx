@@ -91,7 +91,7 @@ export const Growth = () => {
         console.error("Error fetching user embedding:", embeddingError);
       } else {
         const { data: topCourses, error: topCoursesError } = await supabase
-          .rpc("get_top5_courses", {
+          .rpc("get_top_5_courses", {
             user_vec: userEmbeddingData.embedding
           });
 
@@ -103,7 +103,7 @@ export const Growth = () => {
         }
 
         const { data: topCerts, error: topCertsError } = await supabase
-          .rpc("get_top5_certificates", {
+          .rpc("get_top_5_certificates", {
             user_vec: userEmbeddingData.embedding
           });
 
@@ -159,6 +159,8 @@ export const Growth = () => {
                 image={rec.Cert_Image}
                 link={rec.Cert_Link}
                 capability={rec.Capability}
+                recId={rec.id_recomendation}  // Usa el ID real
+                recType="certification"
               />
             ))
           ) : (
@@ -179,6 +181,8 @@ export const Growth = () => {
                 image={rec.Course_Image}
                 link={rec.Course_Link}
                 capability={rec.Capability}
+                recId={rec.id_course_recomendation} 
+                recType="course"
               />
             ))
           ) : (
