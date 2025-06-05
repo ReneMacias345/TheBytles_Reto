@@ -82,7 +82,22 @@ export const Projects = () => {
       return;
     }
 
+    const { data: projectData, error: projectError } = await supabase
+      .from("Project")
+      .select("Status, Project_ID")
+      .eq("Project_ID", projectId)
+      .single();
+    if (projectError || !projectData) {
+      console.error("Error fetching project for workingIn:", projectError);
+      return;
+    }
+    
     // Paso 4: Combinar usuarios con sus roles
+    if (projectData.Status === "finished"){
+      setEmployeesAssociated([]);
+      return;
+    }
+
     const formatted = filteredUserRols.map(userRol => {
       const user = users.find(u => u.userId === userRol.id_user);
       const role = roles.find(r => r.id_role === userRol.id_rol);
@@ -122,6 +137,8 @@ export const Projects = () => {
 
       setUserData(userInfoData);
       setIsAdmin(userInfoData.clearanceLevel === 2);
+
+      console.log(">> userId usado para filtrar historial:", userId);
 
       const { data: historyData, error: historyError } = await supabase
         .from("User_History")
@@ -197,7 +214,7 @@ export const Projects = () => {
 
       const { data: roleInfo, error: roleError } = await supabase
         .from("Role")
-        .select("role_description, project_id")
+        .select("role_description, project_id, id_role")
         .eq("id_role", userRolData.id_rol)
         .maybeSingle();
 
@@ -208,7 +225,7 @@ export const Projects = () => {
 
       const { data: projectData, error: projectError } = await supabase
         .from("Project")
-        .select("Project_Name, description, StartDate, EndDate, Status")
+        .select("Project_Name, description, StartDate, EndDate, Status, Project_ID")
         .eq("Project_ID", roleInfo.project_id)
         .single();
       if (projectError || !projectData) {
@@ -216,13 +233,24 @@ export const Projects = () => {
         return;
       }
 
-      setWorkingIn({
-        projectName: projectData.Project_Name,
-        projectDescription: projectData.description,
-        role: extractHighlightedText2(roleInfo.role_description),
-        startDate: projectData.StartDate,
-        endDate: projectData.EndDate,
-      });
+      if (userRolData.id_rol === roleInfo.id_role && roleInfo.project_id === projectData.Project_ID && projectData.Status === "finished"){
+        setWorkingIn({
+          projectName: "N/A",
+          projectDescription: "N/A",
+          role: "N/A",
+          startDate: "N/A",
+          endDate: "N/A",
+        });
+      }else{
+        setWorkingIn({
+          projectName: projectData.Project_Name,
+          projectDescription: projectData.description,
+          role: extractHighlightedText2(roleInfo.role_description),
+          startDate: projectData.StartDate,
+          endDate: projectData.EndDate,
+        });
+      }
+
       setStatus(projectData.Status || "ready");
 
       await fetchEmployeesAssociated(roleInfo.project_id);
@@ -381,17 +409,6 @@ export const Projects = () => {
           }
 
           console.log("staffedRoleIds (debería tener 2):", staffedRoleIds);
-
-          // Eliminar de la tabla de User_Rol
-          const { error: urDeleteError } = await supabase
-            .from("User_Rol")
-            .delete()
-            .in("id_user", userIdsToBench)
-            .in("id_rol", staffedRoleIds);
-
-          if (urDeleteError) {
-            console.error("Error deleting from User_Rol:", urDeleteError);
-          }
 
           if (benchError) {
             console.error("Error benching users:", benchError);
