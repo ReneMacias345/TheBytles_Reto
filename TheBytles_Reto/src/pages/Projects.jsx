@@ -627,7 +627,7 @@ export const Projects = () => {
       
       {activeFeedbackTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-lg relative">
+          <div className="bg-white p-6 rounded-2xl max-w-lg w-full shadow-lg relative">
             <button
               onClick={() => setActiveFeedbackTarget(null)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:opacity-90"

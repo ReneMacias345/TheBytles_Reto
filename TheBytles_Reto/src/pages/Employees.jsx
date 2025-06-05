@@ -20,6 +20,7 @@ export const Employees = () => {
   const [filterLevel, setFilterLevel] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const navigate = useNavigate();
+   const [roleInfo, setRoleInfo] = useState(null);
 
   const extractHighlightedText = (text) => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
@@ -479,6 +480,7 @@ export const Employees = () => {
               <th>Start Date</th>
               <th>End Date</th>
               <th>Status</th>
+              <th>Role Info</th>
             </tr>
           </thead>
           <tbody className="text-gray-700 font-medium">
@@ -514,11 +516,32 @@ export const Employees = () => {
                       {statusLabels[proj.Status?.toLowerCase()] || statusLabels.default}
                     </span>
                   </td>
+                  <button
+                      className="px-4 py-0.5 bg-gray-100 text-sm mt-1.5 rounded-md text-[#A100FF] hover:shadow"
+                      onClick={() => setRoleInfo(proj.description)} // Cambiar lo de proj.description a lo que tienes de los roles por projecto
+                    >
+                      View
+                    </button>
                 </tr>
               ))}
           </tbody>
         </table>
       </InfoCard>
+
+      {roleInfo && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-2xl max-w-2xl w-full shadow-lg relative">
+            <button
+              onClick={() => setRoleInfo(null)}
+              className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:opacity-90"
+            >
+              &times;
+            </button>
+            <h2 className="text-lg font-bold mb-2 text-gray-800">Role Info</h2>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">{roleInfo}</p>
+          </div>
+        </div>
+      )}
     </ScreenLayout>
   );
 };
