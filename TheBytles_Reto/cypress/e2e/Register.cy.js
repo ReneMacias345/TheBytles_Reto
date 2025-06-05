@@ -52,6 +52,9 @@ describe('Register account', () => {
       .select('QRO', { force: true })
       .should('have.value', 'QRO');
 
+    cy.get('input[name="since"]')
+      .type('2022-06-08') 
+
     cy.get('input[name="password"]')
       .type('123456');
 
@@ -172,14 +175,32 @@ describe('Register account', () => {
           .to.equal('Please select an item in the list.');
       });
 
-    // Empty Password
+    // Empty Start Working In
     cy.get('select[name="atc"]')
       .select('QRO', { force: true })
       .should('have.value', 'QRO');
 
+    cy.get('input[name="since"]')
+      .clear()
+
+    cy.get('button[type="submit"]')
+      .contains(/Sign Up/i)
+      .click();
+
+    cy.get('input[name="since"]')
+      .then($input => {
+        expect($input[0].checkValidity()).to.be.false;
+        expect($input[0].validationMessage)
+          .to.equal('Please fill out this field.');
+        });
+    
+    // Empty Password
+    
+    cy.get('input[name="since"]')
+      .type('2022-06-08') 
+
     cy.get('input[name="password"]')
       .clear();
-
 
     cy.get('button[type="submit"]')
       .contains(/Sign Up/i)
@@ -213,28 +234,72 @@ describe('Register account', () => {
 
 
     // First name with num
+    cy.get('input[name="repeatpassword"]')
+      .clear()
+      .type('123456');
+
     cy.get('input[name="firstname"]')
       .clear()
-      .type('123456');
+      .type('123456')
+      .blur()
+      .then($input => {
+        const el = $input[0];
+        expect(el.checkValidity()).to.be.false;
+        expect(el.validationMessage).to.satisfy(msg =>
+          /Please match the requested format\./.test(msg) ||
+          /Please enter only letters/.test(msg)
+        );
+      });
 
-    cy.get('input[name="password"]')
-      .clear()
-      .type('123456');
-
-      cy.get('button[type="submit"]')
-      .contains(/Sign Up/i)
-      .click();
-
-      cy.get('input[name="firstName"]')
+      // First name with num y text
+      cy.get('input[name="firstname"]')
+        .clear()
+        .type('123456Aa')
+        .blur()
         .then($input => {
-        const el = $input[0]
-        expect(el.checkValidity()).to.be.false
-        expect(el.validationMessage)
-          .to.satisfy(msg => 
+          const el = $input[0];
+          expect(el.checkValidity()).to.be.false;
+          expect(el.validationMessage).to.satisfy(msg =>
             /Please match the requested format\./.test(msg) ||
             /Please enter only letters/.test(msg)
-          )
-      })
+          );
+        });
+
+      // Last name with num
+      cy.get('input[name="firstname"]')
+        .clear()
+        .type('Yu');
+
+      cy.get('input[name="lastname"]')
+        .clear()
+        .type('123456')
+        .blur()
+        .then($input => {
+          const el = $input[0];
+          expect(el.checkValidity()).to.be.false;
+          expect(el.validationMessage).to.satisfy(msg =>
+            /Please match the requested format\./.test(msg) ||
+            /Please enter only letters/.test(msg)
+          );
+        });
+
+        // Last name with num y text
+        cy.get('input[name="lastname"]')
+          .clear()
+          .type('123456Aa')
+          .blur()
+          .then($input => {
+            const el = $input[0];
+            expect(el.checkValidity()).to.be.false;
+            expect(el.validationMessage).to.satisfy(msg =>
+              /Please match the requested format\./.test(msg) ||
+              /Please enter only letters/.test(msg)
+            );
+          });
+
+        cy.get('input[name="lastname"]')
+          .clear()
+          .type('Lyn');
 
     });
 });
