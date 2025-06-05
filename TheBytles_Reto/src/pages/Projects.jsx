@@ -10,6 +10,7 @@ export const Projects = () => {
   const [historyProjects, setHistoryProjects] = useState([]);
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState('');
+  const [feedback, setFeedback] = useState([]);
   const [status, setStatus] = useState("Ready");
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -236,48 +237,175 @@ export const Projects = () => {
         emp.id === activeFeedbackTarget.id ? { ...emp, feedback: feedbackInput } : emp
       )
     );
+
+    setFeedback(prev => {
+      // Ya existe feedback para este id
+      const idx = prev.findIndex(f => f.id === activeFeedbackTarget.id);
+      if (idx !== -1) {
+        // Reemplaza el texto
+        const copy = [...prev];
+        copy[idx] = { id: activeFeedbackTarget.id, text: feedbackInput };
+        return copy;
+      }
+      // Si no existía, lo agrega
+      return [...prev, { id: activeFeedbackTarget.id, text: feedbackInput }];
+    });
+
     setActiveFeedbackTarget(null);
     setFeedbackInput('');
   };
 
   const updateProjectStatus = async (newStatus) => {
-  const { data: { session } } = await supabase.auth.getSession();
-  const userId = session?.user?.id;
+    const { data: { session } } = await supabase.auth.getSession();
+    const userId = session?.user?.id;
 
-  if (!userId) {
-    console.error("User not logged in.");
-    return;
-  }
+    if (!userId) {
+      console.error("User not logged in.");
+      return;
+    }
 
-  const { data: userRoles } = await supabase
-    .from("User_Rol")
-    .select("id_rol")
-    .eq("id_user", userId);
+    const { data: userRoles } = await supabase
+      .from("User_Rol")
+      .select("id_rol, id_user")
+      .eq("id_user", userId);
 
-  const roleIds = userRoles.map(r => r.id_rol);
+    if (!userRoles) {
+      console.error("El usuario no tiene rol asignado (userRolData.id_rol es undefined).");
+      return;
+    }
 
-  const { data: roles } = await supabase
-    .from("Role")
-    .select("project_id")
-    .in("id_role", roleIds)
-    .maybeSingle();
+    const roleIds = userRoles.map(r => r.id_rol);
 
-  if (!roles) return;
+    const { data: roles } = await supabase
+      .from("Role")
+      .select("id_role, project_id, status")
+      .in("id_role", roleIds);
 
-  const projectId = roles.project_id;
+    if (!roles || roles.length === 0) {
+      console.log("No hay roles que procesar.");
+      return;
+    }
 
-  const { error } = await supabase
-    .from("Project")
-    .update({ Status: newStatus })
-    .eq("Project_ID", projectId);
+    const { data: projectData, error: projectError } = await supabase
+      .from("Project")
+      .select("Project_Name, Project_ID")
+      .eq("Project_ID", roles[0].project_id)
+      .single();
+    if (projectError || !projectData) {
+      console.error("Error fetching project:", projectError);
+      return;
+    }
 
-  if (error) {
-    console.error("Error updating project status:", error);
-  } else {
-    console.log("Project status updated to:", newStatus);
-    setStatus(newStatus);
-  }
-};
+    const projectId = roles[0].project_id;
+
+    // Vuelve a seleccionar los roles de acuerdo al proyecto, para asegurar que obtiene todos los empleados asociados
+    const { data: projectRoles, error: projectRolesError } = await supabase
+       .from("Role")
+       .select("id_role, project_id, status")
+       .eq("project_id", projectId);
+    
+     if (projectRolesError) {
+       console.error("Error fetching all roles for this project:", projectRolesError);
+       return;
+     }
+    
+     // Filtrar solo roles con status = "filled" del mismo proyecto
+     const staffedRoles = projectRoles.filter(r => r.status === "filled");
+     console.log("staffedRoles (todos los roles 'filled' de este proyecto):", staffedRoles);
+
+    const { error } = await supabase
+      .from("Project")
+      .update({ Status: newStatus })
+      .eq("Project_ID", projectId);
+
+    if (error) {
+      console.error("Error updating project status:", error);
+    } else {
+      console.log("Project status updated to:", newStatus);
+      
+      // Si el estatus es finished
+      if (newStatus === "finished") {
+
+        // Si el proyecto tiene empleados asignados
+        if (staffedRoles.length > 0) {
+
+          const staffedRoleIds = staffedRoles.map(r => r.id_role);
+
+          const { data: allUserRols, error: allUserRolsError } = await supabase
+            .from("User_Rol")
+            .select("id_user, id_rol")
+            .in("id_rol", staffedRoleIds);
+
+          if (allUserRolsError) {
+            console.error("Error fetching User_Rol for all staffed roles:", allUserRolsError);
+            return;
+          }
+
+          // Obtiene todos los userId que necesita cambiar el estado a benched
+          const userIdsToBench = allUserRols.map(ur => ur.id_user);
+
+          const nowIso = new Date();
+
+          // Actualizar el estado de empleados
+          const { error: benchError } = await supabase
+            .from("User")
+            .update({ Status: "benched", StatusUpdateAt: nowIso })
+            .in("userId", userIdsToBench);
+
+          const newHistoryRows = userIdsToBench.map(userId => {
+            const emp = employeesAssociated.find(e => e.id === userId);
+            return {
+              user_element_id: userId,
+              project_element_id: projectId,
+              FeedBack: emp?.feedback || ""
+            };
+          });
+
+          // Agregar a historial de proyectos
+          const { error: historyError } = await supabase
+            .from("User_History")
+            .insert(newHistoryRows);
+
+          if (historyError) {
+            console.error("Error inserting User_History:", historyError);
+          } else {
+            console.log(`Se insertaron ${newHistoryRows.length} filas en User_History.`);
+
+            setEmployeesAssociated(prev =>
+              prev.map(emp =>
+                userIdsToBench.includes(emp.id)
+                  ? { ...emp, feedback: "" }
+                  : emp
+              )
+            );
+          }
+
+          console.log("staffedRoleIds (debería tener 2):", staffedRoleIds);
+
+          // Eliminar de la tabla de User_Rol
+          const { error: urDeleteError } = await supabase
+            .from("User_Rol")
+            .delete()
+            .in("id_user", userIdsToBench)
+            .in("id_rol", staffedRoleIds);
+
+          if (urDeleteError) {
+            console.error("Error deleting from User_Rol:", urDeleteError);
+          }
+
+          if (benchError) {
+            console.error("Error benching users:", benchError);
+          } else {
+            console.log(`Usuarios bencheados: [${userIdsToBench.join(", ")}]`);
+          }
+
+          window.location.reload();
+        }
+      }
+
+      setStatus(newStatus);
+    }
+  };
 
 
   return (
