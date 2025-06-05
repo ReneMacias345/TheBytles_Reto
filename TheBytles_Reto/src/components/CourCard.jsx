@@ -1,26 +1,40 @@
 import React, { useState } from 'react';
 
-export const CourCard = ({ title, description, date , finished}) => {
+export const CourCard = ({ title, description, date, finished, id_course, onEdit }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [editTitle, setEditTitle] = useState(title);
   const [editDate, setEditDate] = useState(date);
   const [editFinished, setEditFinished] = useState(finished);
-  const [editDescription, setEditDescription] = useState(description)
+  const [editDescription, setEditDescription] = useState(description);
+
+  const handleSave = () => {
+    if (!editTitle || !editDate || !editFinished || !editDescription) {
+      alert("All fields are required.");
+      return;
+    }
+
+    onEdit({
+      id: id_course,
+      certName: editTitle,
+      date: editDate,
+      expiration: editFinished,
+      description: editDescription
+    });
+
+    setShowEditModal(false);
+  };
 
   return (
     <div className="bg-gray-100 p-6 rounded-3xl shadow-md flex flex-col justify-between">
       <div>
         <h3 className="text-lg font-bold text-gray-800 mb-2">{title}</h3>
-        <div className="h-1 bg-[#A100FF] rounded"></div>
-        <p className="text-sm text-gray-600 mb-2 mt-2">{description}</p>
-        
+        <p className="text-sm text-gray-600 mb-4">{description}</p>
       </div>
       <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
         <div>
           <p><strong>Realized:</strong> {date}</p>
           <p><strong>Completed:</strong> {finished}</p>
         </div>
-        <div className="flex gap-2 items-center ml-12"></div>
         <button
           onClick={() => setShowEditModal(true)}
           className="flex items-center px-3 py-1 bg-gray-200 text-gray-800 rounded-full hover:opacity-90 transition"
@@ -43,9 +57,9 @@ export const CourCard = ({ title, description, date , finished}) => {
           </svg>
           Edit
         </button>
-        </div>
-        
-        {showEditModal && (
+      </div>
+
+      {showEditModal && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
@@ -94,7 +108,7 @@ export const CourCard = ({ title, description, date , finished}) => {
               </div>
               <button
                 type="button"
-                onClick={() => setShowEditModal(false)}
+                onClick={handleSave}
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
               >
                 Save
@@ -104,6 +118,5 @@ export const CourCard = ({ title, description, date , finished}) => {
         </div>
       )}
     </div>
-    
   );
 };
