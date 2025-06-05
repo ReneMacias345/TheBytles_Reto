@@ -182,6 +182,18 @@ export const Projects = () => {
         return;
       }
 
+      const projectId = rolesData[0].project_id;
+
+      const { data: projectData, error: projectError } = await supabase
+        .from("Project")
+        .select("Status, Project_ID")
+        .eq("Project_ID", projectId)
+        .single();
+      if (projectError || !projectData) {
+        console.error("Error fetching project for workingIn:", projectError);
+        return;
+      }
+
       const historyWithRoles = historyData.map((history) => {
         const matchingRole = rolesData.find(role =>
           role.project_id === history.project_element_id
@@ -189,10 +201,20 @@ export const Projects = () => {
         return {
           ...history,
           role_description: extractHighlightedText(matchingRole?.role_description),
+          role_id: matchingRole?.id_role,            
+          project_id: matchingRole?.project_id
         };
       });
 
-      setHistoryProjects(historyWithRoles);
+      const filteredHistory = historyWithRoles.filter(historyItem => {
+        const project = historyItem.project_id === projectData.Project_ID;
+        const rol = userRoles.some(ur => ur.id_rol === historyItem.role_id);
+        const proyectfinished = projectData.Status === "finished";
+
+        return project && rol && proyectfinished;
+      });
+
+      setHistoryProjects(filteredHistory);
 
       const { data: userRolData, error: userRolError } = await supabase
         .from("User_Rol")
@@ -223,13 +245,13 @@ export const Projects = () => {
         return;
       }
 
-      const { data: projectData, error: projectError } = await supabase
+      const { data: WorkingProjectData, error: WorkingprojectError } = await supabase
         .from("Project")
         .select("Project_Name, description, StartDate, EndDate, Status, Project_ID")
         .eq("Project_ID", roleInfo.project_id)
         .single();
-      if (projectError || !projectData) {
-        console.error("Error fetching project for workingIn:", projectError);
+      if (WorkingprojectError || !WorkingProjectData) {
+        console.error("Error fetching project for workingIn:", WorkingprojectError);
         return;
       }
 
@@ -243,11 +265,11 @@ export const Projects = () => {
         });
       }else{
         setWorkingIn({
-          projectName: projectData.Project_Name,
-          projectDescription: projectData.description,
+          projectName: WorkingProjectData.Project_Name,
+          projectDescription: WorkingProjectData.description,
           role: extractHighlightedText2(roleInfo.role_description),
-          startDate: projectData.StartDate,
-          endDate: projectData.EndDate,
+          startDate: WorkingProjectData.StartDate,
+          endDate: WorkingProjectData.EndDate,
         });
       }
 
