@@ -11,7 +11,6 @@ export const Projects = () => {
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState('');
   const [feedback, setFeedback] = useState([]);
-  const [EwithoutF, setEWithoutF] =useState(true)
   const [status, setStatus] = useState("Ready");
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -370,7 +369,6 @@ export const Projects = () => {
       const empleadosSinFeedback = employeesAssociated.filter(emp => !emp.feedback);
 
       if (empleadosSinFeedback.length > 0) {
-        setEWithoutF(false)
         window.alert(
           `Cannot update status to finished: there are ${empleadosSinFeedback.length} employee(s) without feedback.`
         );
@@ -378,10 +376,9 @@ export const Projects = () => {
         console.error(
           `Cannot upload status to finished: there are ${empleadosSinFeedback.length} empleoyee(s) without feedback.`
         );
+
         return;
       }else{
-
-        setEWithoutF(true);
 
         // Si el proyecto tiene empleados asignados
         if (staffedRoles.length > 0) {
