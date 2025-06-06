@@ -67,9 +67,13 @@ export const Projects = () => {
       return;
     }
 
-    // Excluir al usuario actual
-    const filteredUserRols = userRols.filter(ur => ur.id_user !== currentUserId);
-    const userIds = filteredUserRols.map(ur => ur.id_user);
+    {/*
+      // Excluir al usuario actual
+      const filteredUserRols = userRols.filter(ur => ur.id_user !== currentUserId);
+      const userIds = filteredUserRols.map(ur => ur.id_user);
+    */}
+
+    const userIds = userRols.map(ur => ur.id_user);
 
     // Paso 3: Obtener la información de los usuarios
     const { data: users, error: usersError } = await supabase
@@ -98,7 +102,7 @@ export const Projects = () => {
       return;
     }
 
-    const formatted = filteredUserRols.map(userRol => {
+    const formatted = userRols.map(userRol => {
       const user = users.find(u => u.userId === userRol.id_user);
       const role = roles.find(r => r.id_role === userRol.id_rol);
       return {
