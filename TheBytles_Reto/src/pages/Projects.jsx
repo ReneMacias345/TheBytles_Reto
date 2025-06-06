@@ -378,82 +378,69 @@ export const Projects = () => {
         );
 
         return;
-      }else{
+      }
 
-        // Si el proyecto tiene empleados asignados
-        if (staffedRoles.length > 0) {
+      // Si el proyecto tiene empleados asignados
+      if (staffedRoles.length > 0) {
 
-          const staffedRoleIds = staffedRoles.map(r => r.id_role);
+        const staffedRoleIds = staffedRoles.map(r => r.id_role);
 
-          const { data: allUserRols, error: allUserRolsError } = await supabase
-            .from("User_Rol")
-            .select("id_user, id_rol")
-            .in("id_rol", staffedRoleIds);
+        const { data: allUserRols, error: allUserRolsError } = await supabase
+          .from("User_Rol")
+          .select("id_user, id_rol")
+          .in("id_rol", staffedRoleIds);
 
-          if (allUserRolsError) {
-            console.error("Error fetching User_Rol for all staffed roles:", allUserRolsError);
-            return;
-          }
-
-          // Obtiene todos los userId que necesita cambiar el estado a benched
-          const userIdsToBench = allUserRols.map(ur => ur.id_user);
-
-          const nowIso = new Date();
-
-          // Actualizar el estado de empleados
-          const { error: benchError } = await supabase
-            .from("User")
-            .update({ Status: "benched", StatusUpdateAt: nowIso })
-            .in("userId", userIdsToBench);
-
-          const newHistoryRows = userIdsToBench.map(userId => {
-            const emp = employeesAssociated.find(e => e.id === userId);
-            return {
-              user_element_id: userId,
-              project_element_id: projectId,
-              FeedBack: emp?.feedback || ""
-            };
-          });
-
-          // Agregar a historial de proyectos
-          const { error: historyError } = await supabase
-            .from("User_History")
-            .insert(newHistoryRows);
-
-          if (historyError) {
-            console.error("Error inserting User_History:", historyError);
-          } else {
-            console.log(`Se insertaron ${newHistoryRows.length} filas en User_History.`);
-
-            setEmployeesAssociated(prev =>
-              prev.map(emp =>
-                userIdsToBench.includes(emp.id)
-                  ? { ...emp, feedback: "" }
-                  : emp
-              )
-            );
-          }
-
-          if (benchError) {
-            console.error("Error benching users:", benchError);
-          } else {
-            console.log(`Usuarios bencheados: [${userIdsToBench.join(", ")}]`);
-          }
-
-          window.location.reload();
+        if (allUserRolsError) {
+          console.error("Error fetching User_Rol for all staffed roles:", allUserRolsError);
+          return;
         }
-        const { error } = await supabase
-          .from("Project")
-          .update({ Status: newStatus })
-          .eq("Project_ID", projectId);
 
-        if (error) {
-          console.error("Error updating project status:", error);
+        // Obtiene todos los userId que necesita cambiar el estado a benched
+        const userIdsToBench = allUserRols.map(ur => ur.id_user);
+
+        const nowIso = new Date();
+
+        // Actualizar el estado de empleados
+        const { error: benchError } = await supabase
+          .from("User")
+          .update({ Status: "benched", StatusUpdateAt: nowIso })
+          .in("userId", userIdsToBench);
+
+        const newHistoryRows = userIdsToBench.map(userId => {
+          const emp = employeesAssociated.find(e => e.id === userId);
+          return {
+            user_element_id: userId,
+            project_element_id: projectId,
+            FeedBack: emp?.feedback || ""
+          };
+        });
+
+        // Agregar a historial de proyectos
+        const { error: historyError } = await supabase
+          .from("User_History")
+          .insert(newHistoryRows);
+
+        if (historyError) {
+          console.error("Error inserting User_History:", historyError);
         } else {
-          console.log("Project status updated to:", newStatus);
+          console.log(`Se insertaron ${newHistoryRows.length} filas en User_History.`);
 
-        setStatus(newStatus);
-        return; 
+          setEmployeesAssociated(prev =>
+            prev.map(emp =>
+              userIdsToBench.includes(emp.id)
+                ? { ...emp, feedback: "" }
+                : emp
+            )
+          );
+        }
+
+        if (benchError) {
+          console.error("Error benching users:", benchError);
+        } else {
+          console.log(`Usuarios bencheados: [${userIdsToBench.join(", ")}]`);
+        }
+
+        window.location.reload();
       }
     }
 
@@ -469,7 +456,6 @@ export const Projects = () => {
 
         setStatus(newStatus);
         return; 
-      }
     }
   };
 
