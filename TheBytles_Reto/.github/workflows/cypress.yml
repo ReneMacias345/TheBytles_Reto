@@ -24,7 +24,7 @@ jobs:
 
       - name: Instalar dependencias
         run: npm install --legacy-peer-deps
-        working-directory: TheBytles_Reto
+        working-directory: TheBytles_Reto/TheBytles_Reto
 
       - name: Ejecutar pruebas E2E con Cypress
         uses: cypress-io/github-action@v5
@@ -34,7 +34,7 @@ jobs:
           wait-on-timeout: 90
           browser: chrome
           config: video=false,screenshotOnRunFailure=false
-          working-directory: TheBytles_Reto
+          working-directory: TheBytles_Reto/TheBytles_Reto
 
       - name: Verificar conexión
         run: curl -I http://localhost:5173 || echo "No responde"
