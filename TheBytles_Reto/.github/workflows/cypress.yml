@@ -29,7 +29,10 @@ jobs:
         with:
           start: npm run dev
           wait-on: 'http://localhost:5173'
-          wait-on-timeout: 60
-          browser: chrome 
+          wait-on-timeout: 90
+          browser: chrome
           config: video=false,screenshotOnRunFailure=false
-          # (Opcional) Guarda los videos si algo falla 
+
+      - name: Verifica conexión al server
+        run: curl -I http://localhost:5173 || echo "Servidor no respondió"
+
