@@ -13,10 +13,6 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: TheBytles_Reto
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -26,11 +22,9 @@ jobs:
         with:
           node-version: 18
 
-      - name: Mostrar package.json
-        run: cat package.json
-
       - name: Instalar dependencias
         run: npm install --legacy-peer-deps
+        working-directory: TheBytles_Reto
 
       - name: Ejecutar pruebas E2E con Cypress
         uses: cypress-io/github-action@v5
@@ -42,5 +36,5 @@ jobs:
           config: video=false,screenshotOnRunFailure=false
           working-directory: TheBytles_Reto
 
-      - name: Verificar conexión al servidor
-        run: curl -I http://localhost:5173 || echo "Servidor no respondió"
+      - name: Verificar conexión
+        run: curl -I http://localhost:5173 || echo "No responde"
