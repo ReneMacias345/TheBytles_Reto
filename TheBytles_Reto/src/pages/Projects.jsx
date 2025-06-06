@@ -103,16 +103,34 @@ export const Projects = () => {
       return;
     }
 
-    const formatted = userRols.map(userRol => {
+    const { data: historyData, error: historyError } = await supabase
+      .from("User_History")
+      .select("user_element_id, FeedBack")
+      .eq("project_element_id", projectId);
+
+    if (historyError) {
+      console.error("Error fetching feedbacks from User_History:", historyError);
+      // Deja la lista vacía para evitar que se rompa la UI
+      setEmployeesAssociated([]);
+      return;
+    }
+
+    // Si hay un registro en User_History, usar ese texto
+      const formatted = userRols.map(userRol => {
       const user = users.find(u => u.userId === userRol.id_user);
       const role = roles.find(r => r.id_role === userRol.id_rol);
+
+      // Busca en historyData si existe un registro para este user_element_id
+      const match = historyData.find(h => h.user_element_id === userRol.id_user);
+      const savedFeedback = match ? match.FeedBack : "";
+
       return {
         id: userRol.id_user,
         firstName: user?.firstName || "N/A",
         lastName: user?.lastName || "N/A",
         email: user?.email || "N/A",
         role: extractHighlightedText(role?.role_description),
-        feedback: "",
+        feedback: savedFeedback,
       };
     });
 
@@ -425,6 +443,11 @@ export const Projects = () => {
        console.error("Error fetching all roles for this project:", projectRolesError);
        return;
      }
+
+     const { data: historyData } = await supabase
+      .from("User_History")
+      .select("user_element_id, FeedBack")
+      .eq("project_element_id", projectId);
     
      // Filtrar solo roles con status = "filled" del mismo proyecto
      const staffedRoles = projectRoles.filter(r => r.status === "filled");
@@ -433,7 +456,10 @@ export const Projects = () => {
     // Si el estatus es finished
     if (newStatus === "finished") {
 
-      const empleadosSinFeedback = employeesAssociated.filter(emp => !emp.feedback);
+      const usersWithFeedback = historyData.map(history => history.user_element_id);
+      const empleadosSinFeedback = employeesAssociated.filter(emp => 
+        !usersWithFeedback.includes(emp.id)
+      );
 
       if (empleadosSinFeedback.length > 0) {
         window.alert(
@@ -472,36 +498,6 @@ export const Projects = () => {
           .from("User")
           .update({ Status: "benched", StatusUpdateAt: nowIso })
           .in("userId", userIdsToBench);
-
-        {/*
-          const newHistoryRows = userIdsToBench.map(userId => {
-          const emp = employeesAssociated.find(e => e.id === userId);
-          return {
-            user_element_id: userId,
-            project_element_id: projectId,
-            FeedBack: emp?.feedback || ""
-          };
-        });
-
-        // Agregar a historial de proyectos
-        const { error: historyError } = await supabase
-          .from("User_History")
-          .insert(newHistoryRows);
-
-        if (historyError) {
-          console.error("Error inserting User_History:", historyError);
-        } else {
-          console.log(`Se insertaron ${newHistoryRows.length} filas en User_History.`);
-
-          setEmployeesAssociated(prev =>
-            prev.map(emp =>
-              userIdsToBench.includes(emp.id)
-                ? { ...emp, feedback: "" }
-                : emp
-            )
-          );
-        }
-        */}
 
         if (benchError) {
           console.error("Error benching users:", benchError);
