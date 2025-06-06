@@ -23,6 +23,7 @@ export const Projects = () => {
   });
   const [employeesAssociated, setEmployeesAssociated] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [currentUserId, setCurrentUserId] = useState(null);
 
   const extractHighlightedText = (text) => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
@@ -121,6 +122,8 @@ export const Projects = () => {
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      setCurrentUserId(session?.user?.id || null);
+      
       const userId = session?.user?.id;
 
       if (!userId) {
@@ -553,7 +556,12 @@ export const Projects = () => {
                 <td>
                   <button
                     onClick={() => setActiveFeedbackTarget(emp)}
-                    className="flex items-center px-3 py-1 bg-white text-sm text-[#A100FF] rounded hover:underline"
+                    disabled={emp.id === currentUserId}
+                    className={
+                      emp.id === currentUserId
+                        ? "flex items-center px-3 py-1 bg-white text-sm text-gray-500 rounded cursor-not-allowed"
+                        : "flex items-center px-3 py-1 bg-white text-sm text-[#A100FF] rounded hover:underline"
+                    }
                   >
                    <svg
                     xmlns="http://www.w3.org/2000/svg"
