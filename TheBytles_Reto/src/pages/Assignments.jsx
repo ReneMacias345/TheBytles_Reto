@@ -17,6 +17,7 @@ export const Assignments = () => {
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState('');
   const [rolesMap, setRolesMap] = useState({});
+  const [showProject, setShowProject] = useState({})
 
   const today = new Date().toISOString().split("T")[0];
 
@@ -244,9 +245,11 @@ export const Assignments = () => {
 
       {projects
         .filter(proj =>
-          proj.Project_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          proj.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          proj.Project_ID === highlightedProjectId // 👈 Asegura mostrar aunque no coincida con texto
+          proj.Status !== "finished" && (
+            proj.Project_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            proj.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            proj.Project_ID === highlightedProjectId // 👈 Asegura mostrar aunque no coincida con texto
+          )
         )
         .map((proj, idx) => (
           <ProjectCard
