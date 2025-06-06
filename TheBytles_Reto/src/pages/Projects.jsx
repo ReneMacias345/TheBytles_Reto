@@ -11,6 +11,7 @@ export const Projects = () => {
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState('');
   const [feedback, setFeedback] = useState([]);
+  const [EwithoutF, setEWithoutF] =useState(true)
   const [status, setStatus] = useState("Ready");
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -362,19 +363,25 @@ export const Projects = () => {
      // Filtrar solo roles con status = "filled" del mismo proyecto
      const staffedRoles = projectRoles.filter(r => r.status === "filled");
      console.log("staffedRoles (todos los roles 'filled' de este proyecto):", staffedRoles);
-
-    const { error } = await supabase
-      .from("Project")
-      .update({ Status: newStatus })
-      .eq("Project_ID", projectId);
-
-    if (error) {
-      console.error("Error updating project status:", error);
-    } else {
-      console.log("Project status updated to:", newStatus);
       
-      // Si el estatus es finished
-      if (newStatus === "finished") {
+    // Si el estatus es finished
+    if (newStatus === "finished") {
+
+      const empleadosSinFeedback = employeesAssociated.filter(emp => !emp.feedback);
+
+      if (empleadosSinFeedback.length > 0) {
+        setEWithoutF(false)
+        window.alert(
+          `Cannot update status to finished: there are ${empleadosSinFeedback.length} employee(s) without feedback.`
+        );
+
+        console.error(
+          `Cannot upload status to finished: there are ${empleadosSinFeedback.length} empleoyee(s) without feedback.`
+        );
+        return;
+      }else{
+
+        setEWithoutF(true);
 
         // Si el proyecto tiene empleados asignados
         if (staffedRoles.length > 0) {
@@ -430,8 +437,6 @@ export const Projects = () => {
             );
           }
 
-          console.log("staffedRoleIds (debería tener 2):", staffedRoleIds);
-
           if (benchError) {
             console.error("Error benching users:", benchError);
           } else {
@@ -440,9 +445,34 @@ export const Projects = () => {
 
           window.location.reload();
         }
-      }
+        const { error } = await supabase
+          .from("Project")
+          .update({ Status: newStatus })
+          .eq("Project_ID", projectId);
 
-      setStatus(newStatus);
+        if (error) {
+          console.error("Error updating project status:", error);
+        } else {
+          console.log("Project status updated to:", newStatus);
+
+        setStatus(newStatus);
+        return; 
+      }
+    }
+
+    const { error } = await supabase
+      .from("Project")
+      .update({ Status: newStatus })
+      .eq("Project_ID", projectId);
+
+    if (error) {
+      console.error("Error updating project status:", error);
+    } else {
+        console.log("Project status updated to:", newStatus);
+
+        setStatus(newStatus);
+        return; 
+      }
     }
   };
 
