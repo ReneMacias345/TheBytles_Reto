@@ -32,4 +32,5 @@ jobs:
           wait-on-timeout: 60
           browser: chrome 
           config: video=false,screenshotOnRunFailure=false
-          # (Opcional) Guarda los videos si algo falla
+          # (Opcional) Guarda los videos si algo falla 
+          # Test de activación de GitHub Actions
