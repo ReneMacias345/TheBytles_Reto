@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { DashboardCard } from '../components/DashboardCard';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import supabase from '../config/supabaseClient';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,16 +37,177 @@ export const Dashboard = () => {
   const [showExpandedCompletion, setShowExpandedCompletion] = useState(false);
   const [showExpandedRecommended, setShowExpandedRecommended] = useState(false);
 
-  const projectStatusData = {
-    labels: ['Recruiting', 'Ongoing', 'Ready', 'Finished'],
-    datasets: [
-      {
-        label: 'Projects',
-        data: [3, 6, 2, 5],
-        backgroundColor: ['#F59E0B', '#06B6D4', '#3B82F6', '#10B981'],
-      },
-    ],
-  };
+  const [projectStatusData, setProjectStatusData] = useState(null);
+  useEffect(() => {
+    const fetchProjectStatus = async () => {
+      const { data, error } = await supabase
+        .from('Project')
+        .select('Status');
+
+      if (error) {
+        console.error('Error fetching project statuses:', error);
+        return;
+      }
+
+      const statusCount = {
+        Recruiting: 0,
+        Ongoing: 0,
+        Ready: 0,
+        Finished: 0,
+      };
+
+      data.forEach(({ Status }) => {
+        const formattedStatus = Status.charAt(0).toUpperCase() + Status.slice(1).toLowerCase();
+        if (statusCount[formattedStatus] !== undefined) {
+          statusCount[formattedStatus] += 1;
+        }
+      });
+
+      setProjectStatusData({
+        labels: Object.keys(statusCount),
+        datasets: [
+          {
+            label: 'Projects',
+            data: Object.values(statusCount),
+            backgroundColor: ['#F59E0B', '#06B6D4', '#3B82F6', '#10B981'],
+          },
+        ],
+      });
+    };
+    fetchProjectStatus();
+  }, []);
+
+  const [totalGoalsData, setTotalGoalsData] = useState(null);
+  useEffect(() => {
+    const fetchTotalGoals = async () => {
+      const { count, error } = await supabase
+        .from('Goal')
+        .select('*', { count: 'exact', head: true })
+        .eq('Status', 'completed');
+
+      if (error) {
+        console.error('Error fetching total goal data:', error);
+        return;
+      }
+      setTotalGoalsData(count);
+    };
+    fetchTotalGoals();
+  }, []);
+
+  const [totalCoursesData, setTotalCoursesData] = useState(null);
+  useEffect(() => {
+    const fetchTotalCourses = async () => {
+      const { count, error } = await supabase
+        .from('Courses')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('Error fetching total course data:', error);
+        return;
+      }
+
+      setTotalCoursesData(count);
+    };
+    fetchTotalCourses();
+  }, []);
+
+  const [totalCertData, setTotalCertData] = useState(null);
+  useEffect(() => {
+    const fetchTotalCerts = async () => {
+      const { count, error } = await supabase
+        .from('Certificates')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('Error fetching total certificates data:', error);
+        return;
+      }
+
+      setTotalCertData(count);
+    };
+    fetchTotalCerts();
+  }, []);
+
+    const [totalRecCourseData, setTotalRecCourseData] = useState(null);
+  useEffect(() => {
+    const fetchTotallRecCourses = async () => {
+      const { count, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'course');
+
+      if (error) {
+        console.error('Error fetching total recommended certificates data:', error);
+        return;
+      }
+      setTotalRecCourseData(count);
+    };
+    fetchTotallRecCourses();
+  }, []);
+
+  const [totalRecCertData, setTotalRecCertData] = useState(null);
+  useEffect(() => {
+    const fetchTotalRecCerts = async () => {
+      const { count, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'certification');
+
+      if (error) {
+        console.error('Error fetching total recommended certificates data:', error);
+        return;
+      }
+      setTotalRecCertData(count);
+    };
+    fetchTotalRecCerts();
+  }, []);
+
+  const [certificationsChart, setCertificationsChart] = useState(null);
+  useEffect(() => {
+    const fetchCertificationsByMonth = async () => {
+      const { data, error } = await supabase
+        .from('Certificates')
+        .select('Date_of_realization');
+
+      if (error) {
+        console.error('Error fetching monthly certifications:', error);
+        return;
+      }
+
+      const monthly2024 = Array(12).fill(0);
+      const monthly2025 = Array(12).fill(0);
+
+      data.forEach(({ Date_of_realization }) => {
+        const date = new Date(Date_of_realization);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        if (year === 2024) monthly2024[month]++;
+        if (year === 2025) monthly2025[month]++;
+      });
+
+      setCertificationsChart({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: '2024',
+            data: monthly2024,
+            borderColor: '#F97316',
+            backgroundColor: '#FCD34D',
+            tension: 0.3,
+          },
+          {
+            label: '2025',
+            data: monthly2025,
+            borderColor: '#8B5CF6',
+            backgroundColor: '#DDD6FE',
+            tension: 0.3,
+          },
+        ]
+      });
+    };
+
+    fetchCertificationsByMonth();
+  }, []);
 
   const employeeStatusData = {
     labels: ['Assigned', 'Benched'],
@@ -192,25 +355,239 @@ export const Dashboard = () => {
       ]
     }
   };
- const goalData = {
-    labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-    datasets: [
+
+const [coursesChart, setCoursesChart] = useState(null);
+const [certsChart, setCertsChart] = useState(null);
+useEffect(() => {
+  const fetchMonthlyCounts = async () => {
+    const { data: courseData, error: courseError } = await supabase
+      .from('Courses')
+      .select('Started');
+
+    if (courseError) {
+      console.error('Error fetching courses:', courseError);
+      return;
+    }
+
+    const courseMonthly2024 = Array(12).fill(0);
+    const courseMonthly2025 = Array(12).fill(0);
+
+    courseData.forEach(({ Started }) => {
+      const date = new Date(Started);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      if (year === 2024) courseMonthly2024[month]++;
+      if (year === 2025) courseMonthly2025[month]++;
+    });
+
+    setCoursesChart({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
         {
           label: '2024',
-          data: [8, 12, 11, 10, 15, 22, 18, 16, 19, 10, 7, 5],
+          data: courseMonthly2024,
+          borderColor: '#3B82F6',
+          backgroundColor: '#DBEAFE',
+          tension: 0.3,
+        },
+        {
+          label: '2025',
+          data: courseMonthly2025,
+          borderColor: '#10B981',
+          backgroundColor: '#D1FAE5',
+          tension: 0.3,
+        },
+      ],
+    });
+
+    const { data: certData, error: certError } = await supabase
+      .from('Certificates')
+      .select('Date_of_realization');
+
+    if (certError) {
+      console.error('Error fetching certifications:', certError);
+      return;
+    }
+
+    const certMonthly2024 = Array(12).fill(0);
+    const certMonthly2025 = Array(12).fill(0);
+
+    certData.forEach(({ Date_of_realization }) => {
+      const date = new Date(Date_of_realization);
+      const year = date.getFullYear();
+      const month = date.getMonth();
+      if (year === 2024) certMonthly2024[month]++;
+      if (year === 2025) certMonthly2025[month]++;
+    });
+
+    setCertsChart({
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+      datasets: [
+        {
+          label: '2024',
+          data: certMonthly2024,
           borderColor: '#F97316',
           backgroundColor: '#FCD34D',
           tension: 0.3,
         },
         {
           label: '2025',
-          data: [4, 11, 18, 12, 20, 23, 22, 20, 20, 15, 12, 10],
+          data: certMonthly2025,
           borderColor: '#8B5CF6',
           backgroundColor: '#DDD6FE',
           tension: 0.3,
         },
-      ]
+      ],
+    });
   };
+
+  fetchMonthlyCounts();
+}, []);
+
+  const [recommendedCoursesChart, setRecommendedCoursesChart] = useState(null);
+  const [recommendedCertificationsChart, setRecommendedCertificationsChart] = useState(null);
+  useEffect(() => {
+    const fetchMonthlyCounts = async () => {
+      const { data, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('created_at')
+        .eq('type', 'course');
+
+      if (error) {
+        console.error('Error fetching recommended courses:', error);
+        return;
+      }
+
+      const monthly2024 = Array(12).fill(0);
+      const monthly2025 = Array(12).fill(0);
+
+      data.forEach(({ created_at }) => {
+        const date = new Date(created_at);
+        const year = date.getFullYear();
+        const month = date.getMonth(); 
+
+        if (year === 2024) monthly2024[month]++;
+        if (year === 2025) monthly2025[month]++;
+      });
+
+      setRecommendedCoursesChart({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: '2024',
+            data: monthly2024,
+            borderColor: '#3B82F6',
+            backgroundColor: '#DBEAFE',
+            tension: 0.3,
+          },
+          {
+            label: '2025',
+            data: monthly2025,
+            borderColor: '#10B981',
+            backgroundColor: '#D1FAE5',
+            tension: 0.3,
+          },
+        ]
+      });
+    };
+
+    fetchMonthlyCounts();
+  }, []);
+
+  useEffect(() => {
+    const fetchRecommendedCertifications = async () => {
+      const { data, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('created_at')
+        .eq('type', 'certification');
+
+      if (error) {
+        console.error('Error fetching recommended certifications:', error);
+        return;
+      }
+
+      const monthly2024 = Array(12).fill(0);
+      const monthly2025 = Array(12).fill(0);
+
+      data.forEach(({ created_at }) => {
+        const date = new Date(created_at);
+        const year = date.getFullYear();
+        const month = date.getMonth();
+        if (year === 2024) monthly2024[month]++;
+        if (year === 2025) monthly2025[month]++;
+      });
+
+      setRecommendedCertificationsChart({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: '2024',
+            data: monthly2024,
+            borderColor: '#F97316',
+            backgroundColor: '#FCD34D',
+            tension: 0.3,
+          },
+          {
+            label: '2025',
+            data: monthly2025,
+            borderColor: '#8B5CF6',
+            backgroundColor: '#DDD6FE',
+            tension: 0.3,
+          },
+        ]
+      });
+    };
+
+    fetchRecommendedCertifications();
+  }, []);
+
+  const [goalsChart, setGoalsChart] = useState(null);
+  useEffect(() => {
+    const fetchMonthlyCounts = async () => {
+      const { data, error } = await supabase
+        .from('Goal')
+        .select('Completed_Abandoned_At')
+        .eq('Status', 'completed');
+
+      if (error) {
+        console.error('Error fetching goals:', error);
+        return;
+      }
+
+      const monthly2024 = Array(12).fill(0);
+      const monthly2025 = Array(12).fill(0);
+
+      data.forEach(({Completed_Abandoned_At}) => {
+        const date = new Date(Completed_Abandoned_At);
+        const year = date.getFullYear();
+        const month = date.getMonth(); 
+
+        if (year === 2024) monthly2024[month]++;
+        if (year === 2025) monthly2025[month]++;
+      });
+
+      setGoalsChart({
+        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+        datasets: [
+          {
+            label: '2024',
+            data: monthly2024,
+            borderColor: '#F97316',
+            backgroundColor: '#FCD34D',
+            tension: 0.3,
+          },
+          {
+            label: '2025',
+            data: monthly2025,
+            borderColor: '#8B5CF6',
+            backgroundColor: '#DDD6FE',
+            tension: 0.3,
+          },
+        ]
+      });
+    };
+    fetchMonthlyCounts();
+  }, []);
 
   return (
     <ScreenLayout>
@@ -263,16 +640,20 @@ export const Dashboard = () => {
 
         <div className="bg-white rounded-2xl shadow p-6 mb-6 h-[500px]">
           <h2 className="text-md font-semibold text-gray-800 mb-3">Project Status Overview</h2>
-          <div className="h-[430px]">
-            <Bar
-              data={projectStatusData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-              }}
-            />
-          </div>
+            <div className="h-[430px]">
+              {projectStatusData ? (
+                <Bar
+                  data={projectStatusData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                  }}
+                />
+              ) : (
+                <p className="text-sm text-gray-500">Loading project status data...</p>
+              )}
+            </div>
         </div>
         </div>
 
@@ -280,11 +661,11 @@ export const Dashboard = () => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Learning Progress</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6">
-          <DashboardCard title="Total Goals Completed" value="46" color="text-purple-600" />
-          <DashboardCard title="Total Courses Completed" value="16" color="text-blue-500" /> 
-          <DashboardCard title="Total Certifications Completed" value="7" color="text-orange-500" /> 
-          <DashboardCard title="Courses Recommended Completed" value="11" color="text-cyan-600" /> 
-          <DashboardCard title="Certifications Recommended Completed" value="8" color="text-purple-700" /> 
+          <DashboardCard title="Total Completed Goals" value={totalGoalsData} color="text-purple-600" />
+          <DashboardCard title="Total Completed Courses" value={totalCoursesData} color="text-blue-500" /> 
+          <DashboardCard title="Total Completed Certifications" value={totalCertData} color="text-orange-500" /> 
+          <DashboardCard title="Recommended Courses Completed" value={totalRecCourseData} color="text-cyan-600" /> 
+          <DashboardCard title="Recommended Certifications Completed" value={totalRecCertData} color="text-purple-700" /> 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
@@ -327,51 +708,67 @@ export const Dashboard = () => {
             </div>
 
               <div className='mt-5'>
-                <Line data={lineChartData[completionType]} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+                {completionType === 'Certifications' && certsChart && (
+                  <Line data={certsChart} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+                )}
+                {completionType === 'Courses' && coursesChart && (
+                  <Line data={coursesChart} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
+                )}
               </div>
           </div>
 
-          <div className="bg-white rounded-2xl shadow p-6">
-            <div className="flex justify-between items-center mb-2">
-              <h2 className="text-md font-semibold text-gray-800">
-                Progress of *Recommended* Certifications & Courses
-              </h2>
-              <button
-                type="button"
-                onClick={() => setShowExpandedRecommended(true)}
-                className="p-2 rounded-full bg-white"
-                title="Expand to View More"
+        <div className="bg-white rounded-2xl shadow p-6">
+          <div className="flex justify-between items-center mb-2">
+            <h2 className="text-md font-semibold text-gray-800">
+              Progress of Recommended Certifications & Courses
+            </h2>
+            <button
+              type="button"
+              onClick={() => setShowExpandedRecommended(true)}
+              className="p-2 rounded-full bg-white"
+              title="Expand to View More"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                className="h-5 w-5 text-gray-600"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+                strokeWidth={1.5}
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  className="h-5 w-5 text-gray-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                  strokeWidth={1.5}
-                >
-                  <path
-                    strokeLinecap="square"
-                    strokeLinejoin="square"
-                    d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
-                  />
-                </svg>
-              </button>
-            </div>
-            <div className="flex justify-center mb-3">
-              <select
-                className="text-sm px-2 py-1 rounded-md border border-gray-300 text-[#A100FF] bg-white"
-                value={recommendType}
-                onChange={(e) => setRecommendType(e.target.value)}
-              >
-                <option value="RecommendedCertifications">By Certifications</option>
-                <option value="RecommendedCourses">By Courses</option>
-              </select>
-            </div>
-            <div className='mt-5'>
-              <Line data={lineChartData[recommendType]}options={{responsive: true,plugins: { legend: { position: 'bottom' } },}}/>
-            </div>
+                <path
+                  strokeLinecap="square"
+                  strokeLinejoin="square"
+                  d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15"
+                />
+              </svg>
+            </button>
           </div>
+          <div className="flex justify-center mb-3">
+            <select
+              className="text-sm px-2 py-1 rounded-md border border-gray-300 text-[#A100FF] bg-white"
+              value={recommendType}
+              onChange={(e) => setRecommendType(e.target.value)}
+            >
+              <option value="RecommendedCertifications">By Certifications</option>
+              <option value="RecommendedCourses">By Courses</option>
+            </select>
+          </div>
+          <div className='mt-5'>
+            {recommendType === 'RecommendedCourses' && recommendedCoursesChart && (
+              <Line
+                data={recommendedCoursesChart}
+                options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }}
+              />
+            )}
+            {recommendType === 'RecommendedCertifications' && recommendedCertificationsChart && (
+              <Line
+                data={recommendedCertificationsChart}
+                options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }}
+              />
+            )}
+          </div>
+        </div>
 
           <div className="bg-white rounded-2xl shadow p-6">
             <div className="flex justify-between items-center mb-8">
@@ -399,8 +796,9 @@ export const Dashboard = () => {
                 </button>
             </div>
             <div className='mt-5'>
-            <Line data={goalData} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
-            </div>
+            {goalsChart && (
+            <Line data={goalsChart} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />)
+            }</div>
           </div>
         </div>
       </div>
@@ -423,12 +821,11 @@ export const Dashboard = () => {
             </div>
 
             <div className="h-[500px]">
-              <Line
-                data={goalData}options={{responsive: true,maintainAspectRatio: false,plugins: { legend: { position: 'bottom' } },}}
-              />
+            {goalsChart && (
+            <Line data={goalsChart} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />)
+            }</div>
             </div>
           </div>
-        </div>
       )}
 
       {showExpandedRecommended && (
@@ -448,7 +845,18 @@ export const Dashboard = () => {
               </button>
             </div>
             <div className="h-[500px]">
-              <Line data={lineChartData[recommendType]} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+              {recommendType === 'RecommendedCourses' && recommendedCoursesChart && (
+                <Line
+                  data={recommendedCoursesChart}
+                  options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }}
+                />
+              )}
+              {recommendType === 'RecommendedCertifications' && recommendedCertificationsChart && (
+                <Line
+                  data={recommendedCertificationsChart}
+                  options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }}
+                />
+              )}
             </div>
           </div>
         </div>
@@ -471,7 +879,12 @@ export const Dashboard = () => {
               </button>
             </div>
             <div className="h-[500px]">
-              <Line data={lineChartData[completionType]} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+              {completionType === 'Certifications' && certsChart && (
+                <Line data={certsChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+              )}
+              {completionType === 'Courses' && coursesChart && (
+                <Line data={coursesChart} options={{ responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }} />
+              )}
             </div>
           </div>
         </div>
