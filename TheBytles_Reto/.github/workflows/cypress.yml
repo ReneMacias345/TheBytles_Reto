@@ -13,6 +13,10 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
 
+    defaults:
+      run:
+        working-directory: TheBytles_Reto
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -24,11 +28,9 @@ jobs:
 
       - name: Mostrar package.json
         run: cat package.json
-        working-directory: TheBytles_Reto
 
       - name: Instalar dependencias
         run: npm install --legacy-peer-deps
-        working-directory: TheBytles_Reto
 
       - name: Ejecutar pruebas E2E con Cypress
         uses: cypress-io/github-action@v5
