@@ -440,23 +440,37 @@ export const Projects = () => {
           console.log(`Usuarios bencheados: [${userIdsToBench.join(", ")}]`);
         }
 
+        const { error } = await supabase
+          .from("Project")
+          .update({ Status: newStatus })
+          .eq("Project_ID", projectId);
+
+        if (error) {
+          console.error("Error updating project status:", error);
+        } else {
+            console.log("Project status updated to:", newStatus);
+
+            setStatus(newStatus);
+            return; 
+          }
         window.location.reload();
+      }
+    }else{
+      const { error } = await supabase
+        .from("Project")
+        .update({ Status: newStatus })
+        .eq("Project_ID", projectId);
+
+      if (error) {
+        console.error("Error updating project status:", error);
+      } else {
+          console.log("Project status updated to:", newStatus);
+
+          setStatus(newStatus);
+          return; 
       }
     }
 
-    const { error } = await supabase
-      .from("Project")
-      .update({ Status: newStatus })
-      .eq("Project_ID", projectId);
-
-    if (error) {
-      console.error("Error updating project status:", error);
-    } else {
-        console.log("Project status updated to:", newStatus);
-
-        setStatus(newStatus);
-        return; 
-    }
   };
 
 
