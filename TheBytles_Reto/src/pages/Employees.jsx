@@ -19,6 +19,8 @@ export const Employees = () => {
   const [filterATC, setFilterATC] = useState('');
   const [filterLevel, setFilterLevel] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [allRoles, setAllRoles] = useState([]);
+
   const navigate = useNavigate();
    const [roleInfo, setRoleInfo] = useState(null);
 
@@ -26,6 +28,35 @@ export const Employees = () => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
     return match ? match[1].trim() : 'N/A';
   };
+
+  useEffect(() => {
+  const fetchUserData = async () => {
+    const {
+      data: { user },
+      error: sessionError
+    } = await supabase.auth.getUser();
+
+    if (sessionError || !user) {
+      console.error("Error getting authenticated user:", sessionError);
+      return;
+    }
+
+    const { data: userDetails, error: userError } = await supabase
+      .from("User")
+      .select("firstName, lastName")
+      .eq("userId", user.id)
+      .single();
+
+    if (userError) {
+      console.error("Error fetching user details:", userError);
+      return;
+    }
+
+    setUserData(userDetails);
+  };
+
+  fetchUserData();
+}, []);
 
   useEffect(() => {
     const fetchEnrichedEmployees = async () => {
@@ -136,54 +167,57 @@ export const Employees = () => {
   }, []);
 
 
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        const { data: projects, error: projectError } = await supabase
-          .from("Project")
-          .select("Project_ID, Project_Name, description, StartDate, EndDate,Status");
+useEffect(() => {
+  const fetchProjects = async () => {
+    try {
+      const { data: projectsData, error: projectError } = await supabase
+        .from("Project")
+        .select("Project_ID, Project_Name, description, StartDate, EndDate, Status");
 
-        if (projectError) throw projectError;
+      if (projectError) throw projectError;
 
-        const { data: roles, error: roleError } = await supabase
-          .from("Role")
-          .select("id_role, project_id");
+      const { data: rolesData, error: roleError } = await supabase
+        .from("Role")
+        .select("id_role, project_id, role_description");
 
-        if (roleError) throw roleError;
+      if (roleError) throw roleError;
 
-        const { data: userRoles, error: userRolError } = await supabase
-          .from("User_Rol")
-          .select("id_user_rol, id_rol");
+      const { data: userRoles, error: userRolError } = await supabase
+        .from("User_Rol")
+        .select("id_user_rol, id_rol");
 
-        if (userRolError) throw userRolError;
+      if (userRolError) throw userRolError;
 
-        const roleUserCountMap = {};
+      // Contar miembros por proyecto basado en los roles asignados
+      const roleUserCountMap = {};
 
-        userRoles.forEach(({ id_rol }) => {
-          const role = roles.find(r => r.id_role === id_rol);
-          if (role) {
-            const projectId = role.project_id;
-            if (!roleUserCountMap[projectId]) {
-              roleUserCountMap[projectId] = 1;
-            } else {
-              roleUserCountMap[projectId]++;
-            }
+      userRoles.forEach(({ id_rol }) => {
+        const role = rolesData.find(r => r.id_role === id_rol);
+        if (role) {
+          const projectId = role.project_id;
+          if (!roleUserCountMap[projectId]) {
+            roleUserCountMap[projectId] = 1;
+          } else {
+            roleUserCountMap[projectId]++;
           }
-        });
+        }
+      });
 
-        const enrichedProjects = projects.map(project => ({
-          ...project,
-          Members: roleUserCountMap[project.Project_ID] > 0 ? roleUserCountMap[project.Project_ID] : 'N/A',
-        }));
+      // Enriquecer proyectos con cantidad de miembros
+      const enrichedProjects = projectsData.map(project => ({
+        ...project,
+        Members: roleUserCountMap[project.Project_ID] > 0 ? roleUserCountMap[project.Project_ID] : 'N/A',
+      }));
 
-        setProjects(enrichedProjects);
-      } catch (error) {
-        console.error("Error enriching projects:", error);
-      }
-    };
+      setProjects(enrichedProjects);
+      setAllRoles(rolesData); // <— Se guarda todos los roles globalmente para el modal
+    } catch (error) {
+      console.error("Error enriching projects:", error);
+    }
+  };
 
-    fetchProjects();
-  }, []);
+  fetchProjects();
+}, []);
 
   const statusLabels = {
     ready: 'Ready',
@@ -516,9 +550,15 @@ export const Employees = () => {
                       {statusLabels[proj.Status?.toLowerCase()] || statusLabels.default}
                     </span>
                   </td>
-                  <button
+                    <button
                       className="px-4 py-0.5 bg-gray-100 text-sm mt-1.5 rounded-md text-[#A100FF] hover:shadow"
-                      onClick={() => setRoleInfo(proj.description)} // Cambiar lo de proj.description a lo que tienes de los roles por projecto
+                      onClick={() => {
+                        const rolesForProject = allRoles.filter(r => r.project_id === proj.Project_ID);
+                        const formattedRoles = rolesForProject.length
+                          ? rolesForProject.map((r, i) => `🔹 ${r.role_description}`).join('\n\n')
+                          : 'No roles assigned to this project.';
+                        setRoleInfo(formattedRoles);
+                      }}
                     >
                       View
                     </button>
@@ -530,7 +570,7 @@ export const Employees = () => {
 
       {roleInfo && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white p-6 rounded-2xl max-w-2xl w-full shadow-lg relative">
+          <div className="bg-white p-6 rounded-2xl max-w-7xl w-full shadow-lg relative">
             <button
               onClick={() => setRoleInfo(null)}
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:opacity-90"
