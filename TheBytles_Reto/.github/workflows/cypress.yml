@@ -7,7 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  workflow_dispatch:  # Permite correr manualmente el workflow desde GitHub
+  workflow_dispatch:
 
 jobs:
   e2e-tests:
@@ -22,11 +22,13 @@ jobs:
         with:
           node-version: 18
 
-      - name: Mostrar package.json (debug)
+      - name: Mostrar package.json
         run: cat package.json
+        working-directory: TheBytles_Reto
 
-      - name: Instalar dependencias con fallback
+      - name: Instalar dependencias
         run: npm install --legacy-peer-deps
+        working-directory: TheBytles_Reto
 
       - name: Ejecutar pruebas E2E con Cypress
         uses: cypress-io/github-action@v5
@@ -36,6 +38,7 @@ jobs:
           wait-on-timeout: 90
           browser: chrome
           config: video=false,screenshotOnRunFailure=false
+          working-directory: TheBytles_Reto
 
       - name: Verificar conexión al servidor
         run: curl -I http://localhost:5173 || echo "Servidor no respondió"
