@@ -123,7 +123,7 @@ export const Projects = () => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       setCurrentUserId(session?.user?.id || null);
-      
+
       const userId = session?.user?.id;
 
       if (!userId) {
@@ -288,7 +288,7 @@ export const Projects = () => {
     fetchData();
   }, []);
 
-  const handleSaveFeedback = () => {
+  const handleSaveFeedback = async () => {
     setEmployeesAssociated(prev =>
       prev.map(emp =>
         emp.id === activeFeedbackTarget.id ? { ...emp, feedback: feedbackInput } : emp
@@ -307,6 +307,66 @@ export const Projects = () => {
       // Si no existía, lo agrega
       return [...prev, { id: activeFeedbackTarget.id, text: feedbackInput }];
     });
+
+    const { data: userrolData } = await supabase
+      .from("User_Rol")
+      .select("id_user, id_rol")
+      .eq("id_user", activeFeedbackTarget.id)
+      .single();
+
+    const { data: rolData } = await supabase
+      .from("Role")
+      .select("project_id, id_role")
+      .eq("id_role", userrolData.id_rol)
+      .single();
+
+    // Agregar a historial de proyectos
+    const projectId = rolData.project_id
+
+    const { data: existing, error: selectError } = await supabase
+      .from("User_History")
+      .select("user_element_id")
+      .eq("user_element_id", activeFeedbackTarget.id)
+      .eq("project_element_id", projectId)
+      .single();
+
+    if (selectError && selectError.code !== "PGRST116") {
+      console.error("Error checking User_History:", selectError);
+      setActiveFeedbackTarget(null);
+      setFeedbackInput("");
+      return;
+    }
+
+    if (existing) {
+      // Si ya existe, hacer UPDATE
+      const { error: updateError } = await supabase
+        .from("User_History")
+        .update({ FeedBack: feedbackInput.trim() })
+        .eq("user_element_id", activeFeedbackTarget.id)
+        .eq("project_element_id", projectId);
+
+      if (updateError) {
+        console.error("Error updating existing User_History:", updateError);
+      } else {
+        console.log("Existing User_History updated successfully.");
+      }
+    } else {
+      // 3) Si no existe, hacer INSERT
+      const newRow = {
+        user_element_id: activeFeedbackTarget.id,
+        project_element_id: projectId,
+        FeedBack: feedbackInput.trim(),
+      };
+      const { error: insertError } = await supabase
+        .from("User_History")
+        .insert(newRow);
+
+      if (insertError) {
+        console.error("Error inserting new User_History:", insertError);
+      } else {
+        console.log("New User_History inserted successfully.");
+      }
+    }
 
     setActiveFeedbackTarget(null);
     setFeedbackInput('');
@@ -413,7 +473,8 @@ export const Projects = () => {
           .update({ Status: "benched", StatusUpdateAt: nowIso })
           .in("userId", userIdsToBench);
 
-        const newHistoryRows = userIdsToBench.map(userId => {
+        {/*
+          const newHistoryRows = userIdsToBench.map(userId => {
           const emp = employeesAssociated.find(e => e.id === userId);
           return {
             user_element_id: userId,
@@ -440,6 +501,7 @@ export const Projects = () => {
             )
           );
         }
+        */}
 
         if (benchError) {
           console.error("Error benching users:", benchError);
