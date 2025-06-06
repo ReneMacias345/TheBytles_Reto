@@ -32,6 +32,7 @@ export const RecCert = ({ title, description, image, link, capability, recId, re
       } else {
         setCompleted(true);
         alert("🎉 Saved! You completed this recommendation.");
+        window.location.reload();
       }
     } catch (error) {
       console.error("Unexpected error:", error);
