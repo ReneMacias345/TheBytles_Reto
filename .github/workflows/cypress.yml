@@ -1,0 +1,41 @@
+name: Cypress Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  e2e-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Instalar dependencias
+        run: npm install --legacy-peer-deps
+        working-directory: TheBytles_Reto
+
+      - name: Ejecutar pruebas E2E con Cypress
+        uses: cypress-io/github-action@v5
+        with:
+          start: npm run dev
+          wait-on: 'http://localhost:5173'
+          wait-on-timeout: 90
+          browser: chrome
+          config: video=false,screenshotOnRunFailure=false
+          working-directory: TheBytles_Reto
+
+      - name: Verificar conexión
+        run: curl -I http://localhost:5173 || echo "No responde"
+        working-directory: TheBytles_Reto
