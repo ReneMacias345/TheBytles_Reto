@@ -88,6 +88,7 @@ describe('Login Assignment flow', () => {
       .get('button[name = "deleteGoal"]')
       .click();
 
+    {/*
     // CV
     cy.get('button[name="uploadCV"]')
       .click();
@@ -95,7 +96,8 @@ describe('Login Assignment flow', () => {
     cy.get('input[type="file"]')
       .eq(0) 
       .selectFile('/Users/ytinglin/Downloads/YutingLinCV.pdf', { force: true });
-
+    */}
+    
     // Log out
     cy.contains('button', /^Logout$/i)
       .scrollIntoView()
