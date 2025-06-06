@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ScreenLayout } from '../layouts/ScreenLayout';
 import { DashboardCard } from '../components/DashboardCard';
 import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import supabase from '../config/supabaseClient';
+
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,16 +37,130 @@ export const Dashboard = () => {
   const [showExpandedCompletion, setShowExpandedCompletion] = useState(false);
   const [showExpandedRecommended, setShowExpandedRecommended] = useState(false);
 
-  const projectStatusData = {
-    labels: ['Recruiting', 'Ongoing', 'Ready', 'Finished'],
-    datasets: [
-      {
-        label: 'Projects',
-        data: [3, 6, 2, 5],
-        backgroundColor: ['#F59E0B', '#06B6D4', '#3B82F6', '#10B981'],
-      },
-    ],
-  };
+  const [projectStatusData, setProjectStatusData] = useState(null);
+  useEffect(() => {
+    const fetchProjectStatus = async () => {
+      const { data, error } = await supabase
+        .from('Project')
+        .select('Status');
+
+      if (error) {
+        console.error('Error fetching project statuses:', error);
+        return;
+      }
+
+      const statusCount = {
+        Recruiting: 0,
+        Ongoing: 0,
+        Ready: 0,
+        Finished: 0,
+      };
+
+      data.forEach(({ Status }) => {
+        const formattedStatus = Status.charAt(0).toUpperCase() + Status.slice(1).toLowerCase();
+        if (statusCount[formattedStatus] !== undefined) {
+          statusCount[formattedStatus] += 1;
+        }
+      });
+
+      setProjectStatusData({
+        labels: Object.keys(statusCount),
+        datasets: [
+          {
+            label: 'Projects',
+            data: Object.values(statusCount),
+            backgroundColor: ['#F59E0B', '#06B6D4', '#3B82F6', '#10B981'],
+          },
+        ],
+      });
+    };
+    fetchProjectStatus();
+  }, []);
+
+  const [totalGoalsData, setTotalGoalsData] = useState(null);
+  useEffect(() => {
+    const fetchTotalGoals = async () => {
+      const { count, error } = await supabase
+        .from('Goal')
+        .select('*', { count: 'exact', head: true })
+        .eq('Status', 'completed');
+
+      if (error) {
+        console.error('Error fetching total goal data:', error);
+        return;
+      }
+      setTotalGoalsData(count);
+    };
+    fetchTotalGoals();
+  }, []);
+
+  const [totalCoursesData, setTotalCoursesData] = useState(null);
+  useEffect(() => {
+    const fetchTotalCourses = async () => {
+      const { count, error } = await supabase
+        .from('Courses')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('Error fetching total course data:', error);
+        return;
+      }
+
+      setTotalCoursesData(count);
+    };
+    fetchTotalCourses();
+  }, []);
+
+  const [totalCertData, setTotalCertData] = useState(null);
+  useEffect(() => {
+    const fetchTotalCerts = async () => {
+      const { count, error } = await supabase
+        .from('Certificates')
+        .select('*', { count: 'exact', head: true });
+
+      if (error) {
+        console.error('Error fetching total certificates data:', error);
+        return;
+      }
+
+      setTotalCertData(count);
+    };
+    fetchTotalCerts();
+  }, []);
+
+    const [totalRecCourseData, setTotalRecCourseData] = useState(null);
+  useEffect(() => {
+    const fetchTotallRecCourses = async () => {
+      const { count, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'course');
+
+      if (error) {
+        console.error('Error fetching total recommended certificates data:', error);
+        return;
+      }
+      setTotalRecCourseData(count);
+    };
+    fetchTotallRecCourses();
+  }, []);
+
+  const [totalRecCertData, setTotalRecCertData] = useState(null);
+  useEffect(() => {
+    const fetchTotalRecCerts = async () => {
+      const { count, error } = await supabase
+        .from('Course_Cert_Completed')
+        .select('*', { count: 'exact', head: true })
+        .eq('type', 'certification');
+
+      if (error) {
+        console.error('Error fetching total recommended certificates data:', error);
+        return;
+      }
+      setTotalRecCertData(count);
+    };
+    fetchTotalRecCerts();
+  }, []);
 
   const employeeStatusData = {
     labels: ['Assigned', 'Benched'],
@@ -263,16 +379,20 @@ export const Dashboard = () => {
 
         <div className="bg-white rounded-2xl shadow p-6 mb-6 h-[500px]">
           <h2 className="text-md font-semibold text-gray-800 mb-3">Project Status Overview</h2>
-          <div className="h-[430px]">
-            <Bar
-              data={projectStatusData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false } },
-              }}
-            />
-          </div>
+            <div className="h-[430px]">
+              {projectStatusData ? (
+                <Bar
+                  data={projectStatusData}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                  }}
+                />
+              ) : (
+                <p className="text-sm text-gray-500">Loading project status data...</p>
+              )}
+            </div>
         </div>
         </div>
 
@@ -280,11 +400,11 @@ export const Dashboard = () => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Learning Progress</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6">
-          <DashboardCard title="Total Goals Completed" value="46" color="text-purple-600" />
-          <DashboardCard title="Total Courses Completed" value="16" color="text-blue-500" /> 
-          <DashboardCard title="Total Certifications Completed" value="7" color="text-orange-500" /> 
-          <DashboardCard title="Courses Recommended Completed" value="11" color="text-cyan-600" /> 
-          <DashboardCard title="Certifications Recommended Completed" value="8" color="text-purple-700" /> 
+          <DashboardCard title="Total Completed Goals" value={totalGoalsData} color="text-purple-600" />
+          <DashboardCard title="Total Completed Courses" value={totalCoursesData} color="text-blue-500" /> 
+          <DashboardCard title="Total Completed Certifications" value={totalCertData} color="text-orange-500" /> 
+          <DashboardCard title="Recommended Courses Completed" value={totalRecCourseData} color="text-cyan-600" /> 
+          <DashboardCard title="Recommended Certifications Completed" value={totalRecCertData} color="text-purple-700" /> 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
