@@ -84,12 +84,20 @@ describe('Login Assignment flow', () => {
     cy.get('div[name="ProfessionalGoals"]')
       .get('div[name="GoalsCards"]').contains(/Optimize Production-Ready ML Pipeline$/i)
       .get('button[title = "editGoal"][name = "Optimize Production-Ready ML Pipeline"]')
+
+      // Se comentariza para no saturar la Base de Datos con este goal
+      // Ya fue probado que funciona correctamente (local en cypress)
+
       /*
       .click()
       .get('button[name = "deleteGoal"]')
       .click();
       */
-    {/*
+
+    // Se comentariza esta seccion para que no haya problema en GitHubAction para buscar el archivo para subir
+    // Ya fue probado que funciona correctamente (local en cypress)
+    
+    /*
     // CV
     cy.get('button[name="uploadCV"]')
       .click();
@@ -97,7 +105,7 @@ describe('Login Assignment flow', () => {
     cy.get('input[type="file"]')
       .eq(0) 
       .selectFile('/Users/ytinglin/Downloads/YutingLinCV.pdf', { force: true });
-    */}
+    */
     
     // Log out
     cy.contains('button', /^Logout$/i)
