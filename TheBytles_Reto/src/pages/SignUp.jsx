@@ -325,7 +325,7 @@ export const SignUp = () => {
 
               {/* Botón de registro */}
               <Button name="signup" type="submit" className="w-full mt-3 py-2">
-                Sign Up
+                Sign up
               </Button>
 
               {/* Mensaje de error si existe */}

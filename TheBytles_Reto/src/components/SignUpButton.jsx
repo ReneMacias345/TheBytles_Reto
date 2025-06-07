@@ -18,7 +18,8 @@ export const SignUpButton = ({
         ${className}                
       `}
     >
-      {children} // Contenido dinámico dentro del botón
+      {/* Contenido dinámico dentro del botón */}
+      {children} 
     </button>
   );
 };

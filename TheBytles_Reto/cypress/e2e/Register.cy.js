@@ -21,10 +21,9 @@ describe('Register account', () => {
     // Register unsuccessfully
 
     // Empty all
-    cy.contains('button', /^Sign up$/i)
-      .scrollIntoView()
-      .should('be.visible')
-      .click()
+    cy.get('button[type="submit"]')
+      .contains(/Sign Up/i)
+      .click();
     
     cy.get('input[name="firstname"]')
       .then($input => {
