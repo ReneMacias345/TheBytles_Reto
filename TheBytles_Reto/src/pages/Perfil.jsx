@@ -868,6 +868,8 @@ useEffect(() => {
         finished: data.Completed
       }]);
     }
+
+    
   
     // Limpiar estado y cerrar modal
     setCourseTitle('');

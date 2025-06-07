@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export const CourCard = ({ title, description, date, finished, id_course, onEdit }) => {
   const [showEditModal, setShowEditModal] = useState(false);
@@ -6,6 +6,16 @@ export const CourCard = ({ title, description, date, finished, id_course, onEdit
   const [editDate, setEditDate] = useState(date);
   const [editFinished, setEditFinished] = useState(finished);
   const [editDescription, setEditDescription] = useState(description);
+
+  // 🔄 Sincroniza los valores cada vez que se abre el modal
+  useEffect(() => {
+    if (showEditModal) {
+      setEditTitle(title);
+      setEditDate(date);
+      setEditFinished(finished);
+      setEditDescription(description);
+    }
+  }, [showEditModal, title, date, finished, description]);
 
   const handleSave = () => {
     if (!editTitle || !editDate || !editFinished || !editDescription) {
