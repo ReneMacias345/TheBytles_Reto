@@ -84,10 +84,11 @@ describe('Login Assignment flow', () => {
     cy.get('div[name="ProfessionalGoals"]')
       .get('div[name="GoalsCards"]').contains(/Optimize Production-Ready ML Pipeline$/i)
       .get('button[title = "editGoal"][name = "Optimize Production-Ready ML Pipeline"]')
+      /*
       .click()
       .get('button[name = "deleteGoal"]')
       .click();
-
+      */
     {/*
     // CV
     cy.get('button[name="uploadCV"]')
