@@ -537,6 +537,33 @@ export const Projects = () => {
     }
 
   };
+  const handleDownloadCSV = () => {
+    const headers = ["Project Name", "Description", "Role", "Start Date", "End Date", "Feedback"];
+  
+    const rows = historyProjects.map(p => [
+      p.Project?.Project_Name || '',
+      p.Project?.description || '',
+      p.role_description || '',
+      p.Project?.StartDate || '',
+      p.Project?.EndDate || '',
+      p.FeedBack ? `"${p.FeedBack.replace(/"/g, '""')}"` : '' // Escapar comillas en feedback
+    ]);
+  
+    const csvContent = [headers, ...rows]
+      .map(row => row.join(','))
+      .join('\n');
+  
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+  
+    const link = document.createElement("a");
+    link.href = url;
+    link.setAttribute("download", "project_history.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+  
 
 
   return (
@@ -646,12 +673,15 @@ export const Projects = () => {
           <div className="flex items-center space-x-4">
             <h3 className="font-semibold text-lg text-gray-800">My Project History</h3>
             <button
-              className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-0.5 rounded-full hover:opacity-90 transition">
-              Download
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="size-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
-              </svg>
+                onClick={handleDownloadCSV} // ← conéctalo aquí
+                className="flex items-center gap-2 bg-[#A100FF] text-white text-sm font-semibold px-4 py-0.5 rounded-full hover:opacity-90 transition"
+              >
+                Download
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="size-5">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="m9 12.75 3 3m0 0 3-3m-3 3v-7.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" />
+                </svg>
             </button>
+
           </div>
 
           <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xs">
