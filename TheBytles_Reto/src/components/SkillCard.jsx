@@ -1,11 +1,17 @@
 import React from 'react';
 
+// Componente SkillCard que representa una habilidad individual (blanda o técnica)
 export const SkillCard = ({ name, type, onRemove }) => {
+  // Verifica si la habilidad es de tipo "soft"
   const isSoft = type === 'soft';
 
   return (
-    <div name = 'SkillCard' className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm group relative">
+    // Contenedor de la tarjeta de habilidad con estilo redondeado
+    <div name='SkillCard' className="flex items-center gap-2 px-4 py-1 bg-gray-100 text-sm text-gray-700 rounded-full shadow-sm group relative">
+
+      {/* Icono diferente según si es habilidad blanda o técnica */}
       {isSoft ? (
+        // Icono para habilidades blandas
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -21,6 +27,7 @@ export const SkillCard = ({ name, type, onRemove }) => {
           />
         </svg>
       ) : (
+        // Icono para habilidades técnicas
         <svg
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
@@ -37,12 +44,14 @@ export const SkillCard = ({ name, type, onRemove }) => {
         </svg>
       )}
 
+      {/* Nombre de la habilidad */}
       <span>{name}</span>
 
+      {/* Botón de eliminación si se proporciona la función onRemove */}
       {onRemove && (
         <button
-          onClick={() => onRemove(name, type)}
-          name = {name}
+          onClick={() => onRemove(name, type)} // Llama a la función para remover esta habilidad
+          name={name}
           className="absolute top-[-6px] right-[-6px] opacity-0 group-hover:opacity-100 transition-opacity bg-white text-red-500 rounded-full w-4 h-4 flex items-center justify-center text-xs border border-red-300 shadow hover:bg-red-500 hover:text-white"
           title="Remove skill"
         >

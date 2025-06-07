@@ -7,48 +7,59 @@ import { SignUpButton } from '../components/SignUpButton';
 import '../styles/custom.css';
 import supabase from '../config/supabaseClient';
 
+// Componente principal para la pantalla de inicio de sesión
 export const Login = () => {
+  // Estados para email y contraseña
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Hook para navegación entre rutas
   const navigate = useNavigate();
 
+  // Estado para manejar errores del formulario
   const [formError, setFormError] = useState(null);
 
+  // Función para iniciar sesión con Supabase
   const signInWithEmail = async (e) => {
-    e.preventDefault();
+    e.preventDefault(); // Evita recarga del formulario
 
+    // Autenticación con email y contraseña
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-    })
+    });
 
     if (!error) {
+      // Si no hay error: limpiar recordatorio, navegar al perfil
       alert("Logged in succesfully!");
       sessionStorage.removeItem('certReminderDismissed');
       navigate("/perfil");
       return;
     } else if (error.message === "Email not confirmed") {
+      // Si el correo no está confirmado
       console.error("Login error:", error.message);
       setFormError("Please check your inbox: You must authenticate before logging in.");
       return;
     } else if (error.message === "Invalid login credentials") {
+      // Si las credenciales son inválidas
       console.error("Login error:", error.message);
       setFormError("Invalid email or password.");
       return;
-    } 
+    }
 
-    //setFormError(null);
-    //alert("Logged in succesfully!");
-    //navigate("/perfil");
-  }
+    // Otros errores pueden ser manejados aquí si se requiere
+  };
 
+  // Navega a la pantalla de registro
   const onSignUp = () => {
     navigate('/signup');
   };
 
+  // Renderiza la interfaz de login
   return (
     <Layout>
       <AuthCard title="Log In to PathExplorer">
+        {/* Formulario de login */}
         <form className="space-y-5" onSubmit={signInWithEmail}>
           <div>
             <label className="block text-left mb-2 text-sm font-medium text-gray-700">
@@ -82,17 +93,22 @@ export const Login = () => {
             />
           </div>
 
+          {/* Botón de login */}
           <Button type="submit" className="w-full mt-4">
             Log In
           </Button>
-          {formError && (<p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>)}
+
+          {/* Mensaje de error si ocurre */}
+          {formError && (
+            <p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>
+          )}
         </form>
 
+        {/* Enlace para registrarse */}
         <p className="mt-5 text-sm text-center text-gray-600">
           Don&apos;t have an account?{' '}
           <SignUpButton onClick={onSignUp}>Sign up</SignUpButton>
         </p>
-
       </AuthCard>
     </Layout>
   );

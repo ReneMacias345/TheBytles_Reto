@@ -10,6 +10,7 @@ import { CourCard } from '../components/CourCard';
 import { useLocation,useNavigate } from 'react-router-dom';
 
 export const Perfil = () => {
+  // Estados para manejar datos del usuario, habilidades, certificaciones, cursos y metas
   const [seniority, setSeniority] = useState(null);
   const [assignP, setAssignP] = useState(null);
   
@@ -75,7 +76,7 @@ export const Perfil = () => {
 ]);
 
 
-
+// Carga inicial de todos los datos del usuario (metas, habilidades, certificaciones, cursos)
 useEffect(() => {
   const fetchData = async () => {
     const { data: { session } } = await supabase.auth.getSession();
@@ -263,18 +264,18 @@ useEffect(() => {
     );
     setGoals(updatedGoals);
   };
-
+  // Para Agregar una meta
   const handleAddGoal = () => {
     setShowGoalForm(true);
   };
-
+  // Para Cerrar el modal de nueva meta
   const handleCloseForm = () => {
     setShowGoalForm(false);
     setTitle('');
     setTargetDate('');
     setDescription('');
   };
-
+  // Para salvar la meta
   const handleSaveGoal = async (e) => {
     e.preventDefault();
   
@@ -306,12 +307,12 @@ useEffect(() => {
     setGoals([...goals, data[0]]);
     handleCloseForm(); 
   };
-
+  // Para abrir el Bio del empleado
   const handleOpenBioForm = () => {
     setNewBio(userData?.bio || "");
     setShowBioForm(true);
   };
-
+  //Para modificar la meta
   const handleUpdateGoal = async (updatedGoal) => {
     const { data, error } = await supabase
       .from("Goal")
@@ -351,7 +352,7 @@ useEffect(() => {
     );
     setGoals(updatedGoals);
   };
-
+  // Para salvar el Bio del empleado
   const handleSaveBio = async () => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
@@ -374,7 +375,7 @@ useEffect(() => {
     setUserData({ ...userData, bio: newBio });
     setShowBioForm(false);
   };
-
+  //Para cambiar la foto de perfil 
   const handleProfilePicChange = async (e) => {
     const file = e.target.files[0];
   
@@ -526,7 +527,7 @@ useEffect(() => {
       mode: "cors",
     });
   };
-  
+
   useEffect(() => {
     if (!newSkill) {
       setSkillSuggestions([]);
@@ -770,7 +771,7 @@ useEffect(() => {
         Completed: updatedCourse.expiration,
         Description: updatedCourse.description
       })
-      .eq("course_id", updatedCourse.id) // ✅ correcta
+      .eq("course_id", updatedCourse.id) // correcta
       .eq("created_by", userId)
       .select()
       .single();
@@ -916,7 +917,7 @@ useEffect(() => {
     setShowCourseForm(false);
   };
 const location = useLocation();
-
+  // Maneja scroll automático a secciones cuando hay hash en la URL
   useEffect(() => {
     if (location.hash) {
       const element = document.querySelector(location.hash);
@@ -932,6 +933,7 @@ const navigate = useNavigate();
   
   return (
     <ScreenLayout>
+      {/* Sección principal de información del usuario (foto, nombre, CV) */}
       <InfoCard>
         <div className="flex items-center justify-between">
           <div className="flex items-center">
@@ -1078,7 +1080,7 @@ const navigate = useNavigate();
           onChange={handleProfilePicChange}
         />
       </InfoCard>
-
+      {/* Sección de Metas Profesionales */}
       <InfoCard>
         <div name = "ProfessionalGoals" className="flex items-center justify-between">
           <h2 className="text-xl font-bold text-gray-800">Professional Goals</h2>
@@ -1117,7 +1119,7 @@ const navigate = useNavigate();
           ))}
         </div>
       </InfoCard>
-
+      {/* Sección de Habilidades (técnicas y blandas) */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">Skills</h3>
@@ -1171,7 +1173,7 @@ const navigate = useNavigate();
           </div>
         </div>
       </InfoCard>
-
+      {/* Sección de Certificaciones */}
       <InfoCard>
         <div id="certifications" className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
@@ -1230,7 +1232,7 @@ const navigate = useNavigate();
           ))}
         </div>
       </InfoCard>
-
+      {/* Sección de Cursos */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
@@ -1288,8 +1290,8 @@ const navigate = useNavigate();
           ))}
         </div>
       </InfoCard>
-
-
+      
+      {/* Modal para agregar/editar metas */}
       {showGoalForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
@@ -1349,6 +1351,7 @@ const navigate = useNavigate();
           </div>
         </div>
       )}
+    {/* Modal para editar biografía */}
      {showBioForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-xl p-5 rounded-xl shadow-md relative">
@@ -1379,7 +1382,7 @@ const navigate = useNavigate();
           </div>
         </div>
       )}
-
+      {/* Modal para agregar habilidades */}
       {showSkillForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-md shadow-md relative">
@@ -1423,6 +1426,7 @@ const navigate = useNavigate();
           </div>
         </div>
       )}
+      {/* Modal para agregar certificaciones */}
       {showCertForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">
@@ -1510,7 +1514,7 @@ const navigate = useNavigate();
           </div>
         </div>
       )}
-
+      {/* Modal para agregar cursos */}
       {showCourseForm && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-2xl w-full max-w-xl shadow-md relative">

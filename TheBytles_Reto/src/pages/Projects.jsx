@@ -3,17 +3,25 @@ import { ScreenLayout } from '../layouts/ScreenLayout';
 import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
 
+//Projects para gestionar proyectos actuales e históricos
 export const Projects = () => {
+  // Estados para búsqueda y feedback
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedFeedback, setSelectedFeedback] = useState(null);
   const [userData, setUserData] = useState(null);
+
+  // Estados para datos de proyectos
   const [historyProjects, setHistoryProjects] = useState([]);
   const [activeFeedbackTarget, setActiveFeedbackTarget] = useState(null);
   const [feedbackInput, setFeedbackInput] = useState('');
   const [feedback, setFeedback] = useState([]);
+
+  // Estados para gestión de proyectos
   const [status, setStatus] = useState("Ready");
   const [pendingStatus, setPendingStatus] = useState(null);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+   // Estados para proyecto actual
   const [workingIn, setWorkingIn] = useState({
     projectName: "N/A",
     projectDescription: "N/A",
@@ -21,10 +29,12 @@ export const Projects = () => {
     startDate: "N/A",
     endDate: "N/A",
   });
+  // Estados para empleados y permisos
   const [employeesAssociated, setEmployeesAssociated] = useState([]);
   const [isAdmin, setIsAdmin] = useState(false);
   const [currentUserId, setCurrentUserId] = useState(null);
 
+  // Función alternativa para extraer texto de descripción de rol
   const extractHighlightedText = (text) => {
     const match = text?.match(/Role:\s*(.*?)\s*·/);
     return match ? match[1].trim() : 'N/A';
@@ -34,6 +44,7 @@ export const Projects = () => {
     const match = text?.match(/Role:\s*(.*)/);
     return match ? match[1].trim() : 'N/A';
   };
+  // Función para obtener empleados asociados a un proyecto
   const fetchEmployeesAssociated = async (projectId) => {
     // Obtener el ID del usuario actual
     const { data: { session } } = await supabase.auth.getSession();
@@ -136,7 +147,7 @@ export const Projects = () => {
 
     setEmployeesAssociated(formatted);
   };
-
+  // Efecto principal para cargar datos al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -306,6 +317,7 @@ export const Projects = () => {
     fetchData();
   }, []);
 
+// Función para guardar feedback
   const handleSaveFeedback = async () => {
     setEmployeesAssociated(prev =>
       prev.map(emp =>
@@ -569,11 +581,13 @@ export const Projects = () => {
   return (
     <ScreenLayout>
       <div className="mb-8">
+        {/* Encabezado con saludo */}
         <h2 className="text-xl font-semibold text-gray-800">
           Hello {userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...'} 👋🏼
         </h2>
       </div>
 
+      {/* Tarjeta de proyecto actual */}
       <InfoCard>
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-semibold text-lg text-gray-800">Working In</h3>
@@ -617,6 +631,7 @@ export const Projects = () => {
         </table>
       </InfoCard>
 
+      {/* Tarjeta de empleados asociados (solo para admin) */}
       {isAdmin && (
         <InfoCard>
         <h3 className="font-semibold text-lg text-gray-800 mb-2">
@@ -668,6 +683,8 @@ export const Projects = () => {
         </table>
       </InfoCard>
       )}
+      
+      {/* Tarjeta de historial de proyectos */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center space-x-4">
@@ -736,7 +753,7 @@ export const Projects = () => {
           </tbody>
         </table>
       </InfoCard>
-
+      {/* Modal para ver feedback */}
       {selectedFeedback && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl max-w-md w-full shadow-lg relative">
@@ -751,7 +768,7 @@ export const Projects = () => {
           </div>
         </div>
       )}
-      
+      {/* Modal para agregar feedback */}
       {activeFeedbackTarget && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl max-w-lg w-full shadow-lg relative">
@@ -778,6 +795,7 @@ export const Projects = () => {
           </div>
         </div>
       )}
+      {/* Modal de confirmación para cambio de estado */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 z-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded-2xl w-full max-w-sm shadow-xl text-center">

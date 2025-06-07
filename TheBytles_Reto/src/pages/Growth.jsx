@@ -4,15 +4,21 @@ import { InfoCard } from '../layouts/InfoCard';
 import { RecCert } from '../components/RecCert';
 import supabase from '../config/supabaseClient';
 
+// Para mostrar recomendaciones de crecimiento profesional
 export const Growth = () => {
+  // Estado para almacenar los datos del usuario
   const [userData, setUserData] = useState(null);
+  // Estado para almacenar recomendaciones generales de crecimiento
   const [exampleGrowth, setGrowData] = useState({ recommendations: [] });
+  // Estado para almacenar recomendaciones de certificaciones
   const [certRecs, setCertRecs] = useState([]);
+  // Estado para almacenar recomendaciones de cursos
   const [courseRecs, setCourseRecs] = useState([]);
 
+  // Efecto para probar conexión con Supabase al montar el componente
   useEffect(() => {
     const testSupabaseConnection = async () => {
-    
+      // Prueba de conexión con tabla de certificaciones
       const { data: certTest, error: certError } = await supabase
         .from("Cert_Recomendation")
         .select("*")
@@ -24,7 +30,7 @@ export const Growth = () => {
         console.log("✅ Conexión exitosa. Cert_Recomendation:", certTest);
       }
 
-  
+      // Prueba de conexión con tabla de cursos
       const { data: courseTest, error: courseError } = await supabase
         .from("Course_Recomendation")
         .select("*")
@@ -40,8 +46,10 @@ export const Growth = () => {
     testSupabaseConnection();
   }, []);
 
+  // Efecto principal para cargar datos del usuario y recomendaciones
   useEffect(() => {
     const fetchData = async () => {
+      // Obtener sesión del usuario actual
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
@@ -50,7 +58,7 @@ export const Growth = () => {
         return;
       }
 
-      
+      // Obtener información básica del usuario (nombre y apellido)
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
         .select("firstName, lastName")
@@ -64,7 +72,7 @@ export const Growth = () => {
 
       setUserData(userInfoData);
 
-      // Fetch Recommendations from Grow Table
+      // Obtener recomendaciones generales de la tabla Grow
       const { data: growData, error: growError } = await supabase
         .from("Grow")
         .select("Recomendation")
@@ -80,7 +88,7 @@ export const Growth = () => {
         console.log("Recomendaciones desde Grow:", allRecommendations);
       }
 
-
+      // Obtener embedding del usuario para recomendaciones personalizadas
       const { data: userEmbeddingData, error: embeddingError } = await supabase
         .from("User")
         .select("embedding")
@@ -90,6 +98,7 @@ export const Growth = () => {
       if (embeddingError || !userEmbeddingData?.embedding) {
         console.error("Error fetching user embedding:", embeddingError);
       } else {
+        // Obtener cursos recomendados basados en el embedding del usuario
         const { data: topCourses, error: topCoursesError } = await supabase
           .rpc("get_top_5_courses", {
             user_vec: userEmbeddingData.embedding
@@ -102,6 +111,7 @@ export const Growth = () => {
           setCourseRecs(topCourses);
         }
 
+        // Obtener certificaciones recomendadas basadas en el embedding del usuario
         const { data: topCerts, error: topCertsError } = await supabase
           .rpc("get_top_5_certificates", {
             user_vec: userEmbeddingData.embedding
@@ -114,7 +124,6 @@ export const Growth = () => {
           console.log("Top 5 Cert Matches:", topCerts);
         }
       }
-
     };
 
     fetchData();
@@ -122,6 +131,7 @@ export const Growth = () => {
 
   return (
     <ScreenLayout>
+      {/* Tarjeta de recomendaciones generales */}
       <InfoCard>
         <div className="grid gap-8">
           <div>
@@ -147,6 +157,7 @@ export const Growth = () => {
         </div>
       </InfoCard>
 
+      {/* Tarjeta de certificaciones recomendadas */}
       <InfoCard>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Recommended Certifications</h2>
         <div className="overflow-x-auto whitespace-nowrap flex gap-6 pb-2 scrollbar-transparent">
@@ -169,6 +180,7 @@ export const Growth = () => {
         </div>
       </InfoCard>
 
+      {/* Tarjeta de cursos recomendados */}
       <InfoCard>
         <h2 className="text-xl font-semibold text-gray-800 mb-4">Recommended Courses</h2>
         <div className="overflow-x-auto whitespace-nowrap flex gap-6 pb-2 scrollbar-transparent">

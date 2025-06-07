@@ -1,23 +1,24 @@
 import React from 'react';
 
+// Componente reutilizable de botón estilizado para acciones como "Sign In" o similares
 export const SignUpButton = ({
-  children,
-  onClick,
-  type = 'button',
-  className = '',
+  children,       // Contenido del botón (texto o elementos)
+  onClick,        // Función que se ejecuta al hacer clic
+  type = 'button',// Tipo de botón (por defecto: 'button')
+  className = '', // Clases adicionales para personalización
 }) => {
   return (
     <button
-      type={type}
-      onClick={onClick}
+      type={type}          // Define el tipo de botón (submit, button, etc.)
+      onClick={onClick}    // Asocia la función a ejecutarse al hacer clic
       className={`
-        font-medium text-[#A100FF]
-        hover:underline
-        bg-transparent
-        ${className}
+        font-medium text-[#A100FF]  
+        hover:underline            
+        bg-transparent              
+        ${className}                
       `}
     >
-      {children}
+      {children} // Contenido dinámico dentro del botón
     </button>
   );
 };

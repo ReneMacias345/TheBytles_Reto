@@ -4,9 +4,13 @@ import { ProjectCard } from '../components/ProjectCard';
 import supabase from '../config/supabaseClient';
 import { useLocation } from 'react-router-dom';
 
+// Componente Assignments para gestionar proyectos y asignaciones
 export const Assignments = () => {
+  // Estados para búsqueda y formulario
   const [searchTerm, setSearchTerm] = useState('');
   const [showProjectForm, setShowProjectForm] = useState(false);
+  
+  // Estados para datos del formulario de proyecto
   const [projectName, setProjectName] = useState('');
   const [projectDescription, setProjectDescription] = useState('');
   const [staffingStage, setStaffingStage] = useState('');
@@ -14,24 +18,26 @@ export const Assignments = () => {
   const [endDate, setEndDate] = useState('');
   const [projectPic, setProjectPic] = useState(null);
   const [RFPFile, setRFPFile] = useState(null);
+  
+  // Estados para datos de proyectos y errores
   const [projects, setProjects] = useState([]);
   const [error, setError] = useState('');
   const [rolesMap, setRolesMap] = useState({});
-  const [showProject, setShowProject] = useState({})
-
+  const [showProject, setShowProject] = useState({});
+  
+  // Referencias y estado para UI
   const today = new Date().toISOString().split("T")[0];
-
   const projectPicRef = useRef(null);
   const RFPRef = useRef(null);
   const [showWait, setShowWait] = useState(false);
 
-
+  // Obtener parámetros de URL para resaltar proyectos/roles
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
   const highlightedProjectId = queryParams.get('project');
   const highlightedRoleId = queryParams.get('role');
 
-
+  // Efecto para cargar proyectos al montar el componente
   useEffect(() => {
     const fetchProjects = async () => {
       const { data, error } = await supabase.from("Project").select("*");
@@ -42,26 +48,30 @@ export const Assignments = () => {
       }
 
       setProjects(data);
+      
+      // Cargar roles y agruparlos por proyecto
       const { data: roleData, error: roleError } = await supabase.from("Role").select("*");
-    if (roleError) return;
+      if (roleError) return;
 
-    const grouped = {};
-    roleData.forEach(role => {
-      if (!grouped[role.project_id]) grouped[role.project_id] = [];
-      grouped[role.project_id].push(role);
-    });
+      const grouped = {};
+      roleData.forEach(role => {
+        if (!grouped[role.project_id]) grouped[role.project_id] = [];
+        grouped[role.project_id].push(role);
+      });
 
-    setRolesMap(grouped);
+      setRolesMap(grouped);
     };
 
     fetchProjects();
   }, []);
 
+  // Función para mostrar formulario de nuevo proyecto
   const handleAddNew = () => {
     setShowProjectForm(true);
     setError('');
   };
 
+  // Función para cerrar formulario y resetear campos
   const handleCloseForm = () => {
     setShowProjectForm(false);
     setProjectName('');
@@ -74,6 +84,7 @@ export const Assignments = () => {
     setError('');
   };
 
+  // Función para subir RFP a Supabase Storage
   const uploadRFPToSupabase = async (file) => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
@@ -84,11 +95,11 @@ export const Assignments = () => {
       return null;
     }
   
-    const fileName = `rfps/${userId}-${Date.now()}-rfp.pdf`; // carpeta correcta
+    const fileName = `rfps/${userId}-${Date.now()}-rfp.pdf`;
     const contentType = file.type || "application/pdf";
   
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("media") // bucket correcto
+      .from("media")
       .upload(fileName, file, {
         upsert: false,
         contentType,
@@ -108,6 +119,7 @@ export const Assignments = () => {
     return publicUrlData?.publicUrl || null;
   };
   
+  // Función para subir imagen de proyecto a Supabase Storage
   const uploadPictureToSupabase = async (file) => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
@@ -118,11 +130,11 @@ export const Assignments = () => {
       return null;
     }
   
-    const fileName = `projectpics/${userId}-${Date.now()}-.png`; // carpeta correcta
+    const fileName = `projectpics/${userId}-${Date.now()}-.png`;
     const contentType = file.type || "image/png";
   
     const { data: uploadData, error: uploadError } = await supabase.storage
-      .from("media") // bucket correcto
+      .from("media")
       .upload(fileName, file, {
         upsert: false,
         contentType,
@@ -142,6 +154,7 @@ export const Assignments = () => {
     return publicUrlData?.publicUrl || null;
   };
 
+  // Función para agregar nuevo proyecto
   const handleAddProject = async () => {
     setShowWait(true);
 
@@ -157,12 +170,14 @@ export const Assignments = () => {
     const { data: { session } } = await supabase.auth.getSession();
     const userId = session?.user?.id;
   
+    // Subir archivos y obtener URLs
     const rfpUrl = await uploadRFPToSupabase(RFPFile);
     if (!rfpUrl) return;
 
     const projectPicUrl = await uploadPictureToSupabase(projectPic);
     if (!projectPicUrl) return;
   
+    // Crear objeto de nuevo proyecto
     const newProject = {
       Project_Name: projectName,
       description: projectDescription,
@@ -174,6 +189,7 @@ export const Assignments = () => {
       projectPic: projectPicUrl,
     };
   
+    // Insertar proyecto en Supabase
     const { data, error } = await supabase
       .from("Project")
       .insert([newProject])
@@ -188,16 +204,18 @@ export const Assignments = () => {
     const Project_ID = data[0].Project_ID;
 
     try {
+      // Llamar a backend para generar roles automáticamente
       await fetch("https://thebytlesbackend-production.up.railway.app/generate-roles", {
-      //await fetch("https://accurate-motivation-production.up.railway.app/generate-roles", {
-      method: "POST",
-      body: JSON.stringify({ project_id: Project_ID }),
-      headers: { "Content-Type": "application/json" },
-    });
+        method: "POST",
+        body: JSON.stringify({ project_id: Project_ID }),
+        headers: { "Content-Type": "application/json" },
+      });
     } catch (e) {
       console.error("Error triggering role generation", e);
       alert("Project created but failed to trigger role generation.");
     }
+    
+    // Actualizar lista de proyectos y cerrar formulario
     setProjects([...projects, data[0]]);
 
     setTimeout(() => {
@@ -205,12 +223,12 @@ export const Assignments = () => {
       handleCloseForm();
       window.location.reload(); 
     }, 3000);
-
   };
   
 
   return (
     <ScreenLayout>
+      {/* Barra de búsqueda y botón para nuevo proyecto */}
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center bg-white rounded-full px-4 py-2 shadow-md w-full max-w-xl">
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-gray-400 mr-2" fill="white" viewBox="0 0 24 24" stroke="currentColor">
@@ -243,12 +261,13 @@ export const Assignments = () => {
         </button>
       </div>
 
+      {/* Lista de proyectos filtrados */}
       {projects
         .filter(proj =>
           proj.Status !== "finished" && (
             proj.Project_Name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             proj.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            proj.Project_ID === highlightedProjectId // 👈 Asegura mostrar aunque no coincida con texto
+            proj.Project_ID === highlightedProjectId
           )
         )
         .map((proj, idx) => (
@@ -266,6 +285,7 @@ export const Assignments = () => {
           />
       ))}
 
+      {/* Formulario para nuevo proyecto */}
       {showProjectForm && (
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white w-full max-w-4xl p-10 rounded-3xl shadow-md relative">
@@ -277,6 +297,7 @@ export const Assignments = () => {
             </button>
             <form onSubmit={(e) => { e.preventDefault(); handleAddProject(); }}>
               <div className="grid grid-cols-12 gap-6">
+                {/* Sección de imagen del proyecto */}
                 <div className="col-span-3 flex flex-col items-center">
                   <div className="w-28 h-28 bg-gray-200 rounded-full overflow-hidden flex items-center justify-center mt-32">
                     {projectPic ? (
@@ -317,6 +338,8 @@ export const Assignments = () => {
                     onChange={(e) => setProjectPic(e.target.files[0])}
                   />
                 </div>
+                
+                {/* Campos del formulario */}
                 <div className="col-span-9 grid grid-cols-2 gap-4">
                   <div className="col-span-2">
                     <label className="text-sm font-medium text-gray-700">Project Name</label>
@@ -410,6 +433,7 @@ export const Assignments = () => {
           </div>
         </div>
       )}
+      {/* Modal de espera durante creación de proyecto */}
       {showWait && (
           <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-95 z-50 flex items-center justify-center">
             <div className="bg-white w-full max-w-md p-6 rounded-xl shadow-md text-center">

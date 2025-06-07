@@ -4,16 +4,22 @@ import { InfoCard } from '../layouts/InfoCard';
 import supabase from '../config/supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
+// Employees para gestionar y visualizar empleados y proyecto
 export const Employees = () => {
+  // Estados para búsqueda y filtros
   const [searchTermStaffed, setSearchTermStaffed] = useState('');
   const [searchTermBenched, setSearchTermBenched] = useState('');
   const [searchProjectTerm, setSearchProjectTerm] = useState('');
+
+  // Estados para datos de empleados y proyectos
   const [assignedEmpTotal, setAssignedEmpTotal] = useState(0);
   const [staffedTotal, setStaffedTotal] = useState(0);
   const [projects, setProjects] = useState([]);
   const [employees, setEmployees] = useState([]);
   const [userData, setUserData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Estados para filtros
   const staffedEmployees = employees.filter(e => e.Status?.toLowerCase() === "staffed");
   const benchedEmployees = employees.filter(e => e.Status?.toLowerCase() === "benched");
   const [filterATC, setFilterATC] = useState('');
@@ -21,6 +27,7 @@ export const Employees = () => {
   const [filterStatus, setFilterStatus] = useState('');
   const [allRoles, setAllRoles] = useState([]);
 
+ // Estados para navegación y UI
   const navigate = useNavigate();
    const [roleInfo, setRoleInfo] = useState(null);
 
@@ -29,6 +36,7 @@ export const Employees = () => {
     return match ? match[1].trim() : 'N/A';
   };
 
+  // Efecto para cargar datos del usuario autenticado
   useEffect(() => {
   const fetchUserData = async () => {
     const {
@@ -58,6 +66,7 @@ export const Employees = () => {
   fetchUserData();
 }, []);
 
+// Efecto principal para cargar y enriquecer datos de empleados
   useEffect(() => {
     const fetchEnrichedEmployees = async () => {
       setIsLoading(true);
@@ -166,7 +175,7 @@ export const Employees = () => {
     fetchEnrichedEmployees();
   }, []);
 
-
+// Efecto para cargar proyectos y roles
 useEffect(() => {
   const fetchProjects = async () => {
     try {
@@ -219,6 +228,7 @@ useEffect(() => {
   fetchProjects();
 }, []);
 
+// Mapeo de estados de proyecto a etiquetas legibles
   const statusLabels = {
     ready: 'Ready',
     ongoing: 'Ongoing',
@@ -230,7 +240,7 @@ useEffect(() => {
   const handleRoleClick = (role) => {
     console.log(`Role clicked: ${role}`);
   };
-
+  // Función para determinar clase de color según tiempo en banco
   const getTimeBenchedColorClass = (timeBenched) => {
     if (!timeBenched || timeBenched === "-") return 'bg-gray-100 text-gray-500';
 
@@ -247,11 +257,14 @@ useEffect(() => {
 
   return (
     <ScreenLayout>
+      {/* Encabezado con saludo */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold text-gray-800">
           Hello {userData ? `${userData.firstName} ${userData.lastName}` : 'Loading...'} 👋🏼
         </h2>
       </div>
+
+      {/* Tarjeta de resumen de empleados */}
       <InfoCard>
         <div className="grid grid-cols-2 gap-6 text-center">
           <div className="flex items-center justify-center space-x-3">
@@ -279,7 +292,8 @@ useEffect(() => {
           </div>
         </div>
       </InfoCard>
-
+      
+      {/* Tabla de empleados asignados */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-lg text-gray-800">All Employees - Assigned</h3>
@@ -360,7 +374,7 @@ useEffect(() => {
         </table>
       </InfoCard>
 
-
+      {/* Tabla de empleados en banco */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold text-lg text-gray-800">All Employees - Benched</h3>
@@ -469,7 +483,7 @@ useEffect(() => {
         </table>
       </InfoCard>
 
-
+      {/* Tabla de proyectos */}
       <InfoCard>
         <div className="flex justify-between items-center mb-4">
           <div>
@@ -567,7 +581,8 @@ useEffect(() => {
           </tbody>
         </table>
       </InfoCard>
-
+      
+      {/* Modal de información de roles */}
       {roleInfo && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white p-6 rounded-2xl max-w-7xl w-full shadow-lg relative">

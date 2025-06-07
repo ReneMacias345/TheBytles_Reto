@@ -2,14 +2,15 @@ import React, { useState, useRef } from 'react';
 import supabase from '../config/supabaseClient';
 
 export const CertCard = ({ id, certName, description, date, expiration, onEdit, cert_url }) => {
-  const [showEditModal, setShowEditModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false); // Controla si el modal de edición se muestra
   const [editName, setEditName] = useState(certName);
   const [editDate, setEditDate] = useState(date);
   const [editExpiration, setEditExpiration] = useState(expiration);
   const [editDescription, setEditDescription] = useState(description);
   const [editFile, setEditFile] = useState(null);
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef(null); // Referencia para abrir el selector de archivos programáticamente
 
+  // Función para subir el PDF al bucket de Supabase y retornar su URL pública
   const uploadCertPDF = async (file, userId) => {
     const fileExt = file.name.split('.').pop();
     const fileName = `cert/${userId}-${id}.${fileExt}`;
@@ -52,7 +53,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
 
         <div className="flex gap-2 items-center ml-12"></div>
         <button
-          onClick={() => setShowEditModal(true)}
+          onClick={() => setShowEditModal(true)} // Abre el modal de edición
           className="flex items-center px-3 py-1 bg-gray-200 text-gray-800 rounded-full hover:opacity-90 transition"
         >
           <svg
@@ -76,7 +77,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
         <button
           onClick={() => {
             if (cert_url) {
-              window.open(cert_url, '_blank');
+              window.open(cert_url, '_blank'); // Abre el archivo PDF si existe
             } else {
               alert("No certification file available.");
             }
@@ -105,7 +106,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
         <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50 flex items-center justify-center">
           <div className="bg-white w-full max-w-xl p-6 rounded-xl shadow-md relative">
             <button
-              onClick={() => setShowEditModal(false)}
+              onClick={() => setShowEditModal(false)} // Cierra el modal
               className="absolute top-3 right-3 bg-gray-500 text-white rounded-full w-6 h-6 flex items-center justify-center"
             >
               &times;
@@ -153,7 +154,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
                 <div className="flex items-center space-x-2">
                     <button
                     type="button"
-                    onClick={() => fileInputRef.current.click()}
+                    onClick={() => fileInputRef.current.click()} // Abre el selector de archivos
                     className="flex items-center px-3 py-1 bg-gray-100 text-sm text-[#A100FF] rounded hover:underline"
                     >
                      <svg
@@ -181,6 +182,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
               <button
                 type="button"
                 onClick={async () => {
+                  // Función para guardar los cambios editados
                   const { data: { session } } = await supabase.auth.getSession();
                   const userId = session?.user?.id;
 
@@ -192,7 +194,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
                   let publicUrl = null;
 
                   if (editFile) {
-                    publicUrl = await uploadCertPDF(editFile, userId);
+                    publicUrl = await uploadCertPDF(editFile, userId); // Subir archivo si se seleccionó uno nuevo
                     if (!publicUrl) return;
                   }
 
@@ -205,7 +207,7 @@ export const CertCard = ({ id, certName, description, date, expiration, onEdit, 
                     cert_url: publicUrl 
                   });
 
-                  setShowEditModal(false);
+                  setShowEditModal(false); // Cierra el modal tras guardar
                 }}
                 className="w-full py-2 bg-[#A100FF] text-white rounded-full hover:opacity-90 transition"
               >

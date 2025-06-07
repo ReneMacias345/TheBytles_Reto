@@ -1,16 +1,20 @@
-import React, { useState , useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import supabase from '../config/supabaseClient';
 import { AlertCard } from './AlertCard';
 
-
+// Componente Navbar para la barra de navegación lateral
 export const Navbar = () => {
+  // Obtener la ruta actual para resaltar el enlace activo
   const location = useLocation();
+  // Estado para almacenar datos del usuario
   const [userData, setUserData] = useState(null);
   
+  // Efecto para cargar datos del usuario al montar el componente
   useEffect(() => {
     const fetchData = async () => {
+      // Obtener sesión del usuario
       const { data: { session } } = await supabase.auth.getSession();
       const userId = session?.user?.id;
 
@@ -18,7 +22,8 @@ export const Navbar = () => {
         console.error("User not logged in.");
         return;
       }
-      // User info
+      
+      // Obtener información del usuario desde Supabase
       const { data: userInfoData, error: userError } = await supabase
         .from("User")
         .select("firstName, lastName, capability, profilePic_url")
@@ -34,6 +39,8 @@ export const Navbar = () => {
 
     fetchData();
   }, []);
+
+  // Función para cerrar sesión
   async function signOut() {
     await supabase.auth.signOut();
     localStorage.clear();
@@ -42,7 +49,9 @@ export const Navbar = () => {
 
   return (
     <div className="fixed top-0 left-0 w-64 h-screen bg-white flex flex-col justify-between border-r border-gray-200 z-50">
+      {/* Contenido superior del navbar */}
       <div>
+        {/* Logo y nombre de la aplicación */}
         <div className="flex items-center p-4">
           <img src={logo} alt="Logo" className="w-8 h-8 mr-2" />
           <div>
@@ -51,7 +60,9 @@ export const Navbar = () => {
           </div>
         </div>
 
+        {/* Menú de navegación */}
         <nav className="mt-4 space-y-2 px-2">
+          {/* Enlace al Dashboard */}
           <Link
             to="/dashboard"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -60,7 +71,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div name = "Dashboard" className="flex items-center space-x-2">
+            <div name="Dashboard" className="flex items-center space-x-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -87,6 +98,8 @@ export const Navbar = () => {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
           </Link>
+
+          {/* Enlace al Perfil */}
           <Link
             to="/perfil"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -95,7 +108,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div name = "Profile" className="flex items-center space-x-2">
+            <div name="Profile" className="flex items-center space-x-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -123,6 +136,7 @@ export const Navbar = () => {
             </svg>
           </Link>
 
+          {/* Enlace a Projects */}
           <Link
             to="/projects"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -159,6 +173,7 @@ export const Navbar = () => {
             </svg>
           </Link>
 
+          {/* Enlace a Employees */}
           <Link
             to="/employees"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -195,6 +210,7 @@ export const Navbar = () => {
             </svg>
           </Link>
           
+          {/* Enlace a Assignments */}
           <Link
             to="/assignments"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -203,7 +219,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div name = "Assignments" className="flex items-center space-x-2">
+            <div name="Assignments" className="flex items-center space-x-2">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -231,6 +247,7 @@ export const Navbar = () => {
             </svg>
           </Link>
 
+          {/* Enlace a Growth */}
           <Link
             to="/growth"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -239,7 +256,7 @@ export const Navbar = () => {
                 : 'text-[#696969] hover:bg-[#A100FF] hover:text-white'
             }`}
           >
-            <div name = "Growth" className="flex items-center space-x-2">
+            <div name="Growth" className="flex items-center space-x-2">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   fill="none"
@@ -266,44 +283,49 @@ export const Navbar = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-          
         </nav>
+        
+        {/* Componente de alertas */}
         <AlertCard></AlertCard>
       </div>
 
-
+      {/* Sección inferior del navbar con información del usuario */}
       <div className="p-4 flex flex-col items-center">
         <div className="flex items-center">
-        <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
-  {userData?.profilePic_url ? (
-    <img
-      src={userData.profilePic_url}
-      alt="Profile"
-      className="w-full h-full object-cover"
-    />
-  ) : (
-    <svg
-      className="w-10 h-8 text-gray-400 mx-auto my-auto"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="2"
-      viewBox="0 0 24 24"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375M15 10a3 3 0 11-6 0 3 3 0 016 0z"
-      />
-      <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
-    </svg>
-  )}
-</div>
+          {/* Avatar del usuario */}
+          <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
+            {userData?.profilePic_url ? (
+              <img
+                src={userData.profilePic_url}
+                alt="Profile"
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <svg
+                className="w-10 h-8 text-gray-400 mx-auto my-auto"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  d="M5.121 17.804A6.978 6.978 0 0112 15c1.57 0 3.013.51 4.121 1.375M15 10a3 3 0 11-6 0 3 3 0 016 0z"
+                />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2 20h20" />
+              </svg>
+            )}
+          </div>
 
+          {/* Información del usuario */}
           <div className="ml-3">
-          <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
-          <p className="text-xs text-gray-500">{userData?.capability}</p>
+            <p className="text-sm font-semibold text-gray-800">{userData?.firstName} {userData?.lastName}</p>
+            <p className="text-xs text-gray-500">{userData?.capability}</p>
           </div>
         </div>
+        
+        {/* Botón de logout */}
         <button
           name="logout"
           onClick={signOut}

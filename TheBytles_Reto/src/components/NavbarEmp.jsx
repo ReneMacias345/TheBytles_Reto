@@ -5,8 +5,9 @@ import supabase from '../config/supabaseClient';
 
 export const NavbarEmp = () => {
   const location = useLocation();
-  const [userData, setUserData] = useState(null);
+  const [userData, setUserData] = useState(null); // Estado para almacenar datos del usuario
   
+  // Efecto para cargar datos del usuario al montar el componente
   useEffect(() => {
     const fetchData = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -26,13 +27,14 @@ export const NavbarEmp = () => {
       if (userError) {
         console.error("Error fetching user info:", userError);
       } else {
-        setUserData(userInfoData);
+        setUserData(userInfoData); // Actualiza estado con datos del usuario
       }
     };
 
     fetchData();
   }, []);
 
+// Función para manejar cierre de sesión
   const handleLogout = async () => {
     await supabase.auth.signOut();
     localStorage.clear();
@@ -42,6 +44,7 @@ export const NavbarEmp = () => {
 
   return (
     <div className="fixed top-0 left-0 w-64 h-screen bg-white flex flex-col justify-between border-r border-gray-200 z-50">
+      {/* Logo y título */}
       <div>
         <div className="flex items-center p-4">
           <img src={logo} alt="Logo" className="w-8 h-8 mr-2" />
@@ -50,8 +53,9 @@ export const NavbarEmp = () => {
             <p className="text-xs text-gray-500">v.01</p>
           </div>
         </div>
-
+         {/* Menú de navegación */}
         <nav className="mt-4 space-y-2 px-2">
+          {/* Enlace a Perfil */}
           <Link
             to="/perfil"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -87,7 +91,7 @@ export const NavbarEmp = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-
+          {/* Enlace a Proyectos */}
           <Link
             to="/projects"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -123,7 +127,7 @@ export const NavbarEmp = () => {
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </Link>
-          
+          {/* Enlace a Growth */}
           <Link
             to="/growth"
             className={`group flex items-center justify-between py-2 px-3 rounded-lg transition-colors ${
@@ -161,7 +165,7 @@ export const NavbarEmp = () => {
           </Link>
         </nav>
       </div>
-
+      {/* Sección inferior con perfil y botón de logout */}
       <div className="p-4 flex flex-col items-center">
         <div className="flex items-center">
           <div className="w-10 h-10 bg-gray-300 rounded-full overflow-hidden">
@@ -193,6 +197,7 @@ export const NavbarEmp = () => {
             <p className="text-xs text-gray-500">{userData?.capability}</p>
           </div>
         </div>
+        {/* Botón de logout */}
         <button
           onClick={handleLogout}
           className="mt-3 px-3 py-1 bg-gray-50 text-sm text-[#A100FF] rounded hover:underline"

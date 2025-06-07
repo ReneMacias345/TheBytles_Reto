@@ -6,6 +6,7 @@ import warningLogo from '../assets/warning.png';
 import supabase from '../config/supabaseClient';
 
 export const SignUp = () => {
+  // Estados para los campos del formulario
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -15,58 +16,63 @@ export const SignUp = () => {
   const [password, setPassword] = useState('');
   const [repeatPassword, setRepeatPassword] = useState('');
   const [since, setSince] = useState('');
-  const navigate = useNavigate();
-  const [formError, setFormError] = useState(null);
+  const navigate = useNavigate(); // Hook para navegar
+  const [formError, setFormError] = useState(null); // Manejo de errores del formulario
 
+  // Envío del formulario
   const handleSubmit = async (e) => {
     e.preventDefault();
   
+    // Validación de campos vacíos
     if (!firstName || !lastName || !email || !atc || !password || !repeatPassword || !capability || !since ) {
       setFormError("Please fill in all the required fields");
       return;
     }
-  
+
+    // Validación de coincidencia de contraseñas
     if (password !== repeatPassword) {
       setFormError("Passwords do not match");
       return;
     }
 
+    // Validación básica de email
     if (!email.includes("@" && ".")) {
       setFormError("Please enter a valid email.");
       return;
     }
     
+    // Validación de longitud mínima de contraseña
     if (password.length < 6) {
       setFormError("Password must be at least 6 characters.");
       return;
     }
 
-
+    // Validación de rango de career level
     if (careerLevel > 13 || careerLevel < 1) {
       setFormError("Career level must be in the 1-13 range.");
       return;
     }
   
-    // Supabase Auth
+    // Registro del usuario en Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
     });
   
+    // Manejo de error en Supabase Auth
     if (authError) {
       setFormError(authError.message);
       return;
     }
 
-    const userId = authData?.user?.id;
+    const userId = authData?.user?.id; // Obtener ID del usuario registrado
 
-  if (!userId) {
-    setFormError("User ID not found after signup.");
-    return;
-  }
+    if (!userId) {
+      setFormError("User ID not found after signup.");
+      return;
+    }
 
-    // User table inserts
-  
+    // Inserción de datos en tabla "User"
     const { data: userData, error: userError } = await supabase
       .from("User")
       .insert([
@@ -83,25 +89,22 @@ export const SignUp = () => {
         },
       ]);
   
-      if (userError) {
-        if (userError.code === "23505") {
-          setFormError("This email is already registered in our database. Please try logging in.");
-        } 
-
-        return;
-      }
+    // Validación de error de inserción
+    if (userError) {
+      if (userError.code === "23505") {
+        setFormError("This email is already registered in our database. Please try logging in.");
+      } 
+      return;
+    }
   
     // profilePic y CV aca ?
   
-    setFormError(null);
+    setFormError(null); // Limpiar errores
     alert("Account created succesfully! Please check your inbox: You must authenticate before logging in.");
-    navigate("/");
+    navigate("/"); // Redirige al inicio
   };
-  
-  //const handleSignUp = (e) => {
-  //  navigate('/perfil');
-  //};
 
+  // Navegar a login
   const handleSignIn = () => {
     navigate('/');
   };
@@ -126,17 +129,21 @@ export const SignUp = () => {
             </p>
           </div>
         </div>
+
+        {/* Contenedor del formulario */}
         <div className="w-full md:w-3/5 flex justify-center items-center p-4 mt-[-200px]">
           <div className="bg-white p-6 rounded-3xl shadow-xl w-full max-w-lg">
 
+            {/* Formulario de registro */}
             <form onSubmit={handleSubmit} className="space-y-3">
+              {/* Nombre y apellido */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
                     First Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                    name = "firstname"
+                    name="firstname"
                     type="text"
                     pattern="[A-Za-zÀ-ÿ\s]+"
                     title="Please enter only letters"
@@ -154,24 +161,25 @@ export const SignUp = () => {
                     Last Name <span className="text-red-500">*</span>
                   </label>
                   <input
-                  name = "lastname"
-                  type="text"
-                  pattern="[A-Za-zÀ-ÿ\s]+"
-                  title="Please enter only letters"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    name="lastname"
+                    type="text"
+                    pattern="[A-Za-zÀ-ÿ\s]+"
+                    title="Please enter only letters"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    required
+                    className="w-full px-3 py-2 text-base text-gray-700 bg-gray-100 border border-gray-200 rounded-full focus:outline-none focus:ring-2 focus:ring-purple-500"
                   />
-
                 </div>
               </div>
+
+              {/* Email */}
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                   Email <span className="text-red-500">*</span>
                 </label>
                 <input
-                  name = "email"
+                  name="email"
                   type="email"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -181,12 +189,14 @@ export const SignUp = () => {
                   required
                 />
               </div>
+
+              {/* Capability */}
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                   Capability <span className="text-red-500">*</span>
                 </label>
                 <select
-                  name = "capability"
+                  name="capability"
                   className="w-full px-3 py-2 text-base text-gray-700
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -208,35 +218,38 @@ export const SignUp = () => {
                   <option value="Technical Support and Help Desk">Technical Support and Help Desk</option>  
                 </select>
               </div>
+
+              {/* Career Level y ATC */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block mb-1 text-sm font-medium text-gray-700">
                     Career Level <span className="text-red-500">*</span>
                   </label>
                   <select
-                  name = "carrerlevel"
-                  className="w-full px-3 py-2 text-base text-gray-700
-                             bg-gray-100 border border-gray-200 rounded-full
-                             focus:outline-none focus:ring-2 focus:ring-purple-500"
-                  value={careerLevel}
-                  onChange={(e) => setCareerLevel(parseInt(e.target.value))}
-                  required
-                >
-                  <option value="">Select Career Level</option>
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
-                  <option value="6">6</option>
-                  <option value="7">7</option>
-                  <option value="8">8</option>
-                  <option value="9">9</option>
-                  <option value="10">10</option>
-                  <option value="11">11</option>
-                  <option value="12">12</option>
-                  <option value="13">13</option>
-                </select>
+                    name="carrerlevel"
+                    className="w-full px-3 py-2 text-base text-gray-700
+                               bg-gray-100 border border-gray-200 rounded-full
+                               focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    value={careerLevel}
+                    onChange={(e) => setCareerLevel(parseInt(e.target.value))}
+                    required
+                  >
+                    <option value="">Select Career Level</option>
+                    {/* Opciones 1-13 */}
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                    <option value="13">13</option>
+                  </select>
                 </div>
 
                 <div>
@@ -244,7 +257,7 @@ export const SignUp = () => {
                     ATC <span className="text-red-500">*</span>
                   </label>
                   <select
-                    name = "atc"
+                    name="atc"
                     className="w-full px-3 py-2 text-base text-gray-700
                                bg-gray-100 border border-gray-200 rounded-full
                                focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -260,13 +273,14 @@ export const SignUp = () => {
                 </div>
               </div>
 
+              {/* Fecha de ingreso */}
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                   Start working in Accenture at <span className="text-red-500">*</span>
                 </label>
                 <input
-                  name = "since"
-                  type= "date"
+                  name="since"
+                  type="date"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
                              focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -276,12 +290,13 @@ export const SignUp = () => {
                 />
               </div>
 
+              {/* Contraseña */}
               <div>
                 <label className="block mb-1 text-sm font-medium text-gray-700">
                   Enter Password <span className="text-red-500">*</span>
                 </label>
                 <input
-                  name = "password"
+                  name="password"
                   type="password"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -297,7 +312,7 @@ export const SignUp = () => {
                   Repeat Password <span className="text-red-500">*</span>
                 </label>
                 <input
-                  name = "repeatpassword"
+                  name="repeatpassword"
                   type="password"
                   className="w-full px-3 py-2 text-base text-gray-700 
                              bg-gray-100 border border-gray-200 rounded-full
@@ -308,16 +323,20 @@ export const SignUp = () => {
                 />
               </div>
 
-              <Button name = "signup" type="submit" className="w-full mt-3 py-2">
+              {/* Botón de registro */}
+              <Button name="signup" type="submit" className="w-full mt-3 py-2">
                 Sign Up
               </Button>
+
+              {/* Mensaje de error si existe */}
               { formError && (<p className='text-center text-red-500 text-lg font-bold mt-4'>{formError}</p>)}
             </form>
 
+            {/* Link a login */}
             <p className="mt-3 text-sm text-center text-gray-600">
               Already have an account?{' '}
               <button
-                name = "signin"
+                name="signin"
                 className="font-medium text-[#A100FF] hover:underline bg-transparent"
                 onClick={handleSignIn}
               >
@@ -326,7 +345,6 @@ export const SignUp = () => {
             </p>
           </div>
         </div>
-        
       </div>
     </Layout>
   );
