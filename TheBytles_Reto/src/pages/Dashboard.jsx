@@ -221,7 +221,7 @@ export const Dashboard = () => {
     labels: ['Assigned', 'Benched'],
     datasets: [
       {
-        data: [85, 35],
+        data: [0, 17],
         backgroundColor: ['#10B981', '#EF4444'],
         borderWidth: 0,
       },
@@ -244,42 +244,42 @@ export const Dashboard = () => {
         {
           label: 'Benched',
           backgroundColor: '#EF4444',
-          data: [12, 10, 13],
+          data: [12, 4, 1],
         },
         {
           label: 'Assigned',
           backgroundColor: '#10B981',
-          data: [25, 28, 20],
+          data: [0, 0, 0],
         },
       ],
     },
     Capability: {
-      labels: ['Cybersecurity', 'Software Dev', 'Video Game Dev'],
+      labels: ['Software Development', 'Systems and Network Administration', 'Cybersecurity','Data Science and Big Data','Artificial Intelligence and Machine Learning','IT and Project Management','Cloud Computing and DevOps','Video Game Development','Internet of Things (IoT)','Blockchain and Cryptocurrencies','Technical Support and Help Desk'],
       datasets: [
         {
           label: 'Benched',
           backgroundColor: '#EF4444',
-          data: [6, 12, 7],
+          data: [2, 1, 2,1,4,1,2,2,1,1,0],
         },
         {
           label: 'Assigned',
           backgroundColor: '#10B981',
-          data: [20, 35, 25],
+          data: [0,0,0,0,0,0,0,0,0,0,0],
         },
       ],
     },
     Level: {
-      labels: ['13', '12', '11', '10', '9', '8'],
+      labels: ['13', '12', '11', '10', '9', '8','7','6','5','4','3,','2','1'],
       datasets: [
         {
           label: 'Benched',
           backgroundColor: '#EF4444',
-          data: [5, 6, 4, 3, 2, 1],
+          data: [1, 1, 3, 2, 3, 4,2,2,1,1,0,0,0],
         },
         {
           label: 'Assigned',
           backgroundColor: '#10B981',
-          data: [8, 10, 9, 7, 5, 4],
+          data: [0, 0, 0, 0, 0, 0,0,0,0,0,0,0,0],
         },
       ],
     },
@@ -655,11 +655,11 @@ useEffect(() => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Employees Overview</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <DashboardCard title="Total Employees" value="120" color="text-gray-800" />
-          <DashboardCard title="Benched Employees" value="35" color="text-red-500" />
-          <DashboardCard title="Roles Available" value="43" color="text-emerald-500" />
+          <DashboardCard title="Total Employees" value="17" color="text-gray-800" />
+          <DashboardCard title="Benched Employees" value="17" color="text-red-500" />
+          <DashboardCard title="Roles Available" value="34" color="text-emerald-500" />
           <DashboardCard title="Avg. Percentage of Compatibility with Roles" value="61.2%" color="text-blue-500" />
-          <DashboardCard title="Avg. Time Spent in Benched" value="8 days" color="text-yellow-500" />
+          <DashboardCard title="Avg. Time Spent in Benched" value="3 days" color="text-yellow-500" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
