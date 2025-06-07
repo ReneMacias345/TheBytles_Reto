@@ -37,6 +37,14 @@ export const Dashboard = () => {
   const [showExpandedCompletion, setShowExpandedCompletion] = useState(false);
   const [showExpandedRecommended, setShowExpandedRecommended] = useState(false);
 
+
+  const [activeProjects, setActiveProjects] = useState(0);
+  const [finished2025, setFinished2025] = useState(0);
+  const [avgDuration, setAvgDuration] = useState(0);
+  const [avgMembers, setAvgMembers] = useState(0);
+  const [avgRoles, setAvgRoles] = useState(0);
+  
+
   const [projectStatusData, setProjectStatusData] = useState(null);
   useEffect(() => {
     const fetchProjectStatus = async () => {
@@ -589,6 +597,57 @@ useEffect(() => {
     fetchMonthlyCounts();
   }, []);
 
+  useEffect(() => {
+    const fetchDashboardStats = async () => {
+      const { data: projects, error: projectError } = await supabase
+        .from('Project')
+        .select('Status, StartDate, EndDate, Members');
+
+      const { data: roles, error: roleError } = await supabase
+        .from('Role')
+        .select('project_id');
+
+      if (projectError || roleError) {
+        console.error('Error fetching project stats', projectError || roleError);
+        return;
+      }
+
+      const activeCount = projects.filter(p => p.Status?.toLowerCase() === 'ongoing').length;
+      setActiveProjects(activeCount);
+
+      const finished2025Count = projects.filter(p => {
+        const end = new Date(p.EndDate);
+        return p.Status?.toLowerCase() === 'finished' && end.getFullYear() === 2025;
+      }).length;
+      setFinished2025(finished2025Count);
+
+      const durations = projects.map(p => {
+        const start = new Date(p.StartDate);
+        const end = new Date(p.EndDate);
+        return (end - start) / (1000 * 60 * 60 * 24 * 30);
+      });
+      const avgDur = durations.reduce((a, b) => a + b, 0) / durations.length;
+      setAvgDuration(avgDur.toFixed(1));
+
+      const memberCounts = projects.map(p => {
+        return p.Members ? p.Members.split(',').filter(Boolean).length : 0;
+      });
+      const avgMemb = memberCounts.reduce((a, b) => a + b, 0) / memberCounts.length;
+      setAvgMembers(Math.round(avgMemb));
+
+      const roleCountMap = {};
+      roles.forEach(r => {
+        if (!r.project_id) return;
+        roleCountMap[r.project_id] = (roleCountMap[r.project_id] || 0) + 1;
+      });
+      const roleCounts = Object.values(roleCountMap);
+      const avgRol = roleCounts.reduce((a, b) => a + b, 0) / roleCounts.length;
+      setAvgRoles(Math.round(avgRol));
+    };
+
+    fetchDashboardStats();
+  }, []);
+
   return (
     <ScreenLayout>
 
@@ -631,12 +690,13 @@ useEffect(() => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-1 mb-4">Projects Overview</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6">
-          <DashboardCard title="Active Projects" value="12" color="text-purple-600" />
-          <DashboardCard title="Projects Completed in 2025" value="16" color="text-green-600" />
-          <DashboardCard title="Avg. Project Duration" value="7.4 months" color="text-cyan-600" />
-          <DashboardCard title="Avg. Members per Project" value="11" color="text-cyan-600" />
-          <DashboardCard title="Avg. Roles per Project" value="8" color="text-cyan-600" />
+          <DashboardCard title="Active Projects" value={activeProjects} color="text-purple-600" />
+          <DashboardCard title="Projects Completed in 2025" value={finished2025} color="text-green-600" />
+          <DashboardCard title="Avg. Project Duration" value={`${avgDuration} months`} color="text-cyan-600" />
+          <DashboardCard title="Avg. Members per Project" value={avgMembers} color="text-cyan-600" />
+          <DashboardCard title="Avg. Roles per Project" value={avgRoles} color="text-cyan-600" />
         </div>
+
 
         <div className="bg-white rounded-2xl shadow p-6 mb-6 h-[500px]">
           <h2 className="text-md font-semibold text-gray-800 mb-3">Project Status Overview</h2>
