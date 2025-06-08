@@ -37,6 +37,15 @@ export const Dashboard = () => {
   const [showExpandedCompletion, setShowExpandedCompletion] = useState(false);
   const [showExpandedRecommended, setShowExpandedRecommended] = useState(false);
 
+  const [totalEmployees, setTotalEmployees] = useState(null);
+  const [benchedEmployees, setBenchedEmployees] = useState(0);
+  const [rolesAvailable, setRolesAvailable] = useState([]);
+  const [averageBenchDays, setAverageBenchDays] = useState(0);
+  const [employeeStatus, setEmployeeStatus] = useState(null);
+  const [avgMatch, setAvgMatch] = useState(null);
+  
+
+
 
   const [activeProjects, setActiveProjects] = useState(0);
   const [finished2025, setFinished2025] = useState(0);
@@ -83,6 +92,130 @@ export const Dashboard = () => {
       });
     };
     fetchProjectStatus();
+  }, []);
+
+  useEffect(() => {
+    const storedValue = localStorage.getItem("avgMatchPercent");
+    if (storedValue) {
+      setAvgMatch(JSON.parse(storedValue));
+    }
+  }, []);
+
+  useEffect(() => {
+    const fetchRolesAvailable = async () => {
+    const { count, error } = await supabase
+      .from('Role')
+      .select('id_role', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error counting roles:', error);
+      return;
+    }
+
+    setRolesAvailable(count);
+  };
+
+    fetchRolesAvailable();
+  }, []);
+
+  useEffect(() => {
+    const fetchTotalEmployees = async () => {
+    const { count, error } = await supabase
+      .from('User')
+      .select('*', { count: 'exact', head: true });
+
+    if (error) {
+      console.error('Error fetching total employees:', error);
+      return;
+    }
+
+    setTotalEmployees(count);
+  };
+
+    fetchTotalEmployees();
+  }, []);
+
+  useEffect(() => {
+    const fetchBenchedEmployees = async () => {
+    const { data, error } = await supabase
+      .from("User")
+      .select("Status")
+      .eq("Status", "benched");
+
+    if (error) {
+      console.error("Error fetching benched employees:", error);
+      return;
+    }
+
+    setBenchedEmployees(data.length);
+  };
+
+    fetchBenchedEmployees();
+  }, []);
+
+  useEffect(() => {
+    const fetchAverageBenchDays = async () => {
+    const { data, error } = await supabase
+      .from('User')
+      .select('AccumulatedBenchDays');
+
+    if (error) {
+      console.error('Error fetching bench days:', error);
+      return;
+    }
+
+    const validValues = data
+      .map(user => user.AccumulatedBenchDays)
+      .filter(days => typeof days === 'number' && !isNaN(days));
+
+    if (validValues.length === 0) {
+      setAverageBenchDays(0);
+      return;
+    }
+
+    const total = validValues.reduce((sum, days) => sum + days, 0);
+    const avg = total / validValues.length;
+
+    setAverageBenchDays(avg.toFixed(1)); 
+  };
+
+    fetchAverageBenchDays();
+  }, []);
+
+  useEffect(() => {
+    const fetchEmployeeStatus = async () => {
+    const { data, error } = await supabase
+      .from("User")
+      .select("Status");
+
+    if (error) {
+      console.error("Error fetching employee status:", error);
+      return;
+    }
+
+    const counts = {
+      staffed: 0,
+      benched: 0,
+    };
+
+    data.forEach(user => {
+      if (user.Status === 'staffed') counts.staffed++;
+      else if (user.Status === 'benched') counts.benched++;
+    });
+
+    setEmployeeStatus({
+      labels: ['Assigned', 'Benched'],
+      datasets: [
+        {
+          data: [counts.staffed, counts.benched],
+          backgroundColor: ['#10B981', '#EF4444'],
+          borderWidth: 0,
+        },
+      ],
+    });
+  };
+
+    fetchEmployeeStatus();
   }, []);
 
   const [totalGoalsData, setTotalGoalsData] = useState(null);
@@ -217,16 +350,41 @@ export const Dashboard = () => {
     fetchCertificationsByMonth();
   }, []);
 
-  const employeeStatusData = {
-    labels: ['Assigned', 'Benched'],
+  const [employeeStatusData, setEmployeeStatusData] = useState({
+    labels: ["Staffed", "Benched"],
     datasets: [
       {
-        data: [0, 17],
-        backgroundColor: ['#10B981', '#EF4444'],
-        borderWidth: 0,
+      data: [0, 0],
+      backgroundColor: ["#36A2EB", "#FF6384"],
       },
     ],
+  });
+
+  useEffect(() => {
+    const fetchEmployeeStatus = async () => {
+    const { data, error } = await supabase.from("User").select("Status");
+
+    if (error) {
+      console.error("Error fetching employee statuses:", error);
+      return;
+    }
+
+    const staffed = data.filter((user) => user.Status === "staffed").length;
+    const benched = data.filter((user) => user.Status === "benched").length;
+
+    setEmployeeStatusData({
+      labels: ["Staffed", "Benched"],
+      datasets: [
+        {
+          data: [staffed, benched],
+          backgroundColor: ["#36A2EB", "#FF6384"],
+        },
+      ],
+    });
   };
+
+    fetchEmployeeStatus();
+  }, []);
 
   const timeDistributionOptions = {
     responsive: true,
@@ -237,53 +395,68 @@ export const Dashboard = () => {
     },
   };
 
-  const timeDistributionData = {
-    ATC: {
-      labels: ['MTY', 'CDMX', 'QRO'],
-      datasets: [
-        {
-          label: 'Benched',
-          backgroundColor: '#EF4444',
-          data: [12, 4, 1],
-        },
-        {
-          label: 'Assigned',
-          backgroundColor: '#10B981',
-          data: [0, 0, 0],
-        },
-      ],
-    },
-    Capability: {
-      labels: ['Software Development', 'Systems and Network Administration', 'Cybersecurity','Data Science and Big Data','Artificial Intelligence and Machine Learning','IT and Project Management','Cloud Computing and DevOps','Video Game Development','Internet of Things (IoT)','Blockchain and Cryptocurrencies','Technical Support and Help Desk'],
-      datasets: [
-        {
-          label: 'Benched',
-          backgroundColor: '#EF4444',
-          data: [2, 1, 2,1,4,1,2,2,1,1,0],
-        },
-        {
-          label: 'Assigned',
-          backgroundColor: '#10B981',
-          data: [0,0,0,0,0,0,0,0,0,0,0],
-        },
-      ],
-    },
-    Level: {
-      labels: ['13', '12', '11', '10', '9', '8','7','6','5','4','3,','2','1'],
-      datasets: [
-        {
-          label: 'Benched',
-          backgroundColor: '#EF4444',
-          data: [1, 1, 3, 2, 3, 4,2,2,1,1,0,0,0],
-        },
-        {
-          label: 'Assigned',
-          backgroundColor: '#10B981',
-          data: [0, 0, 0, 0, 0, 0,0,0,0,0,0,0,0],
-        },
-      ],
-    },
+  const [timeDistributionData, setTimeDistributionData] = useState({
+    ATC: { labels: [], datasets: [] },
+    Capability: { labels: [], datasets: [] },
+    Level: { labels: [], datasets: [] },
+  });
+
+  useEffect(() => {
+    const fetchAndFormatData = async () => {
+    const { data, error } = await supabase
+      .from("User")
+      .select("Status, atc, capability, careerLevel");
+
+    if (error) {
+      console.error("Error fetching data from Supabase:", error);
+      return;
+    }
+
+    const groupBy = (key) => {
+      const grouped = {};
+
+      data.forEach((user) => {
+        const groupKey = user[key] || "Unknown";
+        if (!grouped[groupKey]) {
+          grouped[groupKey] = { benched: 0, staffed: 0 };
+        }
+
+        if (user.Status === "benched") grouped[groupKey].benched++;
+        if (user.Status === "staffed") grouped[groupKey].staffed++;
+      });
+
+      const labels = Object.keys(grouped);
+      const benchedData = labels.map((label) => grouped[label].benched);
+      const staffedData = labels.map((label) => grouped[label].staffed);
+
+      return {
+        labels,
+        datasets: [
+          {
+            label: "Benched",
+            backgroundColor: "#EF4444",
+            data: benchedData,
+          },
+          {
+            label: "Assigned",
+            backgroundColor: "#10B981",
+            data: staffedData,
+          },
+        ],
+      };
+    };
+
+    const updatedData = {
+      ATC: groupBy("atc"),
+      Capability: groupBy("capability"),
+      Level: groupBy("careerLevel"),
+    };
+
+    setTimeDistributionData(updatedData);
   };
+
+    fetchAndFormatData();
+  }, []);
 
   const lineChartData = {
     Certifications: {
@@ -655,11 +828,11 @@ useEffect(() => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Employees Overview</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
-          <DashboardCard title="Total Employees" value="17" color="text-gray-800" />
-          <DashboardCard title="Benched Employees" value="17" color="text-red-500" />
-          <DashboardCard title="Roles Available" value="34" color="text-emerald-500" />
-          <DashboardCard title="Avg. Percentage of Compatibility with Roles" value="61.2%" color="text-blue-500" />
-          <DashboardCard title="Avg. Time Spent in Benched" value="3 days" color="text-yellow-500" />
+          <DashboardCard title="Total Employees" value={totalEmployees} color="text-gray-800" />
+          <DashboardCard title="Benched Employees" value={benchedEmployees} color="text-red-500" />
+          <DashboardCard title="Roles Available" value={rolesAvailable} color="text-emerald-500" />
+          <DashboardCard title="Avg. Percentage of Compatibility with Roles" value={avgMatch !== null ? `${avgMatch.toFixed(1)}%` : 'Loading...'} color="text-blue-500"/>
+          <DashboardCard title="Avg. Time Spent in Benched" value={averageBenchDays} color="text-yellow-500" />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
@@ -681,7 +854,7 @@ useEffect(() => {
                 <option value="ATC">By ATC</option>
               </select>
             </div>
-            <Bar data={timeDistributionData[filter]} options={timeDistributionOptions} />
+            <Bar data={timeDistributionData[filter]} options={timeDistributionOptions}/>
           </div>
         </div>
       </div>
@@ -955,4 +1128,3 @@ useEffect(() => {
     
   );
 };
-

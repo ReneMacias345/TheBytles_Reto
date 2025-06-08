@@ -157,6 +157,16 @@ export const Employees = () => {
             };
           })
         );
+        
+        const matchPercents = enrichedUsers
+          .map(user => user.matchPercent)
+          .filter(percent => !isNaN(percent)); 
+
+        const avgMatchPercent = matchPercents.length
+          ? matchPercents.reduce((a, b) => a + b, 0) / matchPercents.length: 0;
+
+        // Guardar en localStorage
+        localStorage.setItem("avgMatchPercent", JSON.stringify(avgMatchPercent));
 
 
         setEmployees(enrichedUsers);
