@@ -342,6 +342,8 @@ export const Projects = () => {
       .from("User_Rol")
       .select("id_user, id_rol")
       .eq("id_user", activeFeedbackTarget.id)
+      .order("created_at", { ascending: false }) // 🔽 más reciente primero
+      .limit(1)
       .single();
 
     const { data: rolData } = await supabase
