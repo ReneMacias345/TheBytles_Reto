@@ -105,7 +105,8 @@ export const Dashboard = () => {
     const fetchRolesAvailable = async () => {
     const { count, error } = await supabase
       .from('Role')
-      .select('id_role', { count: 'exact', head: true });
+      .select('id_role', { count: 'exact', head: true })
+      .or('status.is.null,status.eq.');
 
     if (error) {
       console.error('Error counting roles:', error);
