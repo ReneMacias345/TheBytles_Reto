@@ -186,7 +186,8 @@ export const Projects = () => {
             Project_Name,
             description,
             StartDate,
-            EndDate
+            EndDate,
+            Status
           )
         `)
         .eq("user_element_id", userId);
@@ -242,13 +243,10 @@ export const Projects = () => {
         };
       });
 
-      const filteredHistory = historyWithRoles.filter(historyItem => {
-        const project = historyItem.project_id === projectData.Project_ID;
-        const rol = userRoles.some(ur => ur.id_rol === historyItem.role_id);
-        const proyectfinished = projectData.Status === "finished";
-
-        return project && rol && proyectfinished;
-      });
+      const filteredHistory = historyWithRoles.filter(historyItem =>
+        userRoles.some(ur => ur.id_rol === historyItem.role_id) &&
+        historyItem.Project?.Status === "finished"
+      );
 
       setHistoryProjects(filteredHistory);
 
@@ -256,7 +254,9 @@ export const Projects = () => {
         .from("User_Rol")
         .select("id_rol")
         .eq("id_user", userId)
-        .maybeSingle();
+        .order("created_at", { ascending: false }) // 🔽 más reciente primero
+        .limit(1)
+        .single(); // esperamos solo un registro
 
       if (userRolError || !userRolData) {
         console.error("Error fetching user role assignment:", userRolError);
@@ -269,7 +269,7 @@ export const Projects = () => {
         });
         return;
       }
-
+      
       const { data: roleInfo, error: roleError } = await supabase
         .from("Role")
         .select("role_description, project_id, id_role")
@@ -291,6 +291,8 @@ export const Projects = () => {
         return;
       }
 
+      setStatus(WorkingProjectData.Status || "ready");
+
       if (userRolData.id_rol === roleInfo.id_role && roleInfo.project_id === projectData.Project_ID && projectData.Status === "finished"){
         setWorkingIn({
           projectName: "N/A",
@@ -308,8 +310,6 @@ export const Projects = () => {
           endDate: WorkingProjectData.EndDate,
         });
       }
-
-      setStatus(projectData.Status || "ready");
 
       await fetchEmployeesAssociated(roleInfo.project_id);
     };
@@ -411,64 +411,56 @@ export const Projects = () => {
       return;
     }
 
-    const { data: userRoles } = await supabase
+    // 🔁 Obtener el último rol asignado
+    const { data: latestUserRole, error: latestRoleError } = await supabase
       .from("User_Rol")
-      .select("id_rol, id_user")
-      .eq("id_user", userId);
+      .select("id_rol")
+      .eq("id_user", userId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
-    if (!userRoles) {
-      console.error("El usuario no tiene rol asignado (userRolData.id_rol es undefined).");
+    if (latestRoleError || !latestUserRole) {
+      console.error("Error fetching latest role for status update:", latestRoleError);
       return;
     }
 
-    const roleIds = userRoles.map(r => r.id_rol);
+    // 🔁 Obtener el proyecto correspondiente a ese rol
+    const { data: roleInfo, error: roleError } = await supabase
+      .from("Role")
+      .select("project_id")
+      .eq("id_role", latestUserRole.id_rol)
+      .single();
 
-    const { data: roles } = await supabase
+    if (roleError || !roleInfo) {
+      console.error("Error fetching role info for project status update:", roleError);
+      return;
+    }
+
+    const projectId = roleInfo.project_id;
+
+    // 🔁 Obtener todos los roles del proyecto
+    const { data: projectRoles, error: projectRolesError } = await supabase
       .from("Role")
       .select("id_role, project_id, status")
-      .in("id_role", roleIds);
+      .eq("project_id", projectId);
 
-    if (!roles || roles.length === 0) {
-      console.log("No hay roles que procesar.");
+    if (projectRolesError) {
+      console.error("Error fetching all roles for this project:", projectRolesError);
       return;
     }
 
-    const { data: projectData, error: projectError } = await supabase
-      .from("Project")
-      .select("Project_Name, Project_ID")
-      .eq("Project_ID", roles[0].project_id)
-      .single();
-    if (projectError || !projectData) {
-      console.error("Error fetching project:", projectError);
-      return;
-    }
-
-    const projectId = roles[0].project_id;
-
-    // Vuelve a seleccionar los roles de acuerdo al proyecto, para asegurar que obtiene todos los empleados asociados
-    const { data: projectRoles, error: projectRolesError } = await supabase
-       .from("Role")
-       .select("id_role, project_id, status")
-       .eq("project_id", projectId);
-    
-     if (projectRolesError) {
-       console.error("Error fetching all roles for this project:", projectRolesError);
-       return;
-     }
-
-     const { data: historyData } = await supabase
+    const { data: historyData } = await supabase
       .from("User_History")
       .select("user_element_id, FeedBack")
       .eq("project_element_id", projectId);
-    
-     // Filtrar solo roles con status = "filled" del mismo proyecto
-     const staffedRoles = projectRoles.filter(r => r.status === "filled");
-     console.log("staffedRoles (todos los roles 'filled' de este proyecto):", staffedRoles);
-      
-    // Si el estatus es finished
-    if (newStatus === "finished") {
 
-      const usersWithFeedback = historyData.map(history => history.user_element_id);
+    // 🔁 Filtrar roles ocupados
+    const staffedRoles = projectRoles.filter(r => r.status === "filled");
+
+    // Si el estatus es "finished"
+    if (newStatus === "finished") {
+      const usersWithFeedback = historyData.map(h => h.user_element_id);
       const empleadosSinFeedback = employeesAssociated.filter(emp => 
         !usersWithFeedback.includes(emp.id)
       );
@@ -477,17 +469,11 @@ export const Projects = () => {
         window.alert(
           `Cannot update status to finished: there are ${empleadosSinFeedback.length} employee(s) without feedback.`
         );
-
-        console.error(
-          `Cannot upload status to finished: there are ${empleadosSinFeedback.length} empleoyee(s) without feedback.`
-        );
-
+        console.error("Missing feedback for some employees.");
         return;
       }
 
-      // Si el proyecto tiene empleados asignados
       if (staffedRoles.length > 0) {
-
         const staffedRoleIds = staffedRoles.map(r => r.id_role);
 
         const { data: allUserRols, error: allUserRolsError } = await supabase
@@ -500,12 +486,10 @@ export const Projects = () => {
           return;
         }
 
-        // Obtiene todos los userId que necesita cambiar el estado a benched
         const userIdsToBench = allUserRols.map(ur => ur.id_user);
-
         const nowIso = new Date();
 
-        // Actualizar el estado de empleados
+        // 🔁 Actualizar estado de usuarios
         const { error: benchError } = await supabase
           .from("User")
           .update({ Status: "benched", StatusUpdateAt: nowIso })
@@ -513,41 +497,24 @@ export const Projects = () => {
 
         if (benchError) {
           console.error("Error benching users:", benchError);
-        } else {
-          console.log(`Usuarios bencheados: [${userIdsToBench.join(", ")}]`);
+          return;
         }
-
-        const { error } = await supabase
-          .from("Project")
-          .update({ Status: newStatus })
-          .eq("Project_ID", projectId);
-
-        if (error) {
-          console.error("Error updating project status:", error);
-        } else {
-            console.log("Project status updated to:", newStatus);
-
-            setStatus(newStatus);
-            return; 
-          }
-        window.location.reload();
-      }
-    }else{
-      const { error } = await supabase
-        .from("Project")
-        .update({ Status: newStatus })
-        .eq("Project_ID", projectId);
-
-      if (error) {
-        console.error("Error updating project status:", error);
-      } else {
-          console.log("Project status updated to:", newStatus);
-
-          setStatus(newStatus);
-          return; 
       }
     }
 
+    // 🔁 Actualizar status del proyecto
+    const { error: statusError } = await supabase
+      .from("Project")
+      .update({ Status: newStatus })
+      .eq("Project_ID", projectId);
+
+    if (statusError) {
+      console.error("Error updating project status:", statusError);
+    } else {
+      console.log("Project status updated to:", newStatus);
+      setStatus(newStatus);
+      window.location.reload();
+    }
   };
   const handleDownloadCSV = () => {
     const headers = ["Project Name", "Description", "Role", "Start Date", "End Date", "Feedback"];
