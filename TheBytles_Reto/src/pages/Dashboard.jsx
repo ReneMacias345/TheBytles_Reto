@@ -828,11 +828,10 @@ useEffect(() => {
       <div className="mb-6">
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Employees Overview</h2>
 
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
           <DashboardCard title="Total Employees" value={totalEmployees} color="text-gray-800" />
           <DashboardCard title="Benched Employees" value={benchedEmployees} color="text-red-500" />
           <DashboardCard title="Roles Available" value={rolesAvailable} color="text-emerald-500" />
-          <DashboardCard title="Avg. Percentage of Compatibility with Roles" value={avgMatch !== null ? `${avgMatch.toFixed(1)}%` : 'Loading...'} color="text-blue-500"/>
           <DashboardCard title="Avg. Time Spent in Benched" value={averageBenchDays} color="text-yellow-500" />
         </div>
 
@@ -864,11 +863,11 @@ useEffect(() => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-1 mb-4">Projects Overview</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6">
-          <DashboardCard title="Active Projects" value={activeProjects} color="text-purple-600" />
-          <DashboardCard title="Projects Completed in 2025" value={finished2025} color="text-green-600" />
-          <DashboardCard title="Avg. Project Duration" value={`${avgDuration} months`} color="text-cyan-600" />
-          <DashboardCard title="Avg. Members per Project" value={avgMembers} color="text-cyan-600" />
-          <DashboardCard title="Avg. Roles per Project" value={avgRoles} color="text-cyan-600" />
+          <DashboardCard title="Active Projects" value={activeProjects} color="text-gray-800" />
+          <DashboardCard title="Projects Completed in 2025" value={finished2025} color="text-gray-800" />
+          <DashboardCard title="Avg. Project Duration" value={`${avgDuration} months`} color="text-gray-800" />
+          <DashboardCard title="Avg. Members per Project" value={avgMembers} color="text-gray-800" />
+          <DashboardCard title="Avg. Roles per Project" value={avgRoles} color="text-gray-800" />
         </div>
 
 
@@ -895,11 +894,11 @@ useEffect(() => {
         <h2 className="text-lg font-bold text-gray-800 border-b pb-2 mb-4">Learning Progress</h2>
 
         <div className="grid grid-cols-1 md:grid-cols-5 gap-5 mb-6">
-          <DashboardCard title="Total Completed Goals" value={totalGoalsData} color="text-purple-600" />
-          <DashboardCard title="Total Completed Courses" value={totalCoursesData} color="text-blue-500" /> 
-          <DashboardCard title="Total Completed Certifications" value={totalCertData} color="text-orange-500" /> 
-          <DashboardCard title="Recommended Courses Completed" value={totalRecCourseData} color="text-cyan-600" /> 
-          <DashboardCard title="Recommended Certifications Completed" value={totalRecCertData} color="text-purple-700" /> 
+          <DashboardCard title="Total Completed Goals" value={totalGoalsData} color="text-gray-800" />
+          <DashboardCard title="Total Completed Courses" value={totalCoursesData} color="text-gray-800" /> 
+          <DashboardCard title="Total Completed Certifications" value={totalCertData} color="text-gray-800" /> 
+          <DashboardCard title="Recommended Courses Completed" value={totalRecCourseData} color="text-gray-800" /> 
+          <DashboardCard title="Recommended Certifications Completed" value={totalRecCertData} color="text-gray-800" /> 
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
