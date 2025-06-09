@@ -378,7 +378,7 @@ export const Dashboard = () => {
       datasets: [
         {
           data: [staffed, benched],
-          backgroundColor: ["#36A2EB", "#FF6384"],
+          backgroundColor: ["#10B981", "#EF4444"],
         },
       ],
     });
